@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Home() {
   return (
     <div className="flex min-h-screen items-center justify-center ">
@@ -6,12 +8,15 @@ export default function Home() {
           <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight">
             Fhir Flow
           </h1>
-          <p className="max-w-md text-lg leading-8">
+          <p className="max-w-md text-sm leading-6">
             Proyecto de aprendizaje sobre interoperabilidad en salud:
             Implementación de un cliente web para la gestión de pacientes bajo
             el estándar FHIR R4, conectado a un servidor local HAPI mediante
             Docker
           </p>
+          <Link href="/patients" className="text-blue-500 hover:underline">
+            Ir a la gestión de pacientes
+          </Link>
         </div>
       </main>
     </div>
