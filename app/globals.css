@@ -1,19 +1,145 @@
+/*
+  Design tokens (CSS custom properties) + Tailwind `@theme` mappings
+
+  Structure:
+  - Define runtime CSS variables in `:root` using the `--<category>-<name>` convention.
+  - Provide a Tailwind-friendly `@theme {}` block that maps theme keys to `var(--...)` values
+    so Tailwind v4 generates utilities based on these tokens.
+
+  Categories included:
+  - colors: background, foreground, primary (+ hover), muted, border, surface, error, success
+  - typography: font-sans, font-mono (keep `--font-geist-*` references)
+  - radius: sm, md, lg, full
+  - shadows: sm, md
+  - spacing: small scale for layout constants
+
+  Notes:
+  - Keep `--font-geist-sans` and `--font-geist-mono` as the source variables provided
+    by `app/layout.tsx` (Next font loader). `--font-sans`/`--font-mono` reference them.
+  - If your build does not pick up `@theme` values, add a minimal `tailwind.config.*`
+    or switch to the `@tailwind base; @tailwind components; @tailwind utilities;` imports.
+*/
+
 @import "tailwindcss";
 
-
-/* Minimal global styles and variables */
+/* Runtime CSS variables */
 :root {
-  --background: #ffffff;
-  --foreground: #111827; /* higher contrast (gray-900) */
+  /* Colors */
+  --color-background: #ffffff;
+  --color-foreground: #111827; /* gray-900 */
+  --color-primary: #2563eb; /* blue-600 */
+  --color-primary-hover: #1d4ed8; /* blue-700 */
+  --color-muted: #6b7280; /* gray-500 */
+  --color-border: #e5e7eb; /* gray-200 */
+  --color-surface: #ffffff; /* card / surface background */
+  --color-error: #dc2626; /* red-600 */
+  --color-success: #16a34a; /* green-600 */
+
+  /* Typography (preserve Geist font variable references) */
   --font-sans: var(--font-geist-sans, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial);
   --font-mono: var(--font-geist-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New", monospace);
+
+  /* Border radius */
+  --radius-sm: 0.125rem; /* 2px */
+  --radius-md: 0.375rem; /* 6px */
+  --radius-lg: 0.5rem;   /* 8px */
+  --radius-full: 9999px;
+
+  /* Box shadow */
+  --shadow-sm: 0 1px 2px rgba(17,24,39,0.04);
+  --shadow-md: 0 4px 6px rgba(17,24,39,0.08);
+
+  /* Spacing scale (layout tokens) */
+  --space-1: 0.25rem;  /* 4px */
+  --space-2: 0.5rem;   /* 8px */
+  --space-3: 1rem;     /* 16px */
+  --space-4: 1.5rem;   /* 24px */
 }
 
+@theme {
+  --color-background: var(--color-background);
+  --color-foreground: var(--color-foreground);
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-muted: var(--color-muted);
+  --color-border: var(--color-border);
+  --color-surface: var(--color-surface);
+  --color-error: var(--color-error);
+  --color-success: var(--color-success);
+
+  --font-family-sans: var(--font-sans);
+  --font-family-mono: var(--font-mono);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-full: var(--radius-full);
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+}
+
+/* Base document styles referencing tokens */
 html, body {
   height: 100%;
-  background-color: var(--background);
-  color: var(--foreground);
+  background-color: var(--color-background);
+  color: var(--color-foreground);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Mobile-first typographic scale and defaults
+   - Base font-size: 15px on mobile, scales to 16px at `sm` (640px)
+   - Headings and text elements defined in @layer base so Tailwind/authoring
+     respects the typographic defaults.
+*/
+@layer base {
+  /* Base font size */
+  body {
+    font-size: 15px;
+  }
+
+  /* Increase base font on small screens and up */
+  @media (min-width: 640px) {
+    body {
+      font-size: 16px;
+    }
+  }
+
+  /* Headings: mobile first, scale on md */
+  h1, h2, h3 {
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-weight: 600;
+    letter-spacing: -0.02em; /* tight tracking */
+    margin: 0;
+    line-height: 1.1;
+  }
+
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.25rem; }
+  h3 { font-size: 1rem; }
+
+  @media (min-width: 768px) {
+    h1 { font-size: 2.25rem; }
+    h2 { font-size: 1.5rem; }
+    h3 { font-size: 1.125rem; }
+  }
+
+  /* Paragraphs, labels, small text */
+  p, label {
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-size: inherit;
+    line-height: 1.6;
+    margin: 0 0 1rem 0;
+  }
+
+  small {
+    color: var(--color-muted);
+    font-family: var(--font-sans);
+    line-height: 1.4;
+    font-size: 0.875rem;
+  }
 }
