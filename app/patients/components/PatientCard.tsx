@@ -1,4 +1,8 @@
 import type { Patient } from "../../../domain/patient";
+import {
+  computeAgeFromBirthDate,
+  translateGenderToSpanish,
+} from "../../../lib/patient/formatters";
 
 /**
  * Presentational card for a single Patient domain model.
@@ -16,8 +20,12 @@ export default function PatientCard({ patient }: { patient: Patient }) {
           <p className="text-sm text-gray-500">ID: {patient.identifier}</p>
         </div>
         <div className="text-sm text-gray-600 text-right">
-          <div>{patient.birthDate ?? ""}</div>
-          <div className="capitalize">{patient.gender ?? "unknown"}</div>
+          <div>
+            {computeAgeFromBirthDate(patient.birthDate) ??
+              patient.birthDate ??
+              ""}
+          </div>
+          <div>{translateGenderToSpanish(patient.gender)}</div>
         </div>
       </div>
 
