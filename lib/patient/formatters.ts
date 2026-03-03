@@ -60,11 +60,13 @@ export function formatDeceased(
     if (typeof deceased === "string" && deceased.trim() !== "") {
         const d = new Date(deceased);
         if (!isNaN(d.getTime())) {
-            // idioma español, formato largo
+            // Force UTC timezone to avoid off-by-one-day errors when the
+            // date string has no time component (parsed as UTC midnight).
             const formatter = new Intl.DateTimeFormat("es-ES", {
                 year: "numeric",
                 month: "long",
                 day: "numeric",
+                timeZone: "UTC",
             });
             return `Fallecido/a el ${formatter.format(d)}`;
         }
@@ -105,6 +107,22 @@ export function formatContactName(
 
     if (parts.length === 0) return "Sin nombre";
     return parts.join(" ");
+}
+
+/**
+ * Format a patient's full name for display. Trims and joins given/family
+ * parts; falls back to "Sin nombre" when both are blank.
+ *
+ * Patient names and contact names share the same `{ given, family }` shape
+ * today, but are semantically distinct: patient names may later incorporate
+ * prefixes (Dr./Dra.) or suffixes. Keeping a dedicated export avoids
+ * confusion at the call-site and isolates any future patient-specific
+ * formatting to a single place.
+ */
+export function formatPatientName(
+    name?: { given: string; family: string }
+): string {
+    return formatContactName(name);
 }
 
 /**

@@ -1,5 +1,6 @@
 import React from "react";
 import type { Patient } from "../../../../domain/patient";
+import { SectionCard } from "./SectionCard";
 import { formatAddress } from "../../../../lib/patient/formatters";
 
 interface Props {
@@ -15,8 +16,7 @@ export const PatientContactSection: React.FC<Props> = ({ patient }) => {
     : undefined;
 
   return (
-    <section className="p-4 bg-surface rounded shadow mb-4">
-      <h2 className="text-lg font-semibold mb-2">Contacto</h2>
+    <SectionCard title="Contacto">
       <p className="text-sm">
         <span className="font-medium">Teléfono:</span> {phone}
       </p>
@@ -31,12 +31,12 @@ export const PatientContactSection: React.FC<Props> = ({ patient }) => {
             href={mapsLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="ml-2 text-blue-600 underline text-xs"
+            className="ml-2 text-primary underline text-xs"
           >
             Ver en Maps
           </a>
         )}
       </p>
-    </section>
+    </SectionCard>
   );
 };

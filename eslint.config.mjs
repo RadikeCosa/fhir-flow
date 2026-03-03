@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Legacy/deprecated code kept for reference only — not part of the active app.
+    "_legacy/**",
   ]),
 ]);
 
