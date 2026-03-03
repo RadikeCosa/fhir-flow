@@ -37,6 +37,43 @@ export interface Patient {
     };
 
     /**
+     * Marital status represented as a simple string. Mappers should
+     * translate from FHIR (e.g. "married", "single", "widowed") but
+     * the domain itself makes no assumptions about possible values.
+     */
+    maritalStatus?: string;
+
+    /**
+     * Indicates whether the patient is deceased. For flexibility the
+     * value may be a boolean `true`/`false` or a string containing an
+     * ISO date (e.g. date of death).
+     */
+    deceased?: boolean | string;
+
+    /**
+     * Emergency or caregiver contacts. Each entry contains simple fields
+     * that the UI needs; there is no deep FHIR structure here.
+     */
+    contact?: Array<{
+        name: {
+            given: string;
+            family: string;
+        };
+        relationship?: string;
+        phone?: string;
+        email?: string;
+    }>;
+
+    /**
+     * References to the patient's general practitioners. Only the
+     * identifier and display name are stored in the domain.
+     */
+    generalPractitioner?: Array<{
+        id: string;
+        display: string;
+    }>;
+
+    /**
      * Normalized birth date as an ISO date string in `YYYY-MM-DD` form.
      * This field is optional when unknown — mappers must normalize raw
      * input (timestamps, partial dates, etc.) to this format before
@@ -59,11 +96,15 @@ export interface Patient {
     /**
      * Optional postal address. `line` is an array of address lines to better
      * represent multi-line addresses while remaining simple and UI-friendly.
+     *
+     * A `postalCode` field has been added for UI convenience; like other
+     * subfields it is optional when unknown.
      */
     address?: {
         line: string[];
         city: string;
         country: string;
+        postalCode?: string;
     };
 
     /** Whether the patient record is active */

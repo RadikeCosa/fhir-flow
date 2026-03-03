@@ -35,6 +35,48 @@ export const addressSchema = z
         line: z.array(z.string()).optional(),
         city: z.string().optional(),
         country: z.string().optional(),
+        postalCode: z.string().optional(),
+    })
+    .passthrough();
+
+// supporting simple coding structure used in several places
+export const codingSchema = z
+    .object({
+        code: z.string().optional(),
+        display: z.string().optional(),
+    })
+    .passthrough();
+
+// maritalStatus field on Patient resource
+export const maritalStatusSchema = z
+    .object({
+        coding: z.array(codingSchema).optional(),
+        text: z.string().optional(),
+    })
+    .passthrough();
+
+// relationship element inside contact
+export const relationshipSchema = z
+    .object({
+        coding: z.array(codingSchema).optional(),
+        text: z.string().optional(),
+    })
+    .passthrough();
+
+// contact entry for emergency/caregiver info
+export const contactSchema = z
+    .object({
+        relationship: z.array(relationshipSchema).optional(),
+        name: humanNameSchema.optional(),
+        telecom: z.array(telecomSchema).optional(),
+    })
+    .passthrough();
+
+// general practitioner reference
+export const generalPractitionerSchema = z
+    .object({
+        reference: z.string().optional(),
+        display: z.string().optional(),
     })
     .passthrough();
 
@@ -54,6 +96,11 @@ export const fhirPatientSchema = z
         gender: z.enum(["male", "female", "other", "unknown"]).optional().catch(undefined),
         telecom: z.array(telecomSchema).optional(),
         address: z.array(addressSchema).optional(),
+        maritalStatus: maritalStatusSchema.optional(),
+        deceasedBoolean: z.boolean().optional(),
+        deceasedDateTime: z.string().optional(),
+        contact: z.array(contactSchema).optional(),
+        generalPractitioner: z.array(generalPractitionerSchema).optional(),
     })
     .passthrough();
 
