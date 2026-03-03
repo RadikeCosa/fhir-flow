@@ -7,13 +7,13 @@ import { PatientEmergencyContactSection } from "../components/detail/PatientEmer
 import { PatientPractitionerSection } from "../components/detail/PatientPractitionerSection";
 
 type Props = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 export default async function Page({ params }: Props) {
-  const id = params?.id;
+  const { id } = await params;
   if (!id) {
     // Redirect back to the list rather than rendering a confusing message.
     redirect("/patients");
