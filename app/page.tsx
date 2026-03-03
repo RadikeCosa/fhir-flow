@@ -2,23 +2,23 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center ">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 sm:items-start">
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight">
-            Fhir Flow
-          </h1>
-          <p className="max-w-md text-sm leading-6">
-            Proyecto de aprendizaje sobre interoperabilidad en salud:
-            Implementación de un cliente web para la gestión de pacientes bajo
-            el estándar FHIR R4, conectado a un servidor local HAPI mediante
-            Docker
-          </p>
-          <Link href="/patients" className="text-blue-500 hover:underline">
-            Ir a la gestión de pacientes
-          </Link>
-        </div>
-      </main>
+    <div className="w-full max-w-2xl mx-auto py-12 px-4 md:px-0">
+      <div className="flex flex-col gap-6">
+        <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight">
+          Fhir Flow
+        </h1>
+        <p className="max-w-md text-sm leading-6">
+          Proyecto de aprendizaje sobre interoperabilidad en salud:
+          Implementación de un cliente web para la gestión de pacientes bajo el
+          estándar FHIR R4, conectado a un servidor local HAPI mediante Docker
+        </p>
+        <Link
+          href="/patients"
+          className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary-hover underline-offset-4 hover:underline transition-colors duration-150"
+        >
+          Ir a la gestión de pacientes
+        </Link>
+      </div>
     </div>
   );
 }

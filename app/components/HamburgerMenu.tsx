@@ -16,6 +16,7 @@ export default function HamburgerMenu(): React.JSX.Element {
       <button
         onClick={() => setOpen((s) => !s)}
         aria-expanded={open}
+        aria-controls="mobile-menu"
         aria-label="Toggle menu"
         className="p-2"
       >
@@ -27,7 +28,12 @@ export default function HamburgerMenu(): React.JSX.Element {
       </button>
 
       {open && (
-        <nav className="absolute top-full right-0 min-w-40 bg-surface border border-border shadow-md rounded-md py-2 z-50">
+        <nav
+          id="mobile-menu"
+          role="navigation"
+          aria-label="Menú móvil"
+          className="absolute top-full right-0 min-w-40 bg-surface border border-border shadow-md rounded-md py-2 z-50"
+        >
           {LINKS.map((l) => {
             const isActive = pathname === l.href;
             return (

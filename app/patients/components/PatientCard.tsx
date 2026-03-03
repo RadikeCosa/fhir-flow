@@ -1,8 +1,6 @@
 import type { Patient } from "../../../domain/patient";
-import {
-  computeAgeFromBirthDate,
-  translateGenderToSpanish,
-} from "../../../lib/patient/formatters";
+// TODO: patient.address not yet in domain model – address rendering
+// is conditional below and safe if the field is absent.
 
 /**
  * Presentational card for a single Patient domain model.
@@ -12,27 +10,36 @@ import {
 export default function PatientCard({ patient }: { patient: Patient }) {
   const fullName = `${patient.name.given}${patient.name.family ? " " + patient.name.family : ""}`;
 
+  // build address string if available
+  const addressDisplay = patient.address
+    ? [
+        ...(patient.address.line || []),
+        patient.address.city,
+        patient.address.country,
+      ]
+        .filter(Boolean)
+        .join(", ")
+    : "";
+
   return (
-    <div className="border rounded p-4 bg-white shadow-sm">
-      <div className="flex justify-between items-start">
-        <div>
-          <h3 className="text-lg font-medium">{fullName || "—"}</h3>
-          <p className="text-sm text-gray-500">ID: {patient.identifier}</p>
-        </div>
-        <div className="text-sm text-gray-600 text-right">
-          <div>
-            {computeAgeFromBirthDate(patient.birthDate) ??
-              patient.birthDate ??
-              ""}
-          </div>
-          <div>{translateGenderToSpanish(patient.gender)}</div>
-        </div>
+    <article
+      aria-label={`Paciente: ${fullName || "—"}`}
+      className="w-full bg-surface border border-border rounded-lg shadow-sm hover:shadow-md transition-all duration-150 p-4 md:p-5"
+    >
+      <div>
+        <h3 className="text-base font-semibold text-foreground">
+          {fullName || "—"}
+        </h3>
       </div>
 
-      <div className="mt-3 text-sm text-gray-700">
-        {patient.phone && <div>Phone: {patient.phone}</div>}
-        {patient.email && <div>Email: {patient.email}</div>}
+      <div className="flex flex-wrap gap-x-6 gap-y-1 mt-2 text-sm text-muted">
+        {patient.phone && (
+          <div className="flex items-center gap-1">Tel: {patient.phone}</div>
+        )}
+        {addressDisplay && (
+          <div className="flex items-center gap-1">Dir: {addressDisplay}</div>
+        )}
       </div>
-    </div>
+    </article>
   );
 }

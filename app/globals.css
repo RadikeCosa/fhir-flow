@@ -56,7 +56,7 @@
   --space-4: 1.5rem;   /* 24px */
 }
 
-@theme {
+@theme inline {
   --color-background: var(--color-background);
   --color-foreground: var(--color-foreground);
   --color-primary: var(--color-primary);
@@ -141,5 +141,17 @@ html, body {
     font-family: var(--font-sans);
     line-height: 1.4;
     font-size: 0.875rem;
+  }
+
+  /* focus ring consistency across the app */
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Remove default outline only when focus-visible is supported */
+  :focus:not(:focus-visible) {
+    outline: none;
   }
 }

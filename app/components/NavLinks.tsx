@@ -17,17 +17,22 @@ export default function NavLinks({
   const pathname = usePathname() || "/";
 
   return (
-    <nav className="hidden md:flex gap-6">
+    <nav
+      role="navigation"
+      aria-label="Navegación principal"
+      className="hidden md:flex gap-6"
+    >
       {links.map((l) => {
         const isActive = pathname === l.href;
         return (
           <Link
             key={l.href}
             href={l.href}
+            aria-current={isActive ? "page" : undefined}
             className={`transition-colors duration-150 ${
               isActive
-                ? "text-[var(--color-primary)] font-semibold"
-                : "text-[var(--color-muted)] hover:text-[var(--color-foreground)]"
+                ? "text-primary font-semibold"
+                : "text-muted hover:text-foreground"
             }`}
           >
             {l.label}
