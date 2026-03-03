@@ -31,11 +31,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} text-base antialiased`}
       >
         <Header />
-        <main
-          id="main-content"
-          className="pt-14 md:pt-16 px-4 md:px-6 min-h-screen"
-        >
-          {children}
+        <main id="main-content" className="pt-14 md:pt-16 min-h-screen">
+          <div className="max-w-5xl mx-auto px-4 md:px-6 py-6 md:py-8">
+            {children}
+          </div>
         </main>
         <Footer />
       </body>

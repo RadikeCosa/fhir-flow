@@ -16,7 +16,7 @@ export default function PatientList({ items }: { items: Patient[] }) {
       role="region"
       aria-label="Lista de pacientes"
       aria-live="polite"
-      className="w-full"
+      className="w-full pt-2"
     >
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-foreground">Pacientes</h2>
