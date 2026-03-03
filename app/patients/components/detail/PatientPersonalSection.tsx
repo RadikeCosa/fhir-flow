@@ -1,10 +1,12 @@
 import React from "react";
 import type { Patient } from "../../../../domain/patient";
+import { SectionCard } from "./SectionCard";
 import {
   computeAgeFromBirthDate,
   translateGenderToSpanish,
   formatMaritalStatus,
   formatDeceased,
+  formatPatientName,
 } from "../../../../lib/patient/formatters";
 
 interface Props {
@@ -12,10 +14,8 @@ interface Props {
 }
 
 export const PatientPersonalSection: React.FC<Props> = ({ patient }) => {
-  const fullName =
-    `${patient.name.given || ""} ${patient.name.family || ""}`.trim() ||
-    "Sin nombre";
-  const birthDate = patient.birthDate || "No registrado";
+  const fullName = formatPatientName(patient.name);
+  const birthDate = patient.birthDate ?? "No registrado";
   const age = computeAgeFromBirthDate(patient.birthDate);
   const gender = translateGenderToSpanish(patient.gender);
   const marital = formatMaritalStatus(patient.maritalStatus);
@@ -23,8 +23,7 @@ export const PatientPersonalSection: React.FC<Props> = ({ patient }) => {
   const statusLabel = deceasedLabel ?? (patient.active ? "Activo" : "Inactivo");
 
   return (
-    <section className="p-4 bg-surface rounded shadow mb-4">
-      <h2 className="text-lg font-semibold mb-2">Información personal</h2>
+    <SectionCard title="Información personal">
       <p className="text-sm">
         <span className="font-medium">Nombre:</span> {fullName}
       </p>
@@ -45,6 +44,6 @@ export const PatientPersonalSection: React.FC<Props> = ({ patient }) => {
       <p className="text-sm">
         <span className="font-medium">Estado:</span> {statusLabel}
       </p>
-    </section>
+    </SectionCard>
   );
 };

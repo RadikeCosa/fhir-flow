@@ -41,9 +41,9 @@ export default async function Page({ params }: Props) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-6 px-4">
+    <>
       <div className="mb-4">
-        <Link href="/patients" className="text-sm text-muted">
+        <Link href="/patients" className="text-sm text-primary">
           ← Volver
         </Link>
       </div>
@@ -56,6 +56,6 @@ export default async function Page({ params }: Props) {
           practitioners={patient.generalPractitioner}
         />
       </div>
-    </div>
+    </>
   );
 }
