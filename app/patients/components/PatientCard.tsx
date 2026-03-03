@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Patient } from "../../../domain/patient";
 // TODO: patient.address not yet in domain model – address rendering
 // is conditional below and safe if the field is absent.
@@ -9,6 +10,10 @@ import type { Patient } from "../../../domain/patient";
  */
 export default function PatientCard({ patient }: { patient: Patient }) {
   const fullName = `${patient.name.given}${patient.name.family ? " " + patient.name.family : ""}`;
+  // guard against missing id which would lead to a broken link & confusing
+  // navigation; this should never happen but the runtime check avoids
+  // client-side errors when data is malformed.
+  const hasValidId = typeof patient.id === "string" && patient.id.trim() !== "";
 
   // build address string if available
   const addressDisplay = patient.address
@@ -21,25 +26,55 @@ export default function PatientCard({ patient }: { patient: Patient }) {
         .join(", ")
     : "";
 
-  return (
-    <article
-      aria-label={`Paciente: ${fullName || "—"}`}
-      className="w-full bg-surface border border-border rounded-lg shadow-sm hover:shadow-md transition-all duration-150 p-4 md:p-5"
-    >
-      <div>
-        <h3 className="text-base font-semibold text-foreground">
-          {fullName || "—"}
-        </h3>
-      </div>
+  if (!hasValidId) {
+    console.warn(
+      "PatientCard received patient with invalid id, disabling navigation",
+      patient,
+    );
+    return (
+      <article
+        aria-label={`Paciente: ${fullName || "—"}`}
+        className="w-full bg-surface border border-border rounded-lg shadow-sm transition-all duration-150 p-4 md:p-5"
+      >
+        <div>
+          <h3 className="text-base font-semibold text-foreground">
+            {fullName || "—"}
+          </h3>
+        </div>
 
-      <div className="flex flex-wrap gap-x-6 gap-y-1 mt-2 text-sm text-muted">
-        {patient.phone && (
-          <div className="flex items-center gap-1">Tel: {patient.phone}</div>
-        )}
-        {addressDisplay && (
-          <div className="flex items-center gap-1">Dir: {addressDisplay}</div>
-        )}
-      </div>
-    </article>
+        <div className="flex flex-wrap gap-x-6 gap-y-1 mt-2 text-sm text-muted">
+          {patient.phone && (
+            <div className="flex items-center gap-1">Tel: {patient.phone}</div>
+          )}
+          {addressDisplay && (
+            <div className="flex items-center gap-1">Dir: {addressDisplay}</div>
+          )}
+        </div>
+      </article>
+    );
+  }
+
+  return (
+    <Link href={`/patients/${patient.id}`}>
+      <article
+        aria-label={`Paciente: ${fullName || "—"}`}
+        className="w-full bg-surface border border-border rounded-lg shadow-sm hover:shadow-md transition-all duration-150 p-4 md:p-5 cursor-pointer"
+      >
+        <div>
+          <h3 className="text-base font-semibold text-foreground">
+            {fullName || "—"}
+          </h3>
+        </div>
+
+        <div className="flex flex-wrap gap-x-6 gap-y-1 mt-2 text-sm text-muted">
+          {patient.phone && (
+            <div className="flex items-center gap-1">Tel: {patient.phone}</div>
+          )}
+          {addressDisplay && (
+            <div className="flex items-center gap-1">Dir: {addressDisplay}</div>
+          )}
+        </div>
+      </article>
+    </Link>
   );
 }

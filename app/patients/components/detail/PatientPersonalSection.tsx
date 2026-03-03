@@ -23,7 +23,7 @@ export const PatientPersonalSection: React.FC<Props> = ({ patient }) => {
   const statusLabel = deceasedLabel ?? (patient.active ? "Activo" : "Inactivo");
 
   return (
-    <section className="p-4 bg-white rounded shadow mb-4">
+    <section className="p-4 bg-surface rounded shadow mb-4">
       <h2 className="text-lg font-semibold mb-2">Información personal</h2>
       <p className="text-sm">
         <span className="font-medium">Nombre:</span> {fullName}

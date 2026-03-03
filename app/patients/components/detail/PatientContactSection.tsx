@@ -15,7 +15,7 @@ export const PatientContactSection: React.FC<Props> = ({ patient }) => {
     : undefined;
 
   return (
-    <section className="p-4 bg-white rounded shadow mb-4">
+    <section className="p-4 bg-surface rounded shadow mb-4">
       <h2 className="text-lg font-semibold mb-2">Contacto</h2>
       <p className="text-sm">
         <span className="font-medium">Teléfono:</span> {phone}

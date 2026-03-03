@@ -11,7 +11,17 @@ import { createPatientRepository } from "../../infrastructure/fhir/patient.facto
 export default async function Page() {
   const repo = createPatientRepository();
   const result = await repo.findMany();
-  const items = result.items ?? [];
+  // guard against any malformed records coming from the repository. In
+  // practice this should never happen thanks to our mapper/schema, but a
+  // defensive filter ensures we never render cards that would navigate to
+  // an invalid detail URL.
+  const items = (result.items ?? []).filter((p) => {
+    const ok = typeof p.id === "string" && p.id.trim() !== "";
+    if (!ok) {
+      console.warn("Dropping patient without valid id from list", p);
+    }
+    return ok;
+  });
 
   return <PatientList items={items} />;
 }

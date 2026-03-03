@@ -1,14 +1,9 @@
 import React from "react";
+import type { Patient } from "../../../../domain/patient";
 import { formatContactName } from "../../../../lib/patient/formatters";
 
-interface Contact {
-  name: { given: string; family: string };
-  relationship?: string;
-  phone?: string;
-}
-
 interface Props {
-  contacts?: Contact[];
+  contacts?: Patient["contact"];
 }
 
 export const PatientEmergencyContactSection: React.FC<Props> = ({
@@ -16,7 +11,7 @@ export const PatientEmergencyContactSection: React.FC<Props> = ({
 }) => {
   if (!Array.isArray(contacts) || contacts.length === 0) {
     return (
-      <section className="p-4 bg-white rounded shadow mb-4">
+      <section className="p-4 bg-surface rounded shadow mb-4">
         <h2 className="text-lg font-semibold mb-2">Contacto de emergencia</h2>
         <p className="text-sm">Sin contactos registrados</p>
       </section>
@@ -24,7 +19,7 @@ export const PatientEmergencyContactSection: React.FC<Props> = ({
   }
 
   return (
-    <section className="p-4 bg-white rounded shadow mb-4">
+    <section className="p-4 bg-surface rounded shadow mb-4">
       <h2 className="text-lg font-semibold mb-2">Contacto de emergencia</h2>
       <ul className="space-y-2">
         {contacts.map((c, idx) => (
