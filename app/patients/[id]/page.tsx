@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createPatientRepository } from "../../../infrastructure/fhir/patient.factory";
+import { createEpisodeOfCareRepository } from "../../../infrastructure/fhir/episode-of-care.factory";
 import { PatientPersonalSection } from "../components/detail/PatientPersonalSection";
 import { PatientContactSection } from "../components/detail/PatientContactSection";
 import { PatientEmergencyContactSection } from "../components/detail/PatientEmergencyContactSection";
 import { PatientPractitionerSection } from "../components/detail/PatientPractitionerSection";
+import { EpisodeOfCareSection } from "../components/detail/EpisodeOfCareSection";
 
 type Props = {
   params: Promise<{
@@ -19,8 +21,14 @@ export default async function Page({ params }: Props) {
     redirect("/patients");
   }
 
-  const repo = createPatientRepository();
-  const patient = await repo.findById(id);
+  const patientRepo = createPatientRepository();
+  const episodeRepo = createEpisodeOfCareRepository();
+
+  const [patient, episodes] = await Promise.all([
+    patientRepo.findById(id),
+    // fetch all episodes concurrently; page will render them if present
+    episodeRepo.findAllByPatientId(id),
+  ]);
 
   if (!patient) {
     return (
@@ -49,12 +57,15 @@ export default async function Page({ params }: Props) {
       </div>
 
       <div className="grid grid-cols-1 gap-4">
-        <PatientPersonalSection patient={patient} />
-        <PatientContactSection patient={patient} />
-        <PatientEmergencyContactSection contacts={patient.contact} />
-        <PatientPractitionerSection
-          practitioners={patient.generalPractitioner}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <PatientPersonalSection patient={patient} />
+          <PatientContactSection patient={patient} />
+          <PatientEmergencyContactSection contacts={patient.contact} />
+          <PatientPractitionerSection
+            practitioners={patient.generalPractitioner}
+          />
+        </div>
+        <EpisodeOfCareSection episodes={episodes} />
       </div>
     </>
   );

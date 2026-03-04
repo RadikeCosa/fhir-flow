@@ -6,7 +6,7 @@
 #
 #   pac-1  Ricardo Fort
 #          Episodio activo (motora - ACV)
-#          Con cobertura (OSPEPBA) + con derivación médica
+#          Con cobertura (OSPEPBA) + con derivación médica (Dr. Favaloro)
 #          → caso completo
 #
 #   pac-2  Elena Rodríguez
@@ -16,15 +16,16 @@
 #
 #   pac-3  Omar Méndez
 #          Episodio planned (respiratoria - EPOC)
-#          Sin cobertura formal (particular) + con derivación
-#          → caso sin coverage + estado planned
+#          Cobertura particular + con derivación (Dra. Sosa)
+#          → caso particular + estado planned
 #
-# ORDEN DE EJECUCIÓN:
+# ORDEN DE EJECUCIÓN (respetar el orden — cada recurso referencia al anterior):
 #   1. Practitioners
 #   2. Patients
 #   3. Conditions
 #   4. Coverages
-#   5. EpisodesOfCare
+#   5. ServiceRequests   ← necesarios para que EpisodeOfCare.referralRequest sea válido
+#   6. EpisodesOfCare
 #
 # Todos los recursos usan PUT con ID explícito para que las referencias
 # entre recursos sean predecibles sin depender de IDs generados por HAPI.
@@ -35,7 +36,7 @@
 # 1. PRACTITIONERS
 # =============================================================================
 
-### Kinesiólogo — Lic. Martín García
+### Kinesiólogo — Lic. Marty McFly
 ### Es el usuario de la app. Aparece como careManager en todos los episodios.
 PUT http://localhost:8080/fhir/Practitioner/kine-1
 Content-Type: application/fhir+json
@@ -45,11 +46,11 @@ Content-Type: application/fhir+json
   "id": "kine-1",
   "active": true,
   "name": [
-    { "use": "official", "family": "García", "given": ["Martín", "Alejandro"] }
+    { "use": "official", "family": "McFly", "given": ["Marty", "Alejandro"] }
   ],
   "telecom": [
     { "system": "phone", "value": "+54 299 154-112233", "use": "mobile" },
-    { "system": "email", "value": "martin.garcia@kinesiologia-domiciliaria.local", "use": "work" }
+    { "system": "email", "value": "marty.mcfly@kinesiologia-domiciliaria.local", "use": "work" }
   ],
   "address": [
     {
@@ -66,7 +67,10 @@ Content-Type: application/fhir+json
   "qualification": [
     {
       "identifier": [
-        { "system": "http://www.colegio-kinesio-neuquen.org.ar/matricula", "value": "MP-2847" }
+        {
+          "system": "https://salud.neuquen.gob.ar/matricula-profesional",
+          "value": "MP-90009"
+        }
       ],
       "code": {
         "coding": [
@@ -75,12 +79,14 @@ Content-Type: application/fhir+json
         "text": "Licenciado en Kinesiología y Fisiatría"
       },
       "period": { "start": "2010-03-15" },
-      "issuer": { "display": "Universidad Nacional del Comahue" }
+      "issuer": { "display": "Universidad Nacional de Neuquén" }
     }
   ]
 }
 
-### Médico 1 — Dr. René Favaloro (Cardiólogo)
+###
+
+### Médico 1 — Dr. Roque Favaloro (Cardiólogo)
 ### Médico de cabecera de Ricardo Fort. Derivó el episodio de ACV.
 PUT http://localhost:8080/fhir/Practitioner/medico-1
 Content-Type: application/fhir+json
@@ -90,17 +96,20 @@ Content-Type: application/fhir+json
   "id": "medico-1",
   "active": true,
   "name": [
-    { "use": "official", "family": "Favaloro", "given": ["René", "Gerónimo"] }
+    { "use": "official", "family": "Favaloro", "given": ["Roque", "Gerónimo"] }
   ],
   "telecom": [
-    { "system": "email", "value": "rene.favaloro@hospital.org", "use": "work" },
+    { "system": "email", "value": "roque.favaloro@hospital.org", "use": "work" },
     { "system": "phone", "value": "+54 299 442-1100", "use": "work" }
   ],
   "gender": "male",
   "qualification": [
     {
       "identifier": [
-        { "system": "http://www.colegio-medico-neuquen.org.ar/matricula", "value": "MN-14732" }
+        {
+          "system": "https://salud.neuquen.gob.ar/matricula-profesional",
+          "value": "MN-14732"
+        }
       ],
       "code": {
         "coding": [
@@ -113,8 +122,10 @@ Content-Type: application/fhir+json
   ]
 }
 
+###
+
 ### Médico 2 — Dra. Marta Sosa (Traumatóloga)
-### Médico de cabecera de Rodríguez y Méndez. Derivó el episodio respiratorio de Méndez.
+### Médico de cabecera de Rodríguez y Méndez. Derivó el episodio de Méndez.
 PUT http://localhost:8080/fhir/Practitioner/medico-2
 Content-Type: application/fhir+json
 
@@ -133,7 +144,10 @@ Content-Type: application/fhir+json
   "qualification": [
     {
       "identifier": [
-        { "system": "http://www.colegio-medico-neuquen.org.ar/matricula", "value": "MN-22190" }
+        {
+          "system": "https://salud.neuquen.gob.ar/matricula-profesional",
+          "value": "MN-22190"
+        }
       ],
       "code": {
         "coding": [
@@ -212,9 +226,11 @@ Content-Type: application/fhir+json
     }
   ],
   "generalPractitioner": [
-    { "reference": "Practitioner/medico-1", "display": "Dr. René Favaloro" }
+    { "reference": "Practitioner/medico-1", "display": "Dr. Roque Favaloro" }
   ]
 }
+
+###
 
 ### Paciente 2 — Elena Rodríguez
 ### Mujer, 34 años. Post-op reconstrucción LCA rodilla derecha.
@@ -281,9 +297,11 @@ Content-Type: application/fhir+json
   ]
 }
 
+###
+
 ### Paciente 3 — Omar Méndez
 ### Hombre, 71 años. EPOC con insuficiencia respiratoria.
-### Episodio en estado planned. Sin cobertura formal, paga particular.
+### Episodio en estado planned. Paga particular.
 PUT http://localhost:8080/fhir/Patient/pac-3
 Content-Type: application/fhir+json
 
@@ -398,14 +416,16 @@ Content-Type: application/fhir+json
   "subject": { "reference": "Patient/pac-1", "display": "Ricardo Fort" },
   "onsetDateTime": "2024-12-15",
   "recordedDate": "2025-01-03",
-  "recorder": { "reference": "Practitioner/kine-1", "display": "Lic. Martín García" },
-  "asserter": { "reference": "Practitioner/medico-1", "display": "Dr. René Favaloro" },
+  "recorder": { "reference": "Practitioner/kine-1", "display": "Lic. Marty McFly" },
+  "asserter": { "reference": "Practitioner/medico-1", "display": "Dr. Roque Favaloro" },
   "note": [
     {
       "text": "Hemiparesia izquierda post-ACV. Paciente con movilidad reducida en miembro superior e inferior izquierdo. Objetivos: recuperación de marcha funcional y movilidad en AVD."
     }
   ]
 }
+
+###
 
 ### Condition 2 — Post-op reconstrucción LCA rodilla derecha (Rodríguez)
 PUT http://localhost:8080/fhir/Condition/cond-2
@@ -454,7 +474,7 @@ Content-Type: application/fhir+json
   "subject": { "reference": "Patient/pac-2", "display": "Elena Rodríguez" },
   "onsetDateTime": "2025-01-10",
   "recordedDate": "2025-01-13",
-  "recorder": { "reference": "Practitioner/kine-1", "display": "Lic. Martín García" },
+  "recorder": { "reference": "Practitioner/kine-1", "display": "Lic. Marty McFly" },
   "asserter": { "reference": "Practitioner/medico-2", "display": "Dra. Marta Sosa" },
   "note": [
     {
@@ -462,6 +482,8 @@ Content-Type: application/fhir+json
     }
   ]
 }
+
+###
 
 ### Condition 3 — EPOC con exacerbación aguda (Méndez)
 PUT http://localhost:8080/fhir/Condition/cond-3
@@ -510,7 +532,7 @@ Content-Type: application/fhir+json
   "subject": { "reference": "Patient/pac-3", "display": "Omar Méndez" },
   "onsetDateTime": "2018-06-01",
   "recordedDate": "2025-01-20",
-  "recorder": { "reference": "Practitioner/kine-1", "display": "Lic. Martín García" },
+  "recorder": { "reference": "Practitioner/kine-1", "display": "Lic. Marty McFly" },
   "asserter": { "reference": "Practitioner/medico-2", "display": "Dra. Marta Sosa" },
   "note": [
     {
@@ -576,6 +598,8 @@ Content-Type: application/fhir+json
   ]
 }
 
+###
+
 ### Coverage 2 — OSDE Plan 210 (Rodríguez)
 PUT http://localhost:8080/fhir/Coverage/cov-2
 Content-Type: application/fhir+json
@@ -628,16 +652,199 @@ Content-Type: application/fhir+json
   ]
 }
 
-# pac-3 Méndez no tiene Coverage — paga particular.
-# El repositorio debe tolerar este caso devolviendo coverage: undefined.
+###
+
+### Coverage 3 — Particular (Méndez)
+### El paciente es su propio pagador. Sin plan ni número de afiliado formal.
+PUT http://localhost:8080/fhir/Coverage/cov-3
+Content-Type: application/fhir+json
+
+{
+  "resourceType": "Coverage",
+  "id": "cov-3",
+  "status": "active",
+  "type": {
+    "coding": [
+      { "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode", "code": "SELF", "display": "self pay" }
+    ],
+    "text": "Particular"
+  },
+  "subscriber": { "reference": "Patient/pac-3", "display": "Omar Méndez" },
+  "subscriberId": "08765432",
+  "beneficiary": { "reference": "Patient/pac-3", "display": "Omar Méndez" },
+  "relationship": {
+    "coding": [
+      { "system": "http://terminology.hl7.org/CodeSystem/subscriber-relationship", "code": "self", "display": "Self" }
+    ]
+  },
+  "period": { "start": "2025-01-20" },
+  "payor": [
+    { "reference": "Patient/pac-3", "display": "Omar Méndez" }
+  ],
+  "order": 1
+}
 
 
 # =============================================================================
-# 5. EPISODES OF CARE
+# 5. SERVICE REQUESTS
+# Solo para pacientes con derivación médica (Fort y Méndez).
+# Rodríguez llamó directo — no tiene ServiceRequest.
+# Estos recursos son requeridos por FHIR R4 para que EpisodeOfCare.referralRequest
+# sea una referencia válida. No se modelan en la app todavía.
+# =============================================================================
+
+### ServiceRequest 1 — Derivación de Favaloro para Fort (rehabilitación motora post-ACV)
+PUT http://localhost:8080/fhir/ServiceRequest/sr-1
+Content-Type: application/fhir+json
+
+{
+  "resourceType": "ServiceRequest",
+  "id": "sr-1",
+  "status": "active",
+  "intent": "order",
+  "category": [
+    {
+      "coding": [
+        { "system": "http://snomed.info/sct", "code": "91251008", "display": "Physical therapy procedure" }
+      ],
+      "text": "Kinesiología domiciliaria"
+    }
+  ],
+  "priority": "routine",
+  "code": {
+    "coding": [
+      { "system": "http://snomed.info/sct", "code": "229070002", "display": "Physiotherapy of upper limb" }
+    ],
+    "text": "Rehabilitación kinesiológica domiciliaria"
+  },
+  "subject": { "reference": "Patient/pac-1", "display": "Ricardo Fort" },
+  "authoredOn": "2025-01-02",
+  "requester": { "reference": "Practitioner/medico-1", "display": "Dr. Roque Favaloro" },
+  "performer": [
+    { "reference": "Practitioner/kine-1", "display": "Lic. Marty McFly" }
+  ],
+  "reasonCode": [
+    {
+      "coding": [
+        { "system": "http://snomed.info/sct", "code": "26544005", "display": "Muscle weakness" }
+      ],
+      "text": "Debilidad muscular e incapacidad para la marcha por hemiparesia izquierda post-ACV"
+    }
+  ],
+  "reasonReference": [
+    { "reference": "Condition/cond-1", "display": "ACV isquémico - hemiparesia izquierda" }
+  ],
+  "note": [
+    {
+      "text": "Iniciar rehabilitación motora de miembro superior e inferior izquierdo. Frecuencia sugerida: 3 veces por semana. Objetivo: recuperación de marcha funcional."
+    }
+  ]
+}
+
+###
+### ServiceRequest 2 — Solicitud de la propia paciente Rodríguez (sin derivación médica)
+PUT http://localhost:8080/fhir/ServiceRequest/sr-2
+Content-Type: application/fhir+json
+
+{
+  "resourceType": "ServiceRequest",
+  "id": "sr-2",
+  "status": "active",
+  "intent": "proposal",
+  "category": [
+    {
+      "coding": [
+        { "system": "http://snomed.info/sct", "code": "91251008", "display": "Physical therapy procedure" }
+      ],
+      "text": "Kinesiología domiciliaria"
+    }
+  ],
+  "priority": "routine",
+  "code": {
+    "coding": [
+      { "system": "http://snomed.info/sct", "code": "91251008", "display": "Physical therapy procedure" }
+    ],
+    "text": "Rehabilitación kinesiológica domiciliaria post-quirúrgica"
+  },
+  "subject": { "reference": "Patient/pac-2", "display": "Elena Rodríguez" },
+  "authoredOn": "2025-01-11",
+  "requester": { "reference": "Patient/pac-2", "display": "Elena Rodríguez" },
+  "performer": [
+    { "reference": "Practitioner/kine-1", "display": "Lic. Marty McFly" }
+  ],
+  "reasonCode": [
+    {
+      "coding": [
+        { "system": "http://snomed.info/sct", "code": "57773001", "display": "Limitation of joint movement" }
+      ],
+      "text": "Limitación de movilidad y fuerza en rodilla derecha post-operatoria"
+    }
+  ],
+  "reasonReference": [
+    { "reference": "Condition/cond-2", "display": "Post-op reconstrucción LCA rodilla derecha" }
+  ],
+  "note": [
+    {
+      "text": "Paciente solicita rehabilitación domiciliaria por indicación verbal del cirujano al alta. Sin orden escrita formal."
+    }
+  ]
+}
+
+###
+
+### ServiceRequest 3 — Derivación de Sosa para Méndez (antes sr-2, ahora sr-3)
+PUT http://localhost:8080/fhir/ServiceRequest/sr-3
+Content-Type: application/fhir+json
+
+{
+  "resourceType": "ServiceRequest",
+  "id": "sr-3",
+  "status": "active",
+  "intent": "order",
+  "category": [
+    {
+      "coding": [
+        { "system": "http://snomed.info/sct", "code": "91251008", "display": "Physical therapy procedure" }
+      ],
+      "text": "Kinesiología domiciliaria"
+    }
+  ],
+  "priority": "routine",
+  "code": {
+    "coding": [
+      { "system": "http://snomed.info/sct", "code": "229306004", "display": "Pulmonary rehabilitation" }
+    ],
+    "text": "Kinesioterapia respiratoria domiciliaria"
+  },
+  "subject": { "reference": "Patient/pac-3", "display": "Omar Méndez" },
+  "authoredOn": "2025-01-19",
+  "requester": { "reference": "Practitioner/medico-2", "display": "Dra. Marta Sosa" },
+  "performer": [
+    { "reference": "Practitioner/kine-1", "display": "Lic. Marty McFly" }
+  ],
+  "reasonCode": [
+    {
+      "coding": [
+        { "system": "http://snomed.info/sct", "code": "230145002", "display": "Difficulty breathing" }
+      ],
+      "text": "Insuficiencia respiratoria y limitación funcional por EPOC estadio III"
+    }
+  ],
+  "reasonReference": [
+    { "reference": "Condition/cond-3", "display": "EPOC con exacerbación aguda" }
+  ],
+  "note": [
+    {
+      "text": "Iniciar kinesioterapia respiratoria domiciliaria: drenaje postural, reeducación respiratoria y entrenamiento de músculos accesorios. Frecuencia: 3 veces por semana."
+    }
+  ]
+}
+# =============================================================================
+# 6. EPISODES OF CARE
 # =============================================================================
 
 ### EpisodeOfCare 1 — Fort, rehabilitación motora post-ACV
-### status: active | type: motora | con derivación | con cobertura
+### status: active | type: motora | con derivación (sr-1) | con cobertura (cov-1)
 PUT http://localhost:8080/fhir/EpisodeOfCare/ep-1
 Content-Type: application/fhir+json
 
@@ -675,13 +882,11 @@ Content-Type: application/fhir+json
   "managingOrganization": { "display": "Servicio de Kinesiología Domiciliaria Neuquén" },
   "period": { "start": "2025-01-06" },
   "referralRequest": [
-    { "reference": "Practitioner/medico-1", "display": "Dr. René Favaloro" }
+    { "reference": "ServiceRequest/sr-1" }
   ],
-  "careManager": { "reference": "Practitioner/kine-1", "display": "Lic. Martín García" }
+  "careManager": { "reference": "Practitioner/kine-1", "display": "Lic. Marty McFly" }
 }
-
-### EpisodeOfCare 2 — Rodríguez, rehabilitación motora post-op LCA
-### status: active | type: motora | SIN derivación | con cobertura
+### EpisodeOfCare 2 — actualizar referralRequest a sr-2
 PUT http://localhost:8080/fhir/EpisodeOfCare/ep-2
 Content-Type: application/fhir+json
 
@@ -718,11 +923,15 @@ Content-Type: application/fhir+json
   "patient": { "reference": "Patient/pac-2", "display": "Elena Rodríguez" },
   "managingOrganization": { "display": "Servicio de Kinesiología Domiciliaria Neuquén" },
   "period": { "start": "2025-01-13" },
-  "careManager": { "reference": "Practitioner/kine-1", "display": "Lic. Martín García" }
+  "referralRequest": [
+    { "reference": "ServiceRequest/sr-2" }
+  ],
+  "careManager": { "reference": "Practitioner/kine-1", "display": "Lic. Marty McFly" }
 }
 
-### EpisodeOfCare 3 — Méndez, rehabilitación respiratoria post-internación
-### status: planned | type: respiratoria | con derivación | SIN cobertura
+###
+
+### EpisodeOfCare 3 — actualizar referralRequest a sr-3
 PUT http://localhost:8080/fhir/EpisodeOfCare/ep-3
 Content-Type: application/fhir+json
 
@@ -746,24 +955,17 @@ Content-Type: application/fhir+json
   ],
   "diagnosis": [
     {
-      "condition": { "reference": "Condition/cond-3", "display": "EPOC con exacerbación aguda" },
-      "role": {
-        "coding": [
-          { "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role", "code": "CC", "display": "Chief Complaint" }
-        ]
-      },
-      "rank": 1
+      "condition": { "reference": "Condition/cond-3", "display": "EPOC con exacerbación aguda" }
     }
   ],
   "patient": { "reference": "Patient/pac-3", "display": "Omar Méndez" },
   "managingOrganization": { "display": "Servicio de Kinesiología Domiciliaria Neuquén" },
   "period": { "start": "2025-01-22" },
   "referralRequest": [
-    { "reference": "Practitioner/medico-2", "display": "Dra. Marta Sosa" }
+    { "reference": "ServiceRequest/sr-3" }
   ],
-  "careManager": { "reference": "Practitioner/kine-1", "display": "Lic. Martín García" }
+  "careManager": { "reference": "Practitioner/kine-1", "display": "Lic. Marty McFly" }
 }
-
 
 # =============================================================================
 # VERIFICACIÓN
@@ -773,26 +975,38 @@ Content-Type: application/fhir+json
 GET http://localhost:8080/fhir/Patient
 Accept: application/fhir+json
 
+###
+
 ### Episodio activo de Fort con Condition incluida
 GET http://localhost:8080/fhir/EpisodeOfCare?patient=pac-1&status=active&_include=EpisodeOfCare:condition
 Accept: application/fhir+json
+
+###
 
 ### Episodio activo de Rodríguez con Condition incluida
 GET http://localhost:8080/fhir/EpisodeOfCare?patient=pac-2&status=active&_include=EpisodeOfCare:condition
 Accept: application/fhir+json
 
+###
+
 ### Episodio planned de Méndez con Condition incluida
 GET http://localhost:8080/fhir/EpisodeOfCare?patient=pac-3&_include=EpisodeOfCare:condition
 Accept: application/fhir+json
+
+###
 
 ### Cobertura de Fort
 GET http://localhost:8080/fhir/Coverage?patient=pac-1&status=active
 Accept: application/fhir+json
 
+###
+
 ### Cobertura de Rodríguez
 GET http://localhost:8080/fhir/Coverage?patient=pac-2&status=active
 Accept: application/fhir+json
 
-### Verificar que Méndez no tiene cobertura (debe devolver Bundle vacío)
-GET http://localhost:8080/fhir/Coverage?patient=pac-3
+###
+
+### Cobertura particular de Méndez
+GET http://localhost:8080/fhir/Coverage?patient=pac-3&status=active
 Accept: application/fhir+json

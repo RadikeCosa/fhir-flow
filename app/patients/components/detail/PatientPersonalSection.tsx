@@ -24,26 +24,30 @@ export const PatientPersonalSection: React.FC<Props> = ({ patient }) => {
 
   return (
     <SectionCard title="Información personal">
-      <p className="text-sm">
-        <span className="font-medium">Nombre:</span> {fullName}
-      </p>
-      <p className="text-sm">
-        <span className="font-medium">DNI:</span>{" "}
-        {patient.identifier || "No registrado"}
-      </p>
-      <p className="text-sm">
-        <span className="font-medium">Nacimiento:</span> {birthDate}
-        {age && ` (${age})`}
-      </p>
-      <p className="text-sm">
-        <span className="font-medium">Género:</span> {gender}
-      </p>
-      <p className="text-sm">
-        <span className="font-medium">Estado civil:</span> {marital}
-      </p>
-      <p className="text-sm">
-        <span className="font-medium">Estado:</span> {statusLabel}
-      </p>
+      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+        <dt className="text-xs text-muted font-medium">Nombre:</dt>
+        <dd className="text-sm text-foreground">{fullName}</dd>
+
+        <dt className="text-xs text-muted font-medium">DNI:</dt>
+        <dd className="text-sm text-foreground">
+          {patient.identifier || "No registrado"}
+        </dd>
+
+        <dt className="text-xs text-muted font-medium">Nacimiento:</dt>
+        <dd className="text-sm text-foreground">
+          {birthDate}
+          {age && ` (${age})`}
+        </dd>
+
+        <dt className="text-xs text-muted font-medium">Género:</dt>
+        <dd className="text-sm text-foreground">{gender}</dd>
+
+        <dt className="text-xs text-muted font-medium">Estado civil:</dt>
+        <dd className="text-sm text-foreground">{marital}</dd>
+
+        <dt className="text-xs text-muted font-medium">Estado:</dt>
+        <dd className="text-sm text-foreground">{statusLabel}</dd>
+      </dl>
     </SectionCard>
   );
 };

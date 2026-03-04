@@ -13,8 +13,10 @@ interface SectionCardProps {
  */
 export function SectionCard({ title, children }: SectionCardProps) {
   return (
-    <section className="p-4 bg-surface border border-border rounded-lg shadow-sm">
-      <h2 className="text-lg font-semibold mb-2">{title}</h2>
+    <section className="p-3 bg-surface border border-border rounded-lg shadow-sm">
+      <h2 className="text-xs font-semibold uppercase tracking-wide text-muted mb-2">
+        {title}
+      </h2>
       {children}
     </section>
   );

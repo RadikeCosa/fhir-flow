@@ -13,7 +13,7 @@ export const PatientEmergencyContactSection: React.FC<Props> = ({
   return (
     <SectionCard title="Contacto de emergencia">
       {!Array.isArray(contacts) || contacts.length === 0 ? (
-        <p className="text-sm">Sin contactos registrados</p>
+        <p className="text-xs text-muted italic">Sin registros</p>
       ) : (
         <ul className="space-y-2">
           {contacts.map((c, idx) => (

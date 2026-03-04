@@ -17,26 +17,28 @@ export const PatientContactSection: React.FC<Props> = ({ patient }) => {
 
   return (
     <SectionCard title="Contacto">
-      <p className="text-sm">
-        <span className="font-medium">Teléfono:</span> {phone}
-      </p>
-      <p className="text-sm">
-        <span className="font-medium">Email:</span> {email}
-      </p>
-      <p className="text-sm">
-        <span className="font-medium">Dirección:</span>{" "}
-        {address || "No registrada"}
-        {mapsLink && (
-          <a
-            href={mapsLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="ml-2 text-primary underline text-xs"
-          >
-            Ver en Maps
-          </a>
-        )}
-      </p>
+      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+        <dt className="text-xs text-muted font-medium">Teléfono:</dt>
+        <dd className="text-sm text-foreground">{phone}</dd>
+
+        <dt className="text-xs text-muted font-medium">Email:</dt>
+        <dd className="text-sm text-foreground">{email}</dd>
+
+        <dt className="text-xs text-muted font-medium">Dirección:</dt>
+        <dd className="text-sm text-foreground">
+          {address || "No registrada"}
+          {mapsLink && (
+            <a
+              href={mapsLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-2 text-primary underline text-xs"
+            >
+              Ver en Maps
+            </a>
+          )}
+        </dd>
+      </dl>
     </SectionCard>
   );
 };

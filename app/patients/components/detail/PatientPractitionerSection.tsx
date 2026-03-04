@@ -16,7 +16,7 @@ export const PatientPractitionerSection: React.FC<Props> = ({
   return (
     <SectionCard title="Médico">
       {!Array.isArray(practitioners) || practitioners.length === 0 ? (
-        <p className="text-sm">Sin médico asignado</p>
+        <p className="text-xs text-muted italic">Sin registros</p>
       ) : (
         <ul className="space-y-1 text-sm">
           {practitioners.map((p) => (
