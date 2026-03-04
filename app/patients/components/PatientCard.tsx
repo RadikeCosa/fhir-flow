@@ -1,7 +1,22 @@
 import Link from "next/link";
 import type { Patient } from "../../../domain/patient";
-// TODO: patient.address not yet in domain model – address rendering
-// is conditional below and safe if the field is absent.
+
+/**
+ * Thrown when a patient cannot be rendered due to missing/invalid data.
+ *
+ * Placing this error in the same module keeps the component self-contained
+ * for this small app; if additional domain errors arise we could relocate to
+ * a shared `errors` module.
+ */
+export class PatientRenderError extends Error {
+  patient: Patient;
+
+  constructor(message: string, patient: Patient) {
+    super(message);
+    this.name = "PatientRenderError";
+    this.patient = patient;
+  }
+}
 
 /**
  * Presentational card for a single Patient domain model.
@@ -27,30 +42,13 @@ export default function PatientCard({ patient }: { patient: Patient }) {
     : "";
 
   if (!hasValidId) {
-    console.warn(
-      "PatientCard received patient with invalid id, disabling navigation",
+    // according to project rules we must not rely on console logging for
+    // error handling. An invalid id at render time indicates a serious data
+    // integrity problem that should surface as an exception so that higher
+    // layers can decide how to react (error boundary, logging system, etc.).
+    throw new PatientRenderError(
+      "PatientCard rendered with invalid or empty id",
       patient,
-    );
-    return (
-      <article
-        aria-label={`Paciente: ${fullName || "—"}`}
-        className="w-full bg-surface border border-border rounded-lg shadow-sm transition-all duration-150 p-4 md:p-5"
-      >
-        <div>
-          <h3 className="text-base font-semibold text-foreground">
-            {fullName || "—"}
-          </h3>
-        </div>
-
-        <div className="flex flex-wrap gap-x-6 gap-y-1 mt-2 text-sm text-muted">
-          {patient.phone && (
-            <div className="flex items-center gap-1">Tel: {patient.phone}</div>
-          )}
-          {addressDisplay && (
-            <div className="flex items-center gap-1">Dir: {addressDisplay}</div>
-          )}
-        </div>
-      </article>
     );
   }
 

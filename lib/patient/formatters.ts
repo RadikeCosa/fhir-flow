@@ -77,18 +77,35 @@ export function formatDeceased(
  * Simple marital status translator.
  */
 export function formatMaritalStatus(status?: string): string {
-    switch (status) {
+    // The FHIR v3-MaritalStatus ValueSet (see https://terminology.hl7.org/3.1.0/ValueSet-v3-MaritalStatus.html)
+    // contains both English words and one-letter codes. A HAPI server may return
+    // either form or even free text with arbitrary casing, so we normalize input
+    // and handle both possibilities. Unknown values fall back to "Desconocido".
+    if (!status || typeof status !== "string") return "Desconocido";
+    const key = status.trim().toLowerCase();
+
+    switch (key) {
         case "married":
+        case "m":
             return "Casado/a";
         case "single":
+        case "s":
             return "Soltero/a";
         case "widowed":
+        case "w":
             return "Viudo/a";
         case "divorced":
+        case "d":
             return "Divorciado/a";
         case "separated":
-            return "Separado/a";
+        case "l":
+            return "Separado/a legalmente";
+        case "t":
+            return "Pareja de hecho";
+        case "u":
+            return "Desconocido";
         default:
+            // any other text (free-text or unrecognized code)
             return "Desconocido";
     }
 }

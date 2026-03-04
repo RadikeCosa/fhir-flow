@@ -17,9 +17,10 @@ export default async function Page() {
   // an invalid detail URL.
   const items = (result.items ?? []).filter((p) => {
     const ok = typeof p.id === "string" && p.id.trim() !== "";
-    if (!ok) {
-      console.warn("Dropping patient without valid id from list", p);
-    }
+    // invalid ids are simply excluded; the mapper/schema should prevent this
+    // but we can't risk rendering a card that would produce a broken link.
+    // console logging is prohibited as an error handling mechanism per project
+    // rules, so we document the rationale here instead of emitting a warning.
     return ok;
   });
 
