@@ -143,10 +143,15 @@ export function formatPatientName(
 }
 
 /**
- * Build a printable address string suitable for display or Maps queries.
+ * Format a patient's postal address for UI display.
+ *
+ * The output always includes the primary address line and city.  Postal
+ * code is prefixed with "CP" when present.  Province and country are
+ * deliberately omitted because every patient lives in Neuquén, Argentina
+ * and including them would only add noise.
  */
 export function formatAddress(
-    address?: { line: string[]; city: string; country: string; postalCode?: string }
+    address?: { line: string[]; city: string; state?: string; postalCode?: string; country?: string }
 ): string {
     if (!address) return "";
 
@@ -156,7 +161,30 @@ export function formatAddress(
     }
     if (address.city) parts.push(address.city);
     if (address.postalCode) parts.push(`CP ${address.postalCode}`);
-    if (address.country) parts.push(address.country);
 
     return parts.join(", ");
+}
+
+/**
+ * Build a full address string for Google Maps geocoding.
+ * Unlike formatAddress (UI display), this version includes province
+ * and country for accurate geocoding resolution.
+ * Province and country are hardcoded — all patients are from Neuquén, Argentina.
+ */
+export function formatAddressForGeocoding(
+    address?: { line: string[]; city: string }
+): string {
+    if (!address) return "";
+
+    const segments: string[] = [];
+    if (Array.isArray(address.line) && address.line.length > 0) {
+        const joined = address.line.filter((l) => l.trim() !== "").join(", ");
+        if (joined) segments.push(joined);
+    }
+    if (address.city) segments.push(address.city);
+
+    // fixed province and country
+    segments.push("Neuquén", "Argentina");
+
+    return segments.filter((s) => s && s.trim() !== "").join(", ");
 }

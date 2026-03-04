@@ -85,7 +85,7 @@ function pickTelecom(
 
 function pickAddress(
     addresses?: FhirPatientResource["address"]
-): { line: string[]; city: string; country: string; postalCode?: string } | undefined {
+): { line: string[]; city: string; state?: string; country: string; postalCode?: string } | undefined {
     if (!Array.isArray(addresses) || addresses.length === 0) return;
 
     const preferred =
@@ -113,7 +113,10 @@ function pickAddress(
             ? preferred.postalCode
             : undefined;
 
-    return { line, city, country, postalCode };
+    const state =
+        typeof preferred.state === "string" ? preferred.state : undefined;
+
+    return { line, city, state, country, postalCode };
 }
 
 /** ---------- MaritalStatus ---------- */

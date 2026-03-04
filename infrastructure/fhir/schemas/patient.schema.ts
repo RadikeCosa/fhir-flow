@@ -35,6 +35,7 @@ export const addressSchema = z
         line: z.array(z.string()).optional(),
         city: z.string().optional(),
         country: z.string().optional(),
+        state: z.string().optional(),
         postalCode: z.string().optional(),
     })
     .passthrough();

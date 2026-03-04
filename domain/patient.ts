@@ -103,8 +103,9 @@ export interface Patient {
     address?: {
         line: string[];
         city: string;
-        country: string;
+        state?: string;
         postalCode?: string;
+        country: string;
     };
 
     /** Whether the patient record is active */
