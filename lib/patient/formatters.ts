@@ -34,17 +34,39 @@ export function computeAgeFromBirthDate(birthDate?: string, now: Date = new Date
     return age === 1 ? `${age} año` : `${age} años`;
 }
 
-export function translateGenderToSpanish(g?: string): string {
-    switch (g) {
-        case "male":
-            return "masculino";
-        case "female":
-            return "femenino";
-        case "other":
-            return "otro";
-        default:
-            return "desconocido";
+/**
+ * Traduce el género codificado en un recurso Patient a español y capitaliza
+ * la primera letra. Si el valor es desconocido o no está presente, devuelve
+ * una cadena vacía.
+ */
+export function formatGenderToSpanish(g?: string): string {
+    if (!g || typeof g !== "string") {
+        return "";
     }
+
+    const key = g.toLowerCase().trim();
+
+    let translated: string;
+    switch (key) {
+        case "male":
+            translated = "masculino";
+            break;
+        case "female":
+            translated = "femenino";
+            break;
+        case "other":
+            translated = "otro";
+            break;
+        case "unknown":
+            translated = "desconocido";
+            break;
+        default:
+            // cualquier valor inesperado se devuelve tal cual, capitalizado
+            translated = key;
+    }
+
+    // capitaliza la primera letra y deja el resto como está
+    return translated.charAt(0).toUpperCase() + translated.slice(1);
 }
 
 /**
@@ -71,6 +93,7 @@ export function formatDeceased(
             return `Fallecido/a el ${formatter.format(d)}`;
         }
     }
+    return undefined;
 }
 
 /**
@@ -85,6 +108,7 @@ export function formatMaritalStatus(status?: string): string {
     const key = status.trim().toLowerCase();
 
     switch (key) {
+        // --- English codes and values ------------------------------------------------
         case "married":
         case "m":
             return "Casado/a";
@@ -104,6 +128,39 @@ export function formatMaritalStatus(status?: string): string {
             return "Pareja de hecho";
         case "u":
             return "Desconocido";
+
+        // --- Spanish text -------------------------------------------------------------
+        case "casado":
+        case "casada":
+            return "Casado/a";
+        case "soltero":
+        case "soltera":
+            return "Soltero/a";
+        case "viudo":
+        case "viuda":
+            return "Viudo/a";
+        case "divorciado":
+        case "divorciada":
+            return "Divorciado/a";
+        case "separado":
+        case "separada":
+            return "Separado/a legalmente";
+        case "pareja de hecho":
+        case "union libre":
+            return "Pareja de hecho";
+        case "soltero/a":
+            return "Soltero/a";
+        case "casado/a":
+            return "Casado/a";
+        case "viudo/a":
+            return "Viudo/a";
+        case "divorciado/a":
+            return "Divorciado/a";
+        case "separado/a legalmente":
+            return "Separado/a legalmente";
+        case "pareja de hecho":
+            return "Pareja de hecho";
+
         default:
             // any other text (free-text or unrecognized code)
             return "Desconocido";
@@ -114,12 +171,16 @@ export function formatMaritalStatus(status?: string): string {
  * Combine given and family names for display. Falls back when missing.
  */
 export function formatContactName(
-    name?: { given: string; family: string }
+    name?: { given: string | string[]; family: string }
 ): string {
     if (!name) return "Sin nombre";
 
+    const givenStr = Array.isArray(name.given)
+        ? name.given.join(" ")
+        : name.given ?? "";
+
     const parts: string[] = [];
-    if (name.given && name.given.trim() !== "") parts.push(name.given.trim());
+    if (givenStr.trim() !== "") parts.push(givenStr.trim());
     if (name.family && name.family.trim() !== "") parts.push(name.family.trim());
 
     if (parts.length === 0) return "Sin nombre";
@@ -137,7 +198,7 @@ export function formatContactName(
  * formatting to a single place.
  */
 export function formatPatientName(
-    name?: { given: string; family: string }
+    name?: { given: string | string[]; family: string }
 ): string {
     return formatContactName(name);
 }
@@ -165,6 +226,86 @@ export function formatAddress(
     return parts.join(", ");
 }
 
+// -----------------------------------------------------------------------------
+// Episode-related presentation helpers
+// -----------------------------------------------------------------------------
+
+/**
+ * Result type for functions that produce a labelled badge.
+ */
+export interface BadgeInfo {
+    label: string;
+    // Tailwind CSS classes to apply to the badge span
+    colorClass: string;
+}
+
+/**
+ * Format an ISO date string into "DD/MM/YYYY" for display.  Returns undefined
+ * if the input is missing or invalid.
+ */
+export function formatDate(date?: string): string | undefined {
+    if (!date) return undefined;
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return undefined;
+    // timeZone: "UTC" is intentional — date-only strings (no time component)
+    // are parsed as UTC midnight; without this, local offsets (e.g. UTC-3)
+    // would shift the displayed date back by one day.
+    const formatter = new Intl.DateTimeFormat("es-AR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        timeZone: "UTC",
+    });
+    return formatter.format(d);
+}
+
+/**
+ * Translate an EpisodeStatus into a badge suitable for display in the UI.
+ * Spanish labels and light/dark colour choices are provided.
+ */
+export function translateEpisodeStatus(status: string | undefined): BadgeInfo {
+    switch (status) {
+        case "planned":
+            return { label: "Planificado", colorClass: "bg-blue-100 text-blue-800" };
+        case "waitlist":
+            return { label: "En espera", colorClass: "bg-yellow-100 text-yellow-800" };
+        case "active":
+            return { label: "Activo", colorClass: "bg-green-100 text-green-800" };
+        case "onhold":
+            return { label: "En pausa", colorClass: "bg-orange-100 text-orange-800" };
+        case "finished":
+            return { label: "Finalizado", colorClass: "bg-gray-100 text-gray-800" };
+        case "cancelled":
+            return { label: "Cancelado", colorClass: "bg-red-100 text-red-800" };
+        default:
+            return { label: "Desconocido", colorClass: "bg-gray-100 text-gray-800" };
+    }
+}
+
+/**
+ * Produce a badge for a condition severity string.  The mapping is loose; any
+ * text containing "moder" → naranja, "sever" / "alto" → rojo, "leve" →
+ * verde, else gris.
+ */
+export function getSeverityBadge(sev?: string): BadgeInfo {
+    if (!sev || sev.trim() === "") {
+        return { label: "No registrada", colorClass: "bg-gray-100 text-gray-800" };
+    }
+
+    const lower = sev.toLowerCase();
+    if (lower.includes("moder")) {
+        return { label: "Moderada", colorClass: "bg-yellow-100 text-yellow-800" };
+    }
+    if (lower.includes("alto") || lower.includes("sever")) {
+        return { label: "Severa", colorClass: "bg-red-100 text-red-800" };
+    }
+    if (lower.includes("leve") || lower.includes("mild")) {
+        return { label: "Leve", colorClass: "bg-green-100 text-green-800" };
+    }
+    // fallback
+    return { label: sev, colorClass: "bg-gray-100 text-gray-800" };
+}
+
 /**
  * Build a full address string for Google Maps geocoding.
  * Unlike formatAddress (UI display), this version includes province
@@ -187,4 +328,16 @@ export function formatAddressForGeocoding(
     segments.push("Neuquén", "Argentina");
 
     return segments.filter((s) => s && s.trim() !== "").join(", ");
+}
+
+/**
+ * Convierte el valor de `EpisodeType` a un texto adecuado para mostrar en la
+ * UI. El comportamiento actual es capitalizar sólo la primera letra,
+ * dejando el resto en minúsculas; se mantiene aún independiente de CSS para
+ * facilitar cambios futuros (traducciones, sinónimos, etc.).
+ */
+export function formatEpisodeType(type?: string): string {
+    if (!type || typeof type !== "string") return "";
+    const lower = type.toLowerCase();
+    return lower[0].toUpperCase() + lower.slice(1);
 }

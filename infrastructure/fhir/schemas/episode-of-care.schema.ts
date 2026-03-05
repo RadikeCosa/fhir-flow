@@ -7,6 +7,7 @@ import { z } from "zod";
 // simple coding structure with display and code
 export const codingSchema = z
     .object({
+        system: z.string().optional(),
         code: z.string().optional(),
         display: z.string().optional(),
     })

@@ -36,6 +36,12 @@ export type EpisodeType =
 export interface EpisodeCondition {
     code: string; // ICD-10 or similar
     description: string;
+    /**
+     * Optional human-readable name of the coding system that produced `code`.
+     * For example "ICD-10" or "SNOMED".  This value is derived from the
+     * FHIR `coding.system` URI and is used purely for display purposes.
+     */
+    codeSystem?: string;
     bodySite?: string;
     severity?: string;
     onsetDate?: string;

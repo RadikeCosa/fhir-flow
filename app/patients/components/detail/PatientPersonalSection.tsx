@@ -3,7 +3,7 @@ import type { Patient } from "../../../../domain/patient";
 import { SectionCard } from "./SectionCard";
 import {
   computeAgeFromBirthDate,
-  translateGenderToSpanish,
+  formatGenderToSpanish,
   formatMaritalStatus,
   formatDeceased,
   formatPatientName,
@@ -17,7 +17,7 @@ export const PatientPersonalSection: React.FC<Props> = ({ patient }) => {
   const fullName = formatPatientName(patient.name);
   const birthDate = patient.birthDate ?? "No registrado";
   const age = computeAgeFromBirthDate(patient.birthDate);
-  const gender = translateGenderToSpanish(patient.gender);
+  const gender = formatGenderToSpanish(patient.gender);
   const marital = formatMaritalStatus(patient.maritalStatus);
   const deceasedLabel = formatDeceased(patient.deceased);
   const statusLabel = deceasedLabel ?? (patient.active ? "Activo" : "Inactivo");

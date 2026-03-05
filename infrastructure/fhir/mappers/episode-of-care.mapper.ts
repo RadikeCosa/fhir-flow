@@ -69,6 +69,33 @@ function pickIdentifier(
 /**
  * Convert a FHIR Condition resource into our domain representation.
  */
+
+/**
+ * Derive a human‑friendly system name from a FHIR coding.system URI.  We
+ * don't need perfect accuracy; the goal is to render something legible in the
+ * UI like "ICD-10" or "SNOMED".  If the URI is unrecognised we fall back to
+ * the last path segment uppercased or the raw URI.
+ */
+function mapCodeSystem(system?: string): string | undefined {
+    if (!system) return undefined;
+    const lower = system.toLowerCase();
+    if (lower.includes("icd-10")) return "ICD-10";
+    if (lower.includes("snomed")) return "SNOMED";
+    if (lower.includes("loinc")) return "LOINC";
+    if (lower.includes("rxnorm")) return "RxNorm";
+    // try extracting the last segment after '/'
+    const parts = system.split("/");
+    const last = parts[parts.length - 1];
+    if (last && last !== system) return last.toUpperCase();
+    return system;
+}
+
+
+// The returned `description` is taken verbatim from the FHIR Condition's
+// coding display or text.  If the bundle or server stores the text in
+// English (as seen in the seed data), the UI will show English.  To change
+// the language the resource must be created/updated with a different value;
+// the mapper does not perform any translation.
 function mapCondition(cond: FhirCondition): EpisodeCondition {
     const code =
         Array.isArray(cond.code?.coding) && cond.code.coding[0]?.code
@@ -79,9 +106,15 @@ function mapCondition(cond: FhirCondition): EpisodeCondition {
         cond.code?.text ||
         "";
 
+    const codeSystem =
+        Array.isArray(cond.code?.coding) && cond.code.coding[0]?.system
+            ? mapCodeSystem(cond.code.coding[0].system)
+            : undefined;
+
     return {
         code,
         description,
+        codeSystem,
         bodySite: Array.isArray(cond.bodySite) && cond.bodySite[0]?.text ? cond.bodySite[0].text : undefined,
         severity: cond.severity?.text,
         onsetDate: cond.onsetDateTime,
