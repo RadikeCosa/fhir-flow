@@ -65,13 +65,13 @@ export const EpisodeOfCareSection: React.FC<Props> = ({ episodes }) => {
               <span>{episode.condition.description}</span>
 
               {episode.condition.code && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-border text-foreground">
                   {episode.condition.code}
                 </span>
               )}
 
               {episode.condition.codeSystem && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-200 text-gray-800">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-border text-foreground">
                   {episode.condition.codeSystem}
                 </span>
               )}

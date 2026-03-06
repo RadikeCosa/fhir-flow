@@ -27,8 +27,6 @@ export type PatientFilters = {
     identifier?: string;
 };
 
-/** Backwards-compatible alias for existing name — preserved for callers. */
-export type PatientSearchParams = PatientFilters;
 
 /** Unified query object grouping filters and pagination.
  *

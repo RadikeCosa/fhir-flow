@@ -21,6 +21,14 @@ export type EpisodeStatus =
  * Broad categorisation of the episode.  Keywords are matched in the mapper from
  * FHIR display/text values; the domain does not care about the exact FHIR
  * coding.
+ *
+ * NOTE: This is an intentionally **closed set** reflecting the specific
+ * clinical context of the application (home hospitalization managed by a
+ * physiotherapist).  Only these four types are currently supported.  If the
+ * business later requires additional episode types, the new values must be
+ * added here and the FHIR mapper updated accordingly to handle them.  This
+ * helps keep the domain model predictable and avoids leaking unexpected
+ * values into the application.
  */
 export type EpisodeType =
     | "motora"
