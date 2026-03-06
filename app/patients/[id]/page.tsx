@@ -2,11 +2,13 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createPatientRepository } from "../../../infrastructure/fhir/patient.factory";
 import { createEpisodeOfCareRepository } from "../../../infrastructure/fhir/episode-of-care.factory";
+import { createVitalSignRecordRepository } from "../../../infrastructure/fhir/vital-sign-record.factory";
 import { PatientPersonalSection } from "../components/detail/PatientPersonalSection";
 import { PatientContactSection } from "../components/detail/PatientContactSection";
 import { PatientEmergencyContactSection } from "../components/detail/PatientEmergencyContactSection";
 import { PatientPractitionerSection } from "../components/detail/PatientPractitionerSection";
 import { EpisodeOfCareSection } from "../components/detail/EpisodeOfCareSection";
+import { VitalSignsSection } from "../components/detail/VitalSignsSection";
 
 type Props = {
   params: Promise<{
@@ -23,12 +25,16 @@ export default async function Page({ params }: Props) {
 
   const patientRepo = createPatientRepository();
   const episodeRepo = createEpisodeOfCareRepository();
+  const vitalRepo = createVitalSignRecordRepository();
 
-  const [patient, episodes] = await Promise.all([
+  const [patient, episodes, vitalSigns] = await Promise.all([
     patientRepo.findById(id),
     // fetch all episodes concurrently; page will render them if present
     episodeRepo.findAllByPatientId(id),
+    vitalRepo.findAllByPatientId(id),
   ]);
+
+  const latestVitalSigns = vitalSigns.length > 0 ? vitalSigns[0] : null;
 
   if (!patient) {
     return (
@@ -64,6 +70,7 @@ export default async function Page({ params }: Props) {
           <PatientPractitionerSection
             practitioners={patient.generalPractitioner}
           />
+          <VitalSignsSection record={latestVitalSigns} />
         </div>
         <EpisodeOfCareSection episodes={episodes} />
       </div>
