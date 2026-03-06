@@ -11,9 +11,13 @@ import {
 
 interface Props {
   patient: Patient;
+  practitioners?: Array<{ id: string; display: string }>;
 }
 
-export const PatientPersonalSection: React.FC<Props> = ({ patient }) => {
+export const PatientPersonalSection: React.FC<Props> = ({
+  patient,
+  practitioners,
+}) => {
   const fullName = formatPatientName(patient.name);
   const birthDate = patient.birthDate ?? "No registrado";
   const age = computeAgeFromBirthDate(patient.birthDate);
@@ -47,6 +51,15 @@ export const PatientPersonalSection: React.FC<Props> = ({ patient }) => {
 
         <dt className="text-xs text-muted font-medium">Estado:</dt>
         <dd className="text-sm text-foreground">{statusLabel}</dd>
+
+        <dt className="text-xs text-muted font-medium">Médico:</dt>
+        <dd className="text-sm text-foreground">
+          {practitioners && practitioners.length > 0
+            ? practitioners
+                .map((p: { id: string; display: string }) => p.display)
+                .join(", ")
+            : "No registrado"}
+        </dd>
       </dl>
     </SectionCard>
   );

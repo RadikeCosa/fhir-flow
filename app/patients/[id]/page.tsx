@@ -5,8 +5,6 @@ import { createEpisodeOfCareRepository } from "../../../infrastructure/fhir/epis
 import { createVitalSignRecordRepository } from "../../../infrastructure/fhir/vital-sign-record.factory";
 import { PatientPersonalSection } from "../components/detail/PatientPersonalSection";
 import { PatientContactSection } from "../components/detail/PatientContactSection";
-import { PatientEmergencyContactSection } from "../components/detail/PatientEmergencyContactSection";
-import { PatientPractitionerSection } from "../components/detail/PatientPractitionerSection";
 import { EpisodeOfCareSection } from "../components/detail/EpisodeOfCareSection";
 import { VitalSignsSection } from "../components/detail/VitalSignsSection";
 
@@ -64,15 +62,14 @@ export default async function Page({ params }: Props) {
 
       <div className="grid grid-cols-1 gap-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <PatientPersonalSection patient={patient} />
-          <PatientContactSection patient={patient} />
-          <PatientEmergencyContactSection contacts={patient.contact} />
-          <PatientPractitionerSection
+          <PatientPersonalSection
+            patient={patient}
             practitioners={patient.generalPractitioner}
           />
-          <VitalSignsSection record={latestVitalSigns} />
+          <PatientContactSection patient={patient} contacts={patient.contact} />
         </div>
         <EpisodeOfCareSection episodes={episodes} />
+        <VitalSignsSection record={latestVitalSigns} patientId={id} />
       </div>
     </>
   );

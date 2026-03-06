@@ -1,13 +1,20 @@
 import React from "react";
 import type { Patient } from "../../../../domain/patient";
 import { SectionCard } from "./SectionCard";
-import { formatAddress } from "../../../../lib/patient/formatters";
+import {
+  formatAddress,
+  formatContactName,
+} from "../../../../lib/patient/formatters";
 
 interface Props {
   patient: Patient;
+  contacts?: Patient["contact"];
 }
 
-export const PatientContactSection: React.FC<Props> = ({ patient }) => {
+export const PatientContactSection: React.FC<Props> = ({
+  patient,
+  contacts,
+}) => {
   const phone = patient.phone || "No registrado";
   const email = patient.email || "No registrado";
   const address = formatAddress(patient.address);
@@ -39,6 +46,32 @@ export const PatientContactSection: React.FC<Props> = ({ patient }) => {
           )}
         </dd>
       </dl>
+
+      {contacts && contacts.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-border">
+          <p className="text-xs text-muted font-medium mb-1">
+            Contacto de emergencia
+          </p>
+          <ul className="space-y-2">
+            {contacts.map((c, idx) => (
+              <li key={idx} className="text-sm">
+                <p>
+                  <span className="font-medium">Nombre:</span>{" "}
+                  {formatContactName(c.name)}
+                </p>
+                <p>
+                  <span className="font-medium">Relación:</span>{" "}
+                  {c.relationship || "No registrada"}
+                </p>
+                <p>
+                  <span className="font-medium">Teléfono:</span>{" "}
+                  {c.phone || "No registrado"}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </SectionCard>
   );
 };
