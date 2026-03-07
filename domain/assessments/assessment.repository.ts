@@ -10,4 +10,11 @@ import { EvaAssessment } from "./eva-assessment";
  */
 export interface AssessmentRepository {
     findEvaByPatientId(patientId: string): Promise<EvaAssessment[]>;
+
+    /**
+     * Retrieve EVA assessments linked to a specific encounter.  Returned
+     * results are sorted by date descending.  An empty array is produced if
+     * no matching observations exist or if all resources fail validation.
+     */
+    findEvaByEncounterId(encounterId: string): Promise<EvaAssessment[]>;
 }

@@ -47,4 +47,43 @@ export class VitalSignRecordFhirRepository implements VitalSignRecordRepository 
 
         return mapFhirObservationsToVitalSignRecords(valid, patientId);
     }
+
+    /**
+     * Retrieve vital sign records for a given encounter.  Behaves like the
+     * patient-based query but uses an encounter filter instead.  The
+     * returned observations are validated and grouped in the same manner;
+     * patientId is inferred from the first valid observation (if present).
+     */
+    public async findAllByEncounterId(encounterId: string): Promise<VitalSignRecord[]> {
+        const bundle = await this.client.search<unknown>("Observation", {
+            encounter: `Encounter/${encounterId}`,
+            category: "vital-signs",
+            _sort: "-date",
+            _count: "100",
+        });
+
+        const resources = safeGetResources(bundle);
+        const valid: FhirVitalSignObservation[] = [];
+
+        for (const res of resources) {
+            const parsed = fhirVitalSignObservationSchema.safeParse(res);
+            if (parsed.success) {
+                valid.push(parsed.data);
+            }
+        }
+
+        if (valid.length === 0) {
+            return [];
+        }
+
+        // try to extract patientId from first observation's subject reference
+        let patientId = "";
+        const subj = valid[0].subject;
+        if (subj && typeof subj.reference === "string") {
+            const parts = subj.reference.split("/");
+            patientId = parts[parts.length - 1] || "";
+        }
+
+        return mapFhirObservationsToVitalSignRecords(valid, patientId);
+    }
 }

@@ -4,11 +4,14 @@ import { createPatientRepository } from "../../../infrastructure/fhir/patient.fa
 import { createEpisodeOfCareRepository } from "../../../infrastructure/fhir/episode-of-care.factory";
 import { createVitalSignRecordRepository } from "../../../infrastructure/fhir/vital-sign-record.factory";
 import { createAssessmentRepository } from "../../../infrastructure/fhir/assessments/assessment.factory";
+import { createEncounterRepository } from "../../../infrastructure/fhir/factories/encounter.factory";
+import { currentPractitionerId } from "../../../config/fhir.config";
 import { PatientPersonalSection } from "../components/detail/PatientPersonalSection";
 import { PatientContactSection } from "../components/detail/PatientContactSection";
 import { EpisodeOfCareSection } from "../components/detail/EpisodeOfCareSection";
 import { VitalSignsSection } from "../components/detail/VitalSignsSection";
 import { EvaAssessmentSection } from "../components/detail/assessments/EvaAssessmentSection";
+import { LastEncounterSection } from "../components/detail/LastEncounterSection";
 
 type Props = {
   params: Promise<{
@@ -28,12 +31,29 @@ export default async function Page({ params }: Props) {
   const vitalRepo = createVitalSignRecordRepository();
   const assessmentRepo = createAssessmentRepository();
 
-  const [patient, episodes, vitalSigns, evaRecords] = await Promise.all([
+  const encounterRepo = createEncounterRepository();
+
+  const [
+    patient,
+    episodes,
+    vitalSigns,
+    evaRecords,
+    lastEncounter,
+    nextPlannedEncounter,
+  ] = await Promise.all([
     patientRepo.findById(id),
     // fetch all episodes concurrently; page will render them if present
     episodeRepo.findAllByPatientId(id),
     vitalRepo.findAllByPatientId(id),
     assessmentRepo.findEvaByPatientId(id),
+    encounterRepo.findLastByPatientIdAndPractitionerId(
+      id,
+      currentPractitionerId,
+    ),
+    encounterRepo.findNextPlannedByPatientIdAndPractitionerId(
+      id,
+      currentPractitionerId,
+    ),
   ]);
 
   const latestVitalSigns = vitalSigns.length > 0 ? vitalSigns[0] : null;
@@ -73,6 +93,11 @@ export default async function Page({ params }: Props) {
           <PatientContactSection patient={patient} contacts={patient.contact} />
         </div>
         <EpisodeOfCareSection episodes={episodes} />
+        <LastEncounterSection
+          lastEncounter={lastEncounter}
+          nextPlannedEncounter={nextPlannedEncounter}
+          patientId={id}
+        />
         <VitalSignsSection record={latestVitalSigns} patientId={id} />
         <EvaAssessmentSection records={evaRecords} patientId={id} />
       </div>

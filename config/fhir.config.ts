@@ -18,11 +18,20 @@ export interface FhirServerConfig {
     };
 }
 
-const fhirBaseUrl = process.env.FHIR_BASE_URL; // obtiene FHIR_BASE_URL del entorno
+// obtiene FHIR_BASE_URL del entorno
+const fhirBaseUrl = process.env.FHIR_BASE_URL;
+// obtiene CURRENT_PRACTITIONER_ID del entorno (valor crudo)
+const currentPractitionerIdValue = process.env.CURRENT_PRACTITIONER_ID;
 
+// validar que la URL base de FHIR esté presente y no vacía
 if (!fhirBaseUrl) {
     // si no está definida la variable de entorno, detener con error claro
     throw new Error("Missing required environment variable: FHIR_BASE_URL");
+}
+
+// validar que exista un id de profesional activo
+if (!currentPractitionerIdValue) {
+    throw new Error("Missing required environment variable: CURRENT_PRACTITIONER_ID");
 }
 
 export const fhirConfig: FhirServerConfig = {
@@ -49,3 +58,6 @@ export const fhirConfig: FhirServerConfig = {
         supportsSummaryParameter: true, // habilita parámetro _summary
     },
 };
+
+// El ID del profesional configurado, validado al inicio del módulo.
+export const currentPractitionerId: string = currentPractitionerIdValue;

@@ -40,4 +40,38 @@ export class EvaAssessmentFhirRepository implements AssessmentRepository {
 
         return mapFhirObservationsToEvaAssessments(valid, patientId);
     }
+
+    /**
+     * Load EVA observations constrained to a particular encounter.
+     * Filtering, validation and mapping mirror `findEvaByPatientId`;
+     * only the search parameter differs.
+     */
+    public async findEvaByEncounterId(encounterId: string): Promise<EvaAssessment[]> {
+        const bundle = await this.client.search<unknown>("Observation", {
+            code: "72514-3",
+            encounter: `Encounter/${encounterId}`,
+            category: "survey",
+            _sort: "-date",
+            _count: "100",
+        });
+
+        const resources = safeGetResources(bundle);
+        const valid: FhirEvaObservation[] = [];
+
+        for (const res of resources) {
+            const parsed = fhirEvaObservationSchema.safeParse(res);
+            if (parsed.success) {
+                valid.push(parsed.data);
+            }
+        }
+
+        // patientId not strictly needed by mapper but required by its signature
+        let patientId = "";
+        if (valid.length > 0 && valid[0].subject?.reference) {
+            const parts = valid[0].subject.reference.split("/");
+            patientId = parts[parts.length - 1] || "";
+        }
+
+        return mapFhirObservationsToEvaAssessments(valid, patientId);
+    }
 }
