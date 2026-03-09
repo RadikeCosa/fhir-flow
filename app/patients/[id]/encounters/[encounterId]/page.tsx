@@ -4,10 +4,12 @@ import { createPatientRepository } from "@/infrastructure/fhir/factories/patient
 import { createEncounterRepository } from "@/infrastructure/fhir/factories/encounter.factory";
 import { createVitalSignRecordRepository } from "@/infrastructure/fhir/factories/vital-sign-record.factory";
 import { createAssessmentRepository } from "@/infrastructure/fhir/factories/assessment.factory";
+import { createProcedureRepository } from "@/infrastructure/fhir/factories/procedure.factory";
 import { formatDate } from "@/lib/patient/formatters";
 import type { Encounter } from "@/domain/encounters/encounter";
 import { VitalSignsSection } from "../../../components/detail/VitalSignsSection";
 import { EvaAssessmentSection } from "../../../components/detail/assessments/EvaAssessmentSection";
+import { ProcedureSection } from "../../../components/detail/ProcedureSection";
 
 interface Props {
   params: Promise<{ id: string; encounterId: string }>;
@@ -51,19 +53,23 @@ export default async function Page({ params }: Props) {
   const encounterRepo = createEncounterRepository();
   const vitalRepo = createVitalSignRecordRepository();
   const assessmentRepo = createAssessmentRepository();
+  const procedureRepo = createProcedureRepository();
 
-  const [patient, encounter, vitalSigns, evaRecords] = await Promise.all([
-    patientRepo.findById(patientId),
-    encounterRepo.findById(encounterId),
-    vitalRepo.findAllByEncounterId(encounterId),
-    assessmentRepo.findEvaByEncounterId(encounterId),
-  ]);
+  const [patient, encounter, vitalSigns, evaRecords, procedures] =
+    await Promise.all([
+      patientRepo.findById(patientId),
+      encounterRepo.findById(encounterId),
+      vitalRepo.findAllByEncounterId(encounterId),
+      assessmentRepo.findEvaByEncounterId(encounterId),
+      procedureRepo.findAllByEncounterId(encounterId),
+    ]);
 
   if (!patient || !encounter) {
     notFound();
   }
 
-  const hasClinicalData = vitalSigns.length > 0 || evaRecords.length > 0;
+  const hasClinicalData =
+    vitalSigns.length > 0 || evaRecords.length > 0 || procedures.length > 0;
 
   return (
     <>
@@ -134,6 +140,7 @@ export default async function Page({ params }: Props) {
             patientId={patientId}
           />
           <EvaAssessmentSection records={evaRecords} patientId={patientId} />
+          <ProcedureSection procedures={procedures} />
         </>
       )}
     </>

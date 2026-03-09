@@ -33,8 +33,7 @@ export type EpisodeStatus =
 export type EpisodeType =
     | "motora"
     | "respiratoria"
-    | "paliativa"
-    | "mixta";
+    | "paliativa";
 
 /**
  * Represents the main condition being treated during the episode.  Most
@@ -86,7 +85,7 @@ export interface EpisodeOfCare {
     identifier: string;
 
     status: EpisodeStatus;
-    type: EpisodeType;
+    type: EpisodeType[];
 
     startDate: string;
     endDate?: string;

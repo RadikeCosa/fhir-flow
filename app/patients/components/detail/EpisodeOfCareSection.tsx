@@ -4,7 +4,6 @@ import { SectionCard } from "./SectionCard";
 import {
   formatDate,
   translateEpisodeStatus,
-  getSeverityBadge,
   formatEpisodeType,
 } from "../../../../lib/patient/formatters";
 
@@ -25,70 +24,28 @@ export const EpisodeOfCareSection: React.FC<Props> = ({ episodes }) => {
     <SectionCard title="Información del episodio">
       {episodes.map((episode) => {
         const statusBadge = translateEpisodeStatus(episode.status);
-        const severityBadge = getSeverityBadge(episode.condition.severity);
-        const onset =
-          formatDate(episode.condition.onsetDate) ?? "No registrado";
         const start = formatDate(episode.startDate) ?? episode.startDate;
-        const end = episode.endDate ? formatDate(episode.endDate) : undefined;
 
         return (
-          <dl
-            key={episode.id}
-            className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 mb-4 last:mb-0"
-          >
-            <dt className="text-xs text-muted font-medium">Estado:</dt>
-            <dd>
+          <div key={episode.id} className="mb-4 last:mb-0">
+            {/* primary line: diagnosis description */}
+            <p className="text-base font-medium text-foreground">
+              {episode.condition.description}
+            </p>
+
+            {/* secondary line: start date + badges */}
+            <div className="mt-1 flex flex-wrap items-center text-sm text-muted space-x-2">
+              <span>{start}</span>
               <span
                 className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusBadge.colorClass}`}
               >
                 {statusBadge.label}
               </span>
-            </dd>
-
-            <dt className="text-xs text-muted font-medium">Tipo:</dt>
-            <dd className="text-sm text-foreground">
-              {formatEpisodeType(episode.type)}
-            </dd>
-
-            <dt className="text-xs text-muted font-medium">Inicio:</dt>
-            <dd className="text-sm text-foreground">{start}</dd>
-
-            {end && (
-              <>
-                <dt className="text-xs text-muted font-medium">Fin:</dt>
-                <dd className="text-sm text-foreground">{end}</dd>
-              </>
-            )}
-
-            <dt className="text-xs text-muted font-medium">Diagnóstico:</dt>
-            <dd className="text-sm text-foreground flex flex-wrap items-center space-x-2">
-              <span>{episode.condition.description}</span>
-
-              {episode.condition.code && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-border text-foreground">
-                  {episode.condition.code}
-                </span>
-              )}
-
-              {episode.condition.codeSystem && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-border text-foreground">
-                  {episode.condition.codeSystem}
-                </span>
-              )}
-            </dd>
-
-            <dt className="text-xs text-muted font-medium">Inicio síntomas:</dt>
-            <dd className="text-sm text-foreground">{onset}</dd>
-
-            <dt className="text-xs text-muted font-medium">Severidad:</dt>
-            <dd>
-              <span
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${severityBadge.colorClass}`}
-              >
-                {severityBadge.label}
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-border text-foreground">
+                {formatEpisodeType(episode.type)}
               </span>
-            </dd>
-          </dl>
+            </div>
+          </div>
         );
       })}
     </SectionCard>

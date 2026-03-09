@@ -1,4 +1,5 @@
 import { BadgeInfo } from "./shared.formatters";
+import type { EpisodeType } from "../../../domain/episode-of-care/episode-of-care";
 
 /**
  * Translate an EpisodeStatus into a badge suitable for display in the UI.
@@ -53,8 +54,26 @@ export function getSeverityBadge(sev?: string): BadgeInfo {
  * dejando el resto en minúsculas; se mantiene aún independiente de CSS para
  * facilitar cambios futuros (traducciones, sinónimos, etc.).
  */
-export function formatEpisodeType(type?: string): string {
-    if (!type || typeof type !== "string") return "";
-    const lower = type.toLowerCase();
-    return lower[0].toUpperCase() + lower.slice(1);
+export function formatEpisodeType(types?: EpisodeType[]): string {
+    if (!Array.isArray(types) || types.length === 0) {
+        return "Sin tipo";
+    }
+
+    const labels = types.map((t) => {
+        switch (t) {
+            case "motora":
+                return "Motor";
+            case "respiratoria":
+                return "Respiratorio";
+            case "paliativa":
+                return "Paliativo";
+            default:
+                // fallback for any unexpected future value, cast to string so
+                // we can manipulate it safely without triggering never errors.
+                const lower = (t as string).toLowerCase();
+                return lower[0].toUpperCase() + lower.slice(1);
+        }
+    });
+
+    return labels.join(" + ");
 }

@@ -32,22 +32,42 @@ function mapStatus(s?: string): EpisodeStatus {
 }
 
 /**
- * Determine domain EpisodeType based on the first type coding/text value.
+ * Iterate all FHIR type entries and map each one to a domain
+ * EpisodeType using keyword matching.  The resulting list is deduplicated.
+ * If no entry matches we return an empty array.
  */
-function mapType(ep?: FhirEpisodeOfCare["type"]): EpisodeType {
-    if (!Array.isArray(ep) || ep.length === 0) return "mixta";
+function mapType(ep?: FhirEpisodeOfCare["type"]): EpisodeType[] {
+    if (!Array.isArray(ep) || ep.length === 0) return [];
 
-    const first = ep[0];
-    const text =
-        (first?.coding && Array.isArray(first.coding) && first.coding[0]?.display) ||
-        first?.text ||
-        "";
+    const results: EpisodeType[] = [];
 
-    const lower = text.toLowerCase();
-    if (lower.includes("motor")) return "motora";
-    if (lower.includes("respirat")) return "respiratoria";
-    if (lower.includes("paliat")) return "paliativa";
-    return "mixta";
+    for (const entry of ep) {
+        const display =
+            entry?.coding && Array.isArray(entry.coding) && entry.coding[0]?.display
+                ? entry.coding[0].display
+                : "";
+        const textVal = entry?.text || "";
+        // combine both parts so we don't ignore useful text when display exists
+        const combined = `${display} ${textVal}`.trim();
+
+        const lower = combined.toLowerCase();
+        if (lower.includes("motor")) {
+            results.push("motora");
+            continue;
+        }
+        if (lower.includes("respirat")) {
+            results.push("respiratoria");
+            continue;
+        }
+        if (lower.includes("paliat")) {
+            results.push("paliativa");
+            continue;
+        }
+        // any non-matching values are ignored (no "mixta" fallback)
+    }
+
+    // remove duplicates while preserving order
+    return Array.from(new Set(results));
 }
 
 /**
