@@ -1,6 +1,6 @@
-import { FhirClient } from "../../lib/fhir/fhir-client";
-import { EpisodeOfCareFhirRepository } from "./episode-of-care.fhir-repository";
-import type { EpisodeOfCareRepository } from "../../domain/episode-of-care.repository";
+import { FhirClient } from "../../../lib/fhir/fhir-client";
+import { EpisodeOfCareFhirRepository } from "../repositories/episode-of-care.fhir-repository";
+import type { EpisodeOfCareRepository } from "../../../domain/episode-of-care/episode-of-care.repository";
 
 /**
  * Composition root for the episode-of-care repository implementation.  By

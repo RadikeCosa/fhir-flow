@@ -1,6 +1,6 @@
-import { FhirClient } from "../../lib/fhir/fhir-client";
-import { PatientFhirRepository } from "./patient.fhir-repository";
-import type { PatientRepository } from "../../domain/patient.repository";
+import { FhirClient } from "../../../lib/fhir/fhir-client";
+import { PatientFhirRepository } from "../repositories/patient.fhir-repository";
+import type { PatientRepository } from "../../../domain/patients/patient.repository";
 
 
 /**

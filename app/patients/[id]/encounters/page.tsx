@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { createPatientRepository } from "../../../../infrastructure/fhir/patient.factory";
-import { createEpisodeOfCareRepository } from "../../../../infrastructure/fhir/episode-of-care.factory";
+import { createPatientRepository } from "../../../../infrastructure/fhir/factories/patient.factory";
+import { createEpisodeOfCareRepository } from "../../../../infrastructure/fhir/factories/episode-of-care.factory";
 import { createEncounterRepository } from "../../../../infrastructure/fhir/factories/encounter.factory";
 import { formatPatientName } from "../../../../lib/patient/formatters";
-import type { Encounter } from "../../../../domain/encounter";
+import type { Encounter } from "../../../../domain/encounters/encounter";
 import EncounterList from "@/app/patients/components/encounters/EncounterList";
 
 interface Props {

@@ -1,6 +1,6 @@
-import { FhirClient } from "../../lib/fhir/fhir-client";
-import { VitalSignRecordFhirRepository } from "./vital-sign-record.fhir-repository";
-import type { VitalSignRecordRepository } from "../../domain/vital-sign-record.repository";
+import { FhirClient } from "../../../lib/fhir/fhir-client";
+import { VitalSignRecordFhirRepository } from "../repositories/vital-sign-record.fhir-repository";
+import type { VitalSignRecordRepository } from "../../../domain/vital-sign-record/vital-sign-record.repository";
 
 /**
  * Factory for a FHIR-backed `VitalSignRecordRepository` implementation.

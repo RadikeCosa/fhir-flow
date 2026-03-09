@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Patient } from "../../../domain/patient";
+import type { Patient } from "../../../domain/patients/patient";
 
 /**
  * Thrown when a patient cannot be rendered due to missing/invalid data.

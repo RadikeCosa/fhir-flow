@@ -1,7 +1,7 @@
 import React from "react";
 import { SectionCard } from "./SectionCard";
 import { formatDate } from "../../../../lib/patient/formatters";
-import type { Encounter } from "../../../../domain/encounter";
+import type { Encounter } from "../../../../domain/encounters/encounter";
 
 interface Props {
   lastEncounter: Encounter | null;

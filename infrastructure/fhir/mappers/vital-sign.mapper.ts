@@ -1,5 +1,5 @@
 import type { FhirVitalSignObservation } from "../schemas/vital-sign.schema";
-import type { VitalSignRecord, BloodPressureReading } from "../../../domain/vital-sign-record";
+import type { VitalSignRecord, BloodPressureReading } from "../../../domain/vital-sign-record/vital-sign-record";
 
 /**
  * Map an array of validated FHIR Observation resources representing vital

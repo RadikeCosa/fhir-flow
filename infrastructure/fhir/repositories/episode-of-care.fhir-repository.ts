@@ -1,7 +1,7 @@
-import { FhirClient } from "../../lib/fhir/fhir-client";
+import { FhirClient } from "../../../lib/fhir/fhir-client";
 import {
     safeGetEntries,
-} from "../../lib/fhir/bundle-utils";
+} from "../../../lib/fhir/bundle-utils";
 import {
     fhirEpisodeOfCareSchema,
     FhirEpisodeOfCare,
@@ -11,15 +11,15 @@ import {
     FhirCoverage,
     fhirPractitionerSchema,
     FhirPractitioner,
-} from "./schemas/episode-of-care.schema";
+} from "../schemas/episode-of-care.schema";
 import {
     mapFhirEpisodeOfCareToDomain,
-} from "./mappers/episode-of-care.mapper";
+} from "../mappers/episode-of-care.mapper";
 
 import type {
     EpisodeOfCareRepository,
-} from "../../domain/episode-of-care.repository";
-import type { EpisodeOfCare } from "../../domain/episode-of-care";
+} from "../../../domain/episode-of-care/episode-of-care.repository";
+import type { EpisodeOfCare } from "../../../domain/episode-of-care/episode-of-care";
 
 
 export class EpisodeOfCareFhirRepository implements EpisodeOfCareRepository {
@@ -57,10 +57,10 @@ export class EpisodeOfCareFhirRepository implements EpisodeOfCareRepository {
         if (entries.length === 0) return null;
 
         const episodeEntry = entries.find(
-            (e) => e.resource?.resourceType === "EpisodeOfCare"
+            (e: any) => e.resource?.resourceType === "EpisodeOfCare"
         );
         const conditionEntry = entries.find(
-            (e) => e.resource?.resourceType === "Condition"
+            (e: any) => e.resource?.resourceType === "Condition"
         );
 
         if (!episodeEntry?.resource || !conditionEntry?.resource) return null;
@@ -77,7 +77,7 @@ export class EpisodeOfCareFhirRepository implements EpisodeOfCareRepository {
                 status: "active",
             });
             const covEntries = safeGetEntries(covBundle);
-            const first = covEntries.find((e) => e.resource)?.resource;
+            const first = covEntries.find((e: any) => e.resource)?.resource;
             if (first) {
                 const parsedCov = this.parseCoverage(first);
                 if (parsedCov) cov = parsedCov;
@@ -124,7 +124,7 @@ export class EpisodeOfCareFhirRepository implements EpisodeOfCareRepository {
                 status: "active",
             });
             const covEntries = safeGetEntries(covBundle);
-            const first = covEntries.find((e) => e.resource)?.resource;
+            const first = covEntries.find((e: any) => e.resource)?.resource;
             if (first) {
                 const parsedCov = this.parseCoverage(first);
                 if (parsedCov) cov = parsedCov;

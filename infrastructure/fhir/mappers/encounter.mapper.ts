@@ -4,7 +4,7 @@ import type {
     EncounterStatus,
     EncounterVisitType,
     EncounterParticipant,
-} from "../../../domain/encounter";
+} from "../../../domain/encounters/encounter";
 
 /**
  * Translate a raw FHIR status string into the domain union.  Unrecognised

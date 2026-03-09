@@ -1,5 +1,5 @@
 import type { FhirPatientResource } from "../schemas/patient.schema";
-import type { Patient, PatientGender } from "../../../domain/patient";
+import type { Patient, PatientGender } from "../../../domain/patients/patient";
 
 /** ---------- Identifier ---------- */
 

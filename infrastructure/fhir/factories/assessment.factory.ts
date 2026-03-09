@@ -1,4 +1,4 @@
-import { EvaAssessmentFhirRepository } from "./eva-assessment.fhir-repository";
+import { EvaAssessmentFhirRepository } from "../repositories/assessments/eva-assessment.fhir-repository";
 import type { AssessmentRepository } from "../../../domain/assessments/assessment.repository";
 
 /**

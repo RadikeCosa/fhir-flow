@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import type { VitalSignRecord } from "../../../../domain/vital-sign-record";
+import type { VitalSignRecord } from "../../../../domain/vital-sign-record/vital-sign-record";
 import {
   formatDate,
   getVitalSignBadge,

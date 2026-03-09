@@ -1,14 +1,14 @@
-import { HttpError, FhirClient } from "../../lib/fhir/fhir-client";
-import { safeGetEntries, getBundleTotal, getPaginationLinks } from "../../lib/fhir/bundle-utils";
-import { fhirPatientSchema, FhirPatientResource } from "./schemas/patient.schema";
-import { mapFhirPatientToPatient } from "./mappers/patient.mapper";
+import { HttpError, FhirClient } from "../../../lib/fhir/fhir-client";
+import { safeGetEntries, getBundleTotal, getPaginationLinks } from "../../../lib/fhir/bundle-utils";
+import { fhirPatientSchema, FhirPatientResource } from "../schemas/patient.schema";
+import { mapFhirPatientToPatient } from "../mappers/patient.mapper";
 
 import type {
     PatientRepository,
     PatientQuery,
     PaginatedResult,
-} from "../../domain/patient.repository";
-import type { Patient } from "../../domain/patient";
+} from "../../../domain/patients/patient.repository";
+import type { Patient } from "../../../domain/patients/patient";
 
 /**
  * Parameters used when calling FHIR search for patients. Typed explicitly

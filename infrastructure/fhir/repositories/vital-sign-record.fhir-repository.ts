@@ -1,12 +1,12 @@
-import { FhirClient } from "../../lib/fhir/fhir-client";
-import { safeGetResources } from "../../lib/fhir/bundle-utils";
-import { fhirVitalSignObservationSchema, type FhirVitalSignObservation } from "./schemas/vital-sign.schema";
-import { mapFhirObservationsToVitalSignRecords } from "./mappers/vital-sign.mapper";
+import { FhirClient } from "../../../lib/fhir/fhir-client";
+import { safeGetResources } from "../../../lib/fhir/bundle-utils";
+import { fhirVitalSignObservationSchema, type FhirVitalSignObservation } from "../schemas/vital-sign.schema";
+import { mapFhirObservationsToVitalSignRecords } from "../mappers/vital-sign.mapper";
 
 import type {
     VitalSignRecordRepository,
-} from "../../domain/vital-sign-record.repository";
-import type { VitalSignRecord } from "../../domain/vital-sign-record";
+} from "../../../domain/vital-sign-record/vital-sign-record.repository";
+import type { VitalSignRecord } from "../../../domain/vital-sign-record/vital-sign-record";
 
 /**
  * FHIR-based implementation of the `VitalSignRecordRepository` contract.
@@ -76,12 +76,16 @@ export class VitalSignRecordFhirRepository implements VitalSignRecordRepository 
             return [];
         }
 
-        // try to extract patientId from first observation's subject reference
+        // Try to extract patientId from first observation's subject reference.
+        // `subject` is passthrough-typed from Zod, so we narrow safely first.
         let patientId = "";
         const subj = valid[0].subject;
-        if (subj && typeof subj.reference === "string") {
-            const parts = subj.reference.split("/");
-            patientId = parts[parts.length - 1] || "";
+        if (subj && typeof subj === "object" && "reference" in subj) {
+            const reference = (subj as { reference?: unknown }).reference;
+            if (typeof reference === "string") {
+                const parts = reference.split("/");
+                patientId = parts[parts.length - 1] || "";
+            }
         }
 
         return mapFhirObservationsToVitalSignRecords(valid, patientId);

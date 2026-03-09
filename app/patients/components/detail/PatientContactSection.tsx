@@ -1,5 +1,5 @@
 import React from "react";
-import type { Patient } from "../../../../domain/patient";
+import type { Patient } from "../../../../domain/patients/patient";
 import { SectionCard } from "./SectionCard";
 import {
   formatAddress,

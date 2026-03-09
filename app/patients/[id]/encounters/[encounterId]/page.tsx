@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { createPatientRepository } from "@/infrastructure/fhir/patient.factory";
+import { createPatientRepository } from "@/infrastructure/fhir/factories/patient.factory";
 import { createEncounterRepository } from "@/infrastructure/fhir/factories/encounter.factory";
-import { createVitalSignRecordRepository } from "@/infrastructure/fhir/vital-sign-record.factory";
-import { createAssessmentRepository } from "@/infrastructure/fhir/assessments/assessment.factory";
+import { createVitalSignRecordRepository } from "@/infrastructure/fhir/factories/vital-sign-record.factory";
+import { createAssessmentRepository } from "@/infrastructure/fhir/factories/assessment.factory";
 import { formatDate } from "@/lib/patient/formatters";
-import type { Encounter } from "@/domain/encounter";
+import type { Encounter } from "@/domain/encounters/encounter";
 import { VitalSignsSection } from "../../../components/detail/VitalSignsSection";
 import { EvaAssessmentSection } from "../../../components/detail/assessments/EvaAssessmentSection";
 

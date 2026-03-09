@@ -1,5 +1,5 @@
 import { BadgeInfo } from "./shared.formatters";
-import { VitalSignType, VitalSignRecord } from "../../../domain/vital-sign-record";
+import { VitalSignType, VitalSignRecord } from "../../../domain/vital-sign-record/vital-sign-record";
 
 /**
  * Compute a badge based on a vital-sign measurement value.  The ranges used

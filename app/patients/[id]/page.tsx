@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createPatientRepository } from "../../../infrastructure/fhir/patient.factory";
-import { createEpisodeOfCareRepository } from "../../../infrastructure/fhir/episode-of-care.factory";
-import { createVitalSignRecordRepository } from "../../../infrastructure/fhir/vital-sign-record.factory";
-import { createAssessmentRepository } from "../../../infrastructure/fhir/assessments/assessment.factory";
+import { createPatientRepository } from "../../../infrastructure/fhir/factories/patient.factory";
+import { createEpisodeOfCareRepository } from "../../../infrastructure/fhir/factories/episode-of-care.factory";
+import { createVitalSignRecordRepository } from "../../../infrastructure/fhir/factories/vital-sign-record.factory";
+import { createAssessmentRepository } from "../../../infrastructure/fhir/factories/assessment.factory";
 import { createEncounterRepository } from "../../../infrastructure/fhir/factories/encounter.factory";
 import { currentPractitionerId } from "../../../config/fhir.config";
 import { PatientPersonalSection } from "../components/detail/PatientPersonalSection";

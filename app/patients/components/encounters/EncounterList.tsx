@@ -1,5 +1,5 @@
 import React from "react";
-import type { Encounter } from "../../../../domain/encounter";
+import type { Encounter } from "../../../../domain/encounters/encounter";
 import EncounterCard from "./EncounterCard";
 
 interface Props {

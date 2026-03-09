@@ -1,5 +1,5 @@
 import React from "react";
-import { EpisodeOfCare } from "../../../../domain/episode-of-care";
+import { EpisodeOfCare } from "../../../../domain/episode-of-care/episode-of-care";
 import { SectionCard } from "./SectionCard";
 import {
   formatDate,

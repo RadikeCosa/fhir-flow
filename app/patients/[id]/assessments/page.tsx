@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createAssessmentRepository } from "../../../../infrastructure/fhir/assessments/assessment.factory";
+import { createAssessmentRepository } from "../../../../infrastructure/fhir/factories/assessment.factory";
 import { VitalSignsChart } from "../../components/vital-signs/VitalSignsChart";
 
 interface Props {

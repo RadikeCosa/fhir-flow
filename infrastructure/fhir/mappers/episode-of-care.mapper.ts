@@ -11,7 +11,7 @@ import type {
     EpisodeCondition,
     EpisodeCoverage,
     EpisodeReferral,
-} from "../../../domain/episode-of-care";
+} from "../../../domain/episode-of-care/episode-of-care";
 
 /**
  * Convert a FHIR status string to our domain EpisodeStatus.  Unknown

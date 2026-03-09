@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Encounter } from "../../../../domain/encounter";
+import type { Encounter } from "../../../../domain/encounters/encounter";
 import { formatDate } from "../../../../lib/patient/formatters";
 
 // Reuse error pattern from PatientCard for render-time data issues

@@ -4,8 +4,8 @@ import type { FhirEncounter } from "../schemas/encounter.schema";
 import { fhirEncounterSchema } from "../schemas/encounter.schema";
 import { mapFhirEncounterToEncounter } from "../mappers/encounter.mapper";
 
-import type { EncounterRepository } from "../../../domain/encounter.repository";
-import type { Encounter } from "../../../domain/encounter";
+import type { EncounterRepository } from "../../../domain/encounters/encounter.repository";
+import type { Encounter } from "../../../domain/encounters/encounter";
 
 /**
  * FHIR-based implementation of the `EncounterRepository` domain contract.

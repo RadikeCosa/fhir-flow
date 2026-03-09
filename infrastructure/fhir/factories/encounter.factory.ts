@@ -1,6 +1,6 @@
 import { FhirClient } from "../../../lib/fhir/fhir-client";
 import { EncounterFhirRepository } from "../repositories/encounter.fhir-repository";
-import type { EncounterRepository } from "../../domain/encounter.repository";
+import type { EncounterRepository } from "../../../domain/encounters/encounter.repository";
 
 /**
  * Factory that produces a FHIR-backed EncounterRepository instance.

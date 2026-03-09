@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createVitalSignRecordRepository } from "../../../../infrastructure/fhir/vital-sign-record.factory";
+import { createVitalSignRecordRepository } from "../../../../infrastructure/fhir/factories/vital-sign-record.factory";
 import { VitalSignsChartSection } from "../../components/vital-signs/VitalSignsChartSection";
 
 type Props = {

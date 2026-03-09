@@ -2,7 +2,7 @@ import React from "react";
 import {
   VitalSignRecord,
   VitalSignType,
-} from "../../../../domain/vital-sign-record";
+} from "../../../../domain/vital-sign-record/vital-sign-record";
 import {
   groupVitalSignsByType,
   formatVitalSignLabel,

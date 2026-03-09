@@ -1,4 +1,4 @@
-import type { Patient } from "../../../domain/patient";
+import type { Patient } from "../../../domain/patients/patient";
 import PatientCard from "./PatientCard";
 import EmptyState from "./EmptyState";
 

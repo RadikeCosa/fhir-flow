@@ -1,5 +1,5 @@
 import PatientList from "./components/PatientList";
-import { createPatientRepository } from "../../infrastructure/fhir/patient.factory";
+import { createPatientRepository } from "../../infrastructure/fhir/factories/patient.factory";
 
 /**
  * Patients page (Server Component).
