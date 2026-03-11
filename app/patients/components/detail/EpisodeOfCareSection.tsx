@@ -1,5 +1,6 @@
 import React from "react";
 import { EpisodeOfCare } from "../../../../domain/episode-of-care/episode-of-care";
+import Link from "next/link";
 import { SectionCard } from "./SectionCard";
 import {
   formatDate,
@@ -12,9 +13,13 @@ import {
 
 interface Props {
   episodes: EpisodeOfCare[];
+  patientId: string;
 }
 
-export const EpisodeOfCareSection: React.FC<Props> = ({ episodes }) => {
+export const EpisodeOfCareSection: React.FC<Props> = ({
+  episodes,
+  patientId,
+}) => {
   if (episodes.length === 0) {
     return (
       <SectionCard title="Información del episodio">
@@ -25,6 +30,14 @@ export const EpisodeOfCareSection: React.FC<Props> = ({ episodes }) => {
 
   return (
     <SectionCard title="Información del episodio">
+      <div className="mb-2">
+        <Link
+          href={`/patients/${patientId}/encounters`}
+          className="text-sm text-primary hover:underline"
+        >
+          Ver historial de encuentros →
+        </Link>
+      </div>
       {episodes.map((episode) => {
         const statusBadge = translateEpisodeStatus(episode.status);
         const severityBadge = getSeverityBadge(episode.condition.severity);

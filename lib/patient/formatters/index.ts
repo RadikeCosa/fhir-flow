@@ -3,6 +3,7 @@ export * from "./patient.formatters";
 export * from "./episode.formatters";
 export * from "./vital-sign.formatters";
 export * from "./procedure.formatters";
+export * from "./encounter-charts.formatters";
 
 export {
     getEvaBadge,

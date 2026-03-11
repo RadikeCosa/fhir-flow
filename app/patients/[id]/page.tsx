@@ -95,7 +95,7 @@ export default async function Page({ params }: Props) {
           />
           <PatientContactSection patient={patient} contacts={patient.contact} />
         </div>
-        <EpisodeOfCareSection episodes={episodes} />
+        <EpisodeOfCareSection episodes={episodes} patientId={id} />
         <LastEncounterSection
           lastEncounter={lastEncounter}
           nextPlannedEncounter={nextPlannedEncounter}
