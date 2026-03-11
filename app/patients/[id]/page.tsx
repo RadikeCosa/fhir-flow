@@ -9,9 +9,8 @@ import { currentPractitionerId } from "../../../config/fhir.config";
 import { PatientPersonalSection } from "../components/detail/PatientPersonalSection";
 import { PatientContactSection } from "../components/detail/PatientContactSection";
 import { EpisodeOfCareSection } from "../components/detail/EpisodeOfCareSection";
-import { VitalSignsSection } from "../components/detail/VitalSignsSection";
-import { EvaAssessmentSection } from "../components/detail/assessments/EvaAssessmentSection";
 import { LastEncounterSection } from "../components/detail/LastEncounterSection";
+import { createProcedureRepository } from "../../../infrastructure/fhir/factories/procedure.factory";
 
 type Props = {
   params: Promise<{
@@ -33,30 +32,34 @@ export default async function Page({ params }: Props) {
 
   const encounterRepo = createEncounterRepository();
 
-  const [
-    patient,
-    episodes,
-    vitalSigns,
-    evaRecords,
-    lastEncounter,
-    nextPlannedEncounter,
-  ] = await Promise.all([
-    patientRepo.findById(id),
-    // fetch all episodes concurrently; page will render them if present
-    episodeRepo.findAllByPatientId(id),
-    vitalRepo.findAllByPatientId(id),
-    assessmentRepo.findEvaByPatientId(id),
-    encounterRepo.findLastByPatientIdAndPractitionerId(
-      id,
-      currentPractitionerId,
-    ),
-    encounterRepo.findNextPlannedByPatientIdAndPractitionerId(
-      id,
-      currentPractitionerId,
-    ),
-  ]);
+  const [patient, episodes, lastEncounter, nextPlannedEncounter] =
+    await Promise.all([
+      patientRepo.findById(id),
+      // fetch all episodes concurrently; page will render them if present
+      episodeRepo.findAllByPatientId(id),
+      encounterRepo.findLastByPatientIdAndPractitionerId(
+        id,
+        currentPractitionerId,
+      ),
+      encounterRepo.findNextPlannedByPatientIdAndPractitionerId(
+        id,
+        currentPractitionerId,
+      ),
+    ]);
 
-  const latestVitalSigns = vitalSigns.length > 0 ? vitalSigns[0] : null;
+  const procedureRepo = createProcedureRepository();
+
+  const [
+    lastEncounterProcedures,
+    lastEncounterEvaRecords,
+    lastEncounterVitalSigns,
+  ] = lastEncounter
+    ? await Promise.all([
+        procedureRepo.findAllByEncounterId(lastEncounter.id),
+        assessmentRepo.findEvaByEncounterId(lastEncounter.id),
+        vitalRepo.findAllByEncounterId(lastEncounter.id),
+      ])
+    : [[], [], []];
 
   if (!patient) {
     return (
@@ -97,9 +100,10 @@ export default async function Page({ params }: Props) {
           lastEncounter={lastEncounter}
           nextPlannedEncounter={nextPlannedEncounter}
           patientId={id}
+          procedures={lastEncounterProcedures}
+          evaRecords={lastEncounterEvaRecords}
+          vitalSigns={lastEncounterVitalSigns}
         />
-        <VitalSignsSection record={latestVitalSigns} patientId={id} />
-        <EvaAssessmentSection records={evaRecords} patientId={id} />
       </div>
     </>
   );
