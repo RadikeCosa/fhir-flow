@@ -119,6 +119,23 @@ export function mapFhirEncounterToEncounter(resource: FhirEncounter): Encounter 
         }
     }
 
+    // look for clinical‑note extension in the resource
+    let clinicalNote: string | undefined;
+    if (Array.isArray(resource.extension)) {
+        const clinicalExt = resource.extension.find(
+            (e: any) =>
+                typeof e.url === "string" &&
+                e.url.includes("clinical-note")
+        );
+        if (
+            clinicalExt &&
+            typeof clinicalExt.valueString === "string" &&
+            clinicalExt.valueString.trim() !== ""
+        ) {
+            clinicalNote = clinicalExt.valueString;
+        }
+    }
+
     return {
         id: resource.id,
         status: mapStatus(resource.status),
@@ -131,5 +148,6 @@ export function mapFhirEncounterToEncounter(resource: FhirEncounter): Encounter 
         durationMinutes,
         reasonCode,
         reasonDisplay,
+        clinicalNote,
     };
 }

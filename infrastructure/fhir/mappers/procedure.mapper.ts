@@ -98,6 +98,12 @@ function mapCode(
                 code: "traccion-manual",
                 display: "Tracción manual",
             };
+        case "drenaje-linfatico":
+            return {
+                category: "terapia-manual",
+                code: "drenaje-linfatico",
+                display: "Drenaje linfático",
+            };
         // ejercicio-terapeutico
         case "fortalecimiento":
             return {
@@ -165,6 +171,12 @@ function mapCode(
                 code: "rango-movimiento-rom",
                 display: "Rango de movimiento (ROM)",
             };
+        case "ejercicios-linfokineticos":
+            return {
+                category: "ejercicio-terapeutico",
+                code: "ejercicios-linfokineticos",
+                display: "Ejercicios linfoquinéticos",
+            };
         // rehabilitacion-neurologica
         case "facilitacion-neuromuscular-pnf":
             return {
@@ -208,6 +220,18 @@ function mapCode(
                 category: "rehabilitacion-respiratoria",
                 code: "ejercicios-respiratorios",
                 display: "Ejercicios respiratorios",
+            };
+        case "entrenamiento-muscular-respiratorio":
+            return {
+                category: "rehabilitacion-respiratoria",
+                code: "entrenamiento-muscular-respiratorio",
+                display: "Entrenamiento muscular respiratorio",
+            };
+        case "ventilacion-dirigida":
+            return {
+                category: "rehabilitacion-respiratoria",
+                code: "ventilacion-dirigida",
+                display: "Ventilación dirigida",
             };
         case "drenaje-bronquial":
             return {
@@ -258,6 +282,18 @@ function mapCode(
                 display: "Espirómetro incentivo",
             };
         // fisioterapia
+        case "laser":
+            return {
+                category: "fisioterapia",
+                code: "laser",
+                display: "Láser terapéutico",
+            };
+        case "onda-corta":
+            return {
+                category: "fisioterapia",
+                code: "onda-corta",
+                display: "Onda corta",
+            };
         case "ultrasonido-terapeutico":
             return {
                 category: "fisioterapia",

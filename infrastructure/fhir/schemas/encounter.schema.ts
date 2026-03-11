@@ -76,6 +76,16 @@ export const fhirEncounterSchema = z
         subject: referenceSchema.optional(),
         participant: z.array(participantSchema).optional(),
         reasonCode: z.array(reasonCodeSchema).optional(),
+        extension: z
+            .array(
+                z
+                    .object({
+                        url: z.string().optional(),
+                        valueString: z.string().optional(),
+                    })
+                    .passthrough()
+            )
+            .optional(),
     })
     .passthrough();
 

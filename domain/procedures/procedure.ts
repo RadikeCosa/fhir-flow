@@ -41,8 +41,10 @@ export type ProcedureCode =
     | "inhibicion-muscular"
     | "puntos-gatillo"
     | "traccion-manual"
+    | "drenaje-linfatico"
     | /* ejercicio-terapeutico */
     "fortalecimiento"
+    | "ejercicios-linfokineticos"
     | "resistencia-muscular"
     | "movilidad-articular-activa"
     | "coordinacion"
@@ -62,6 +64,8 @@ export type ProcedureCode =
     | "entrenamiento-transferencias"
     | /* rehabilitacion-respiratoria */
     "ejercicios-respiratorios"
+    | "entrenamiento-muscular-respiratorio"
+    | "ventilacion-dirigida"
     | "drenaje-bronquial"
     | "drenaje-postural"
     | "percusion-toracica"
@@ -72,6 +76,8 @@ export type ProcedureCode =
     | "espirometro-incentivo"
     | /* fisioterapia */
     "ultrasonido-terapeutico"
+    | "laser"
+    | "onda-corta"
     | "electroestimulacion-nmes"
     | "corrientes-interferenciales"
     | "electroanalgesia"

@@ -56,4 +56,12 @@ export interface Encounter {
 
     reasonCode?: string;
     reasonDisplay?: string;
+
+    /**
+     * Free-text clinical note authored by the practitioner during the
+     * encounter.  This is not part of the FHIR resource model in the
+     * domain layer but is useful for UI components that need to display or
+     * capture ad‑hoc narrative comments.
+     */
+    clinicalNote?: string;
 }

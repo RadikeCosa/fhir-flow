@@ -267,6 +267,15 @@ export const LastEncounterSection: React.FC<Props> = ({
             </>
           )}
 
+          {lastEncounter.clinicalNote && (
+            <div className="mt-2">
+              <p className="text-xs text-muted font-medium">Nota clínica:</p>
+              <p className="text-sm text-foreground italic">
+                {lastEncounter.clinicalNote}
+              </p>
+            </div>
+          )}
+
           {evaRecords.length > 0 && (
             <>
               <h3 className="text-xs font-semibold text-muted uppercase tracking-wide mt-3 mb-1">

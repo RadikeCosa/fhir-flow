@@ -1,6 +1,7 @@
 ### Los datos incluidos en este archivo corresponden a **registros simulados utilizados exclusivamente para desarrollo y pruebas**. Si bien la estructura general sigue el estándar FHIR, algunos valores, perfiles y sistemas de identificación se utilizan de forma simplificada para facilitar la implementación inicial. En etapas posteriores del proyecto, estos recursos serán **normalizados y ajustados** para cumplir plenamente con los perfiles y requisitos definidos por el Bus de Interoperabilidad del Ministerio de Salud de la Nación.
-
-
+###
+ GET http://localhost:8080/fhir/Encounter/enc-1
+ 
 ### Encounter — enc-1 (Visita domiciliaria finalizada — pac-1 / kine-1)
 PUT http://localhost:8080/fhir/Encounter/enc-1
 Content-Type: application/fhir+json
@@ -74,6 +75,12 @@ Content-Type: application/fhir+json
         }
       ],
       "text": "Rehabilitación kinesiológica — hemiparesia izquierda post-ACV"
+    }
+  ],
+  "extension": [
+    {
+      "url": "http://kinesiologia-domiciliaria.local/StructureDefinition/clinical-note",
+      "valueString": "Paciente colaborador, se fatiga rápidamente. Tolera bien el decúbito dorsal."
     }
   ]
 }
