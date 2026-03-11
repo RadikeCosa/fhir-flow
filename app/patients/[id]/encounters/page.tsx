@@ -3,11 +3,12 @@ import { createEpisodeOfCareRepository } from "../../../../infrastructure/fhir/f
 import { createEncounterRepository } from "../../../../infrastructure/fhir/factories/encounter.factory";
 import { createVitalSignRecordRepository } from "../../../../infrastructure/fhir/factories/vital-sign-record.factory";
 import { createAssessmentRepository } from "../../../../infrastructure/fhir/factories/assessment.factory";
+import { createProcedureRepository } from "../../../../infrastructure/fhir/factories/procedure.factory";
 import EmptyState from "../../components/EmptyState";
 import EncounterList from "./components/EncounterList";
-import EncounterVitalSignsSection from "./components/EncounterVitalSignsSection";
-import EncounterEvaSection from "./components/EncounterEvaSection";
+import EpisodeChartsPanel from "./components/EpisodeChartsPanel";
 import type { EpisodeOfCare } from "../../../../domain/episode-of-care/episode-of-care";
+import type { Procedure } from "../../../../domain/procedures/procedure";
 
 type Props = {
   params: {
@@ -22,6 +23,7 @@ export default async function Page({ params }: Props) {
   const encounterRepo = createEncounterRepository();
   const vitalRepo = createVitalSignRecordRepository();
   const assessmentRepo = createAssessmentRepository();
+  const procedureRepo = createProcedureRepository();
 
   // fetch episode list to find the active one
   const episodes: EpisodeOfCare[] =
@@ -36,22 +38,35 @@ export default async function Page({ params }: Props) {
     );
   }
 
-  const encounters = await encounterRepo.findAllByEpisodeOfCareId(
+  const encountersRaw = await encounterRepo.findAllByEpisodeOfCareId(
     activeEpisode.id,
   );
 
-  // fetch vital signs and EVA assessments per encounter; this mirrors the
-  // pattern used on the patient detail page and ensures we pick up records
-  // that may be scoped to an encounter rather than directly to the patient.
-  const [vitalArrays, evaArrays] = await Promise.all([
+  // Sort encounters newest first
+  const encounters = [...encountersRaw].sort((a, b) =>
+    a.periodStart < b.periodStart ? 1 : a.periodStart > b.periodStart ? -1 : 0,
+  );
+
+  // fetch vital signs, EVA assessments and procedures per encounter in parallel
+  const [vitalArrays, evaArrays, procedureArrays] = await Promise.all([
     Promise.all(encounters.map((e) => vitalRepo.findAllByEncounterId(e.id))),
     Promise.all(
       encounters.map((e) => assessmentRepo.findEvaByEncounterId(e.id)),
     ),
+    Promise.all(
+      encounters.map((e) => procedureRepo.findAllByEncounterId(e.id)),
+    ),
   ]);
 
+  // Longitudinal series for the episode charts panel
   const vitalSigns = vitalArrays.flat();
   const evaRecords = evaArrays.flat();
+
+  // Per-encounter procedures map
+  const proceduresByEncounterId: Record<string, Procedure[]> = {};
+  encounters.forEach((enc, i) => {
+    proceduresByEncounterId[enc.id] = procedureArrays[i];
+  });
 
   return (
     <>
@@ -63,15 +78,15 @@ export default async function Page({ params }: Props) {
 
       <h1 className="text-2xl font-semibold mb-6">Historial de Encuentros</h1>
 
-      <EncounterList encounters={encounters} />
-
-      <div className="mt-8">
-        <EncounterVitalSignsSection records={vitalSigns} />
+      <div className="mb-8">
+        <EpisodeChartsPanel vitalSigns={vitalSigns} evaRecords={evaRecords} />
       </div>
 
-      <div className="mt-8">
-        <EncounterEvaSection records={evaRecords} />
-      </div>
+      <EncounterList
+        encounters={encounters}
+        proceduresByEncounterId={proceduresByEncounterId}
+      />
     </>
   );
 }
+

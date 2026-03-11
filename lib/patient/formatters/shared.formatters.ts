@@ -28,3 +28,30 @@ export function formatDate(date?: string): string | undefined {
     });
     return formatter.format(d);
 }
+
+/**
+ * Format an ISO datetime string into "DD/MM/YYYY HH:mm" for display.
+ * When the string contains a time component (T separator) it is rendered in
+ * local time so the displayed hour matches the practitioner's timezone.
+ * Date-only strings fall back to UTC to avoid off-by-one day shifts.
+ * Returns undefined if the input is missing or invalid.
+ */
+export function formatDateTime(date?: string): string | undefined {
+    if (!date) return undefined;
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return undefined;
+
+    // If the string has no explicit time component treat it as a date-only
+    // value (UTC midnight) to match the behaviour of formatDate.
+    const hasTime = date.includes("T");
+
+    const formatter = new Intl.DateTimeFormat("es-AR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: hasTime ? undefined : "UTC",
+    });
+    return formatter.format(d);
+}

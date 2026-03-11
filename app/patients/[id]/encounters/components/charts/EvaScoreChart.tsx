@@ -12,7 +12,7 @@ import {
 
 interface Datum {
   date: string;
-  score: number;
+  value: number;
 }
 
 interface EvaScoreChartProps {
@@ -37,8 +37,8 @@ export default function EvaScoreChart({ data }: EvaScoreChartProps) {
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="date" />
         <YAxis domain={[0, 10]} ticks={[0, 2, 4, 6, 8, 10]} />
-        <Tooltip formatter={(value: any) => [`Dolor: ${value} / 10`, "EVA"]} />
-        <Line type="monotone" dataKey="score" stroke="#dc2626" dot={false} />
+        <Tooltip formatter={(v) => [`Dolor: ${v} / 10`, "EVA"]} />
+        <Line type="monotone" dataKey="value" stroke="#dc2626" dot={false} />
       </LineChart>
     </ResponsiveContainer>
   );
