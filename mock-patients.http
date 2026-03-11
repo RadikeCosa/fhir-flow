@@ -1,0 +1,117 @@
+### Los datos incluidos en este archivo corresponden a **registros simulados utilizados exclusivamente para desarrollo y pruebas**. Si bien la estructura general sigue el estándar FHIR, algunos valores, perfiles y sistemas de identificación se utilizan de forma simplificada para facilitar la implementación inicial. En etapas posteriores del proyecto, estos recursos serán **normalizados y ajustados** para cumplir plenamente con los perfiles y requisitos definidos por el Bus de Interoperabilidad del Ministerio de Salud de la Nación.
+
+
+### Patient — pac-1 (Ricardo Fort)
+PUT http://localhost:8080/fhir/Patient/pac-1
+Content-Type: application/fhir+json
+
+{
+  "resourceType": "Patient",
+  "id": "pac-1",
+  "meta": { "profile": ["https://bus.msal.gob.ar"] },
+  "active": true,
+  "identifier": [
+    { "use": "official", "system": "http://www.anses.gov.ar", "value": "20123456789", "assigner": { "display": "ANSES" } },
+    { "use": "secondary", "system": "http://www.renaper.gob.ar/dni", "value": "12345678" }
+  ],
+  "name": [ { "use": "official", "family": "Fort", "given": ["Ricardo", "Aníbal"] } ],
+  "gender": "male",
+  "_gender": {
+    "extension": [
+      {
+        "url": "https://bus.msal.gob.ar",
+        "valueCodeableConcept": {
+          "coding": [ { "system": "http://hl7.org.ar", "code": "1", "display": "Varón" } ]
+        }
+      }
+    ]
+  },
+  "birthDate": "1968-11-05",
+  "maritalStatus": { "coding": [ { "system": "http://terminology.hl7.org/CodeSystem/v3-MaritalStatus", "code": "M", "display": "Married" } ] },
+  "telecom": [
+    { "system": "phone", "value": "+54 299 154-678901", "use": "mobile" },
+    { "system": "email", "value": "ricardo.fort@gmail.com", "use": "home" }
+  ],
+  "address": [
+    {
+      "use": "home",
+      "line": ["Av. Argentina 1547, 3° B"],
+      "city": "Neuquén",
+      "state": "Neuquén",
+      "postalCode": "8300",
+      "country": "AR"
+    }
+  ],
+  "contact": [
+    {
+      "relationship": [ { "coding": [ { "system": "http://terminology.hl7.org/CodeSystem/v2-0131", "code": "C", "display": "Emergency Contact" } ] } ],
+      "name": { "use": "official", "family": "Gómez", "given": ["María", "Laura"] },
+      "telecom": [ { "system": "phone", "value": "+54 299 154-321654", "use": "mobile" } ]
+    }
+  ],
+  "generalPractitioner": [ { "reference": "Practitioner/medico-1", "display": "Dr. Roque Favaloro" } ]
+}
+
+### En esta fase solo usamos el paciente 1 para el desarrollo de los casos de uso, pero se incluyen otros pacientes para futuras pruebas y validaciones.
+
+
+###
+PUT http://localhost:8080/fhir/Patient/pac-2
+Content-Type: application/fhir+json
+
+{
+  "resourceType": "Patient",
+  "id": "pac-2",
+  "meta": { "profile": ["https://bus.msal.gob.ar"] },
+  "active": true,
+  "identifier": [
+    { "use": "official", "system": "http://www.anses.gov.ar", "value": "23456789", "assigner": { "display": "ANSES" } },
+    { "use": "secondary", "system": "http://www.renaper.gob.ar/dni", "value": "23456789" }
+  ],
+  "name": [ { "use": "official", "family": "Rodríguez", "given": ["Elena"] } ],
+  "gender": "female",
+  "birthDate": "1972-04-10",
+  "maritalStatus": { "coding": [ { "system": "http://terminology.hl7.org/CodeSystem/v3-MaritalStatus", "code": "S", "display": "Single" } ] },
+  "telecom": [],
+  "address": [
+    {
+      "use": "home",
+      "line": ["Calle Falsa 123"],
+      "city": "Neuquén",
+      "state": "Neuquén",
+      "postalCode": "8300",
+      "country": "AR"
+    }
+  ],
+  "generalPractitioner": [ { "reference": "Practitioner/medico-1", "display": "Dr. Roque Favaloro" } ]
+}
+
+###
+PUT http://localhost:8080/fhir/Patient/pac-3
+Content-Type: application/fhir+json
+
+{
+  "resourceType": "Patient",
+  "id": "pac-3",
+  "meta": { "profile": ["https://bus.msal.gob.ar"] },
+  "active": true,
+  "identifier": [
+    { "use": "official", "system": "http://www.anses.gov.ar", "value": "34567890", "assigner": { "display": "ANSES" } },
+    { "use": "secondary", "system": "http://www.renaper.gob.ar/dni", "value": "34567890" }
+  ],
+  "name": [ { "use": "official", "family": "Méndez", "given": ["Omar"] } ],
+  "gender": "male",
+  "birthDate": "1958-06-20",
+  "telecom": [],
+  "address": [
+    {
+      "use": "home",
+      "line": ["Calle Verdadera 456"],
+      "city": "Neuquén",
+      "state": "Neuquén",
+      "postalCode": "8300",
+      "country": "AR"
+    }
+  ],
+  "generalPractitioner": [ { "reference": "Practitioner/medico-1", "display": "Dr. Roque Favaloro" } ]
+}

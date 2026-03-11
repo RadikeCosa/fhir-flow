@@ -133,7 +133,13 @@ export class FhirClient {
             mergedHeaders["Content-Type"] = mergedHeaders["Content-Type"] ?? "application/fhir+json";
         }
 
-        const res = await fetch(url, fetchOptions);
+        let res: Response;
+        try {
+            res = await fetch(url, fetchOptions);
+        } catch (err) {
+            // Network-level failure (DNS, connection refused, CORS, etc.)
+            throw new FhirError(`Network request failed for ${url}: ${String(err)}`, err);
+        }
 
         const contentType = res.headers.get("content-type") || "";
 

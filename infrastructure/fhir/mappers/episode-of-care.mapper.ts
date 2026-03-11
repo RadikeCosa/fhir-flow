@@ -2,7 +2,7 @@ import type {
     FhirEpisodeOfCare,
     FhirCondition,
     FhirCoverage,
-    FhirPractitioner,
+    FhirServiceRequest,
 } from "../schemas/episode-of-care.schema";
 import type {
     EpisodeOfCare,
@@ -159,18 +159,26 @@ function mapCoverage(cov: FhirCoverage): EpisodeCoverage {
 /**
  * Convert Practitioner resource to referral info.
  */
-function mapReferral(prac: FhirPractitioner): EpisodeReferral {
-    let display = "";
-    if (Array.isArray(prac.name) && prac.name.length > 0) {
-        const n = prac.name[0];
-        const given = Array.isArray(n.given) ? n.given.filter(Boolean).join(" ") : "";
-        const family = n.family || "";
-        display = `${given} ${family}`.trim();
-    }
+function mapReferral(sr: FhirServiceRequest): EpisodeReferral {
+    const practitionerName = sr.requester?.display ?? "";
+
+    const practitionerId = (() => {
+        const ref = sr.requester?.reference;
+        if (!ref || typeof ref !== "string") return "";
+        const parts = ref.split("/");
+        return parts.length > 0 ? parts[parts.length - 1] : "";
+    })();
+
+    const requestDate = sr.authoredOn ?? undefined;
+    const reasonText = Array.isArray(sr.reasonCode) && sr.reasonCode[0]?.text ? sr.reasonCode[0].text : undefined;
+    const requestNote = Array.isArray(sr.note) && sr.note[0]?.text ? sr.note[0].text : undefined;
 
     return {
-        practitionerId: prac.id,
-        practitionerName: display,
+        practitionerId,
+        practitionerName,
+        requestDate,
+        reasonText,
+        requestNote,
     };
 }
 
@@ -183,7 +191,7 @@ export function mapFhirEpisodeOfCareToDomain(
     episode: FhirEpisodeOfCare,
     condition: FhirCondition,
     coverage?: FhirCoverage,
-    referralPractitioner?: FhirPractitioner
+    serviceRequest?: FhirServiceRequest
 ): EpisodeOfCare {
     const patientId =
         typeof episode.patient?.reference === "string"
@@ -204,8 +212,8 @@ export function mapFhirEpisodeOfCareToDomain(
     if (coverage) {
         result.coverage = mapCoverage(coverage);
     }
-    if (referralPractitioner) {
-        result.referral = mapReferral(referralPractitioner);
+    if (serviceRequest) {
+        result.referral = mapReferral(serviceRequest);
     }
 
     return result;

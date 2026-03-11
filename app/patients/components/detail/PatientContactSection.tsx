@@ -4,6 +4,7 @@ import { SectionCard } from "./SectionCard";
 import {
   formatAddress,
   formatContactName,
+  formatRelationship,
 } from "../../../../lib/patient/formatters";
 
 interface Props {
@@ -61,7 +62,7 @@ export const PatientContactSection: React.FC<Props> = ({
                 </p>
                 <p>
                   <span className="font-medium">Relación:</span>{" "}
-                  {c.relationship || "No registrada"}
+                  {formatRelationship(c.relationship)}
                 </p>
                 <p>
                   <span className="font-medium">Teléfono:</span>{" "}

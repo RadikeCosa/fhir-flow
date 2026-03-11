@@ -1,5 +1,8 @@
-import { BadgeInfo } from "./shared.formatters";
-import type { EpisodeType } from "../../../domain/episode-of-care/episode-of-care";
+import { BadgeInfo, formatDate } from "./shared.formatters";
+import type {
+    EpisodeType,
+    EpisodeReferral,
+} from "../../../domain/episode-of-care/episode-of-care";
 
 /**
  * Translate an EpisodeStatus into a badge suitable for display in the UI.
@@ -76,4 +79,23 @@ export function formatEpisodeType(types?: EpisodeType[]): string {
     });
 
     return labels.join(" + ");
+}
+
+/**
+ * Format a referral line combining practitioner name and request date.
+ * Output formats:
+ * - both: "Dr. X · DD/MM/YYYY"
+ * - name only: "Dr. X"
+ * - date only: "DD/MM/YYYY"
+ * - neither: empty string
+ */
+export function formatReferralLine(ref?: EpisodeReferral): string {
+    if (!ref) return "";
+    const name = ref.practitionerName?.trim() ?? "";
+    const dateFmt = formatDate(ref.requestDate);
+
+    if (name && dateFmt) return `${name} · ${dateFmt}`;
+    if (name) return name;
+    if (dateFmt) return dateFmt;
+    return "";
 }

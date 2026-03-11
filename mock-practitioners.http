@@ -1,0 +1,168 @@
+### Los datos incluidos en este archivo corresponden a **registros simulados utilizados exclusivamente para desarrollo y pruebas**. Si bien la estructura general sigue el estándar FHIR, algunos valores, perfiles y sistemas de identificación se utilizan de forma simplificada para facilitar la implementación inicial. En etapas posteriores del proyecto, estos recursos serán **normalizados y ajustados** para cumplir plenamente con los perfiles y requisitos definidos por el Bus de Interoperabilidad del Ministerio de Salud de la Nación.
+
+
+### Practitioner — medico-1 (Roque Favaloro)
+PUT http://localhost:8080/fhir/Practitioner/medico-1
+Content-Type: application/fhir+json
+
+{
+  "resourceType": "Practitioner",
+  "id": "medico-1",
+  "meta": {
+    "profile": [
+      "https://bus.msal.gob.ar"
+    ]
+  },
+  "active": true,
+  "identifier": [
+    {
+      "use": "official",
+      "system": "http://www.anses.gov.ar",
+      "value": "20042456789",
+      "assigner": {
+        "display": "ANSES"
+      }
+    },
+    {
+      "use": "official",
+      "system": "https://salud.neuquen.gob.ar",
+      "value": "MN-14732",
+      "assigner": {
+        "display": "Ministerio de Salud Neuquén"
+      }
+    }
+  ],
+  "name": [
+    {
+      "use": "official",
+      "family": "Favaloro",
+      "given": ["Roque", "Gerónimo"]
+    }
+  ],
+  "telecom": [
+    {
+      "system": "email",
+      "value": "roque.favaloro@hospital.org",
+      "use": "work"
+    },
+    {
+      "system": "phone",
+      "value": "+54 299 442-1100",
+      "use": "work"
+    }
+  ],
+  "address": [
+    {
+      "use": "work",
+      "line": ["Av. Argentina 1400"],
+      "city": "Neuquén",
+      "state": "Neuquén",
+      "postalCode": "8300",
+      "country": "AR"
+    }
+  ],
+  "gender": "male",
+  "birthDate": "1953-07-12",
+  "qualification": [
+    {
+      "code": {
+        "coding": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "309343006",
+            "display": "Physician"
+          }
+        ],
+        "text": "Médico Cardiólogo"
+      },
+      "issuer": {
+        "display": "Universidad de Buenos Aires"
+      }
+    }
+  ]
+}
+### Practitioner — kine-1 (Marty McFly)
+PUT http://localhost:8080/fhir/Practitioner/kine-1
+Content-Type: application/fhir+json
+
+{
+  "resourceType": "Practitioner",
+  "id": "kine-1",
+  "meta": {
+    "profile": [
+      "https://bus.msal.gob.ar"
+    ]
+  },
+  "identifier": [
+    {
+      "use": "official",
+      "system": "http://www.anses.gov.ar",
+      "value": "20042456789",
+      "assigner": { "display": "ANSES" }
+    },
+    {
+      "use": "official",
+      "system": "https://salud.neuquen.gob.ar",
+      "value": "MP-90009",
+      "assigner": { "display": "Ministerio de Salud Neuquén" }
+    }
+  ],
+  "active": true,
+  "name": [
+    {
+      "use": "official",
+      "family": "McFly",
+      "given": ["Marty", "Alejandro"]
+    }
+  ],
+  "telecom": [
+    {
+      "system": "phone",
+      "value": "+54 299 154-112233",
+      "use": "mobile"
+    },
+    {
+      "system": "email",
+      "value": "marty.mcfly@kinesiologia-domiciliaria.local",
+      "use": "work"
+    }
+  ],
+  "address": [
+    {
+      "use": "work",
+      "line": ["Av. Olascoaga 1234"],
+      "city": "Neuquén",
+      "state": "Neuquén",
+      "postalCode": "8300",
+      "country": "AR"
+    }
+  ],
+  "gender": "male",
+  "birthDate": "1985-03-22",
+  "qualification": [
+    {
+      "identifier": [
+        {
+          "system": "https://salud.neuquen.gob.ar/matricula-profesional",
+          "value": "MP-90009"
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "36682004",
+            "display": "Physiotherapist"
+          }
+        ],
+        "text": "Licenciado en Kinesiología y Fisiatría"
+      },
+      "period": {
+        "start": "2010-03-15"
+      },
+      "issuer": {
+        "display": "Universidad Nacional de Neuquén"
+      }
+    }
+  ]
+}

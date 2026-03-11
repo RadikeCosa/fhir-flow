@@ -67,8 +67,41 @@ export const fhirEpisodeOfCareSchema = z
                     .passthrough()
             )
             .optional(),
+        referralRequest: z.array(referenceSchema).optional(),
         careManager: referenceSchema.optional(),
         patient: referenceSchema.optional(),
+    })
+    .passthrough();
+
+/**
+ * ServiceRequest schema capturing the minimal elements used by the mapper
+ * when a referral is present.  The schema is permissive and allows unknown
+ * properties via `.passthrough()`.
+ */
+export const fhirServiceRequestSchema = z
+    .object({
+        resourceType: z.literal("ServiceRequest"),
+        id: z.string().min(1),
+        authoredOn: z.string().optional(),
+        requester: referenceSchema.optional(),
+        reasonCode: z
+            .array(
+                z
+                    .object({
+                        text: z.string().optional(),
+                    })
+                    .passthrough()
+            )
+            .optional(),
+        note: z
+            .array(
+                z
+                    .object({
+                        text: z.string().optional(),
+                    })
+                    .passthrough()
+            )
+            .optional(),
     })
     .passthrough();
 
@@ -168,3 +201,4 @@ export type FhirEpisodeOfCare = z.infer<typeof fhirEpisodeOfCareSchema>;
 export type FhirCondition = z.infer<typeof fhirConditionSchema>;
 export type FhirCoverage = z.infer<typeof fhirCoverageSchema>;
 export type FhirPractitioner = z.infer<typeof fhirPractitionerSchema>;
+export type FhirServiceRequest = z.infer<typeof fhirServiceRequestSchema>;

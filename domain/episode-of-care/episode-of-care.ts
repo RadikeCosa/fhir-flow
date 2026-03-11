@@ -74,6 +74,18 @@ export interface EpisodeCoverage {
 export interface EpisodeReferral {
     practitionerId: string;
     practitionerName: string;
+    /**
+     * ISO date string from the referring ServiceRequest.authoredOn.
+     */
+    requestDate?: string;
+    /**
+     * Plain text from the referring ServiceRequest.reasonCode[0].text.
+     */
+    reasonText?: string;
+    /**
+     * Plain text from the referring ServiceRequest.note[0].text.
+     */
+    requestNote?: string;
 }
 
 /**

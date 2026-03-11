@@ -168,6 +168,34 @@ export function formatMaritalStatus(status?: string): string {
 }
 
 /**
+ * Translate a contact relationship code to a human-readable string.
+ * The mapper currently stores either free-text (`r.text`) or the first
+ * coding code; when codes are used we show a friendly label. Unknown or
+ * missing values fall back to the raw input (capitalized) or a default.
+ */
+export function formatRelationship(code?: string): string {
+    if (!code || typeof code !== "string") return "No registrada";
+    const key = code.trim().toLowerCase();
+
+    switch (key) {
+        case "c":
+            return "Cónyuge";
+        case "p":
+            return "Padre/Madre";
+        case "ch":
+            return "Hijo/a";
+        case "s":
+            return "Hermano/a";
+        case "o":
+            return "Otro";
+        // add more codes here as they appear in the real data
+        default:
+            // return the original string with first letter capitalized
+            return key.charAt(0).toUpperCase() + key.slice(1);
+    }
+}
+
+/**
  * Combine given and family names for display. Falls back when missing.
  */
 export function formatContactName(

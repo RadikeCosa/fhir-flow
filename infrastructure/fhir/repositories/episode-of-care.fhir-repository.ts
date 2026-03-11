@@ -9,8 +9,8 @@ import {
     FhirCondition,
     fhirCoverageSchema,
     FhirCoverage,
-    fhirPractitionerSchema,
-    FhirPractitioner,
+    fhirServiceRequestSchema,
+    FhirServiceRequest,
 } from "../schemas/episode-of-care.schema";
 import {
     mapFhirEpisodeOfCareToDomain,
@@ -41,8 +41,8 @@ export class EpisodeOfCareFhirRepository implements EpisodeOfCareRepository {
         return parsed.success ? parsed.data : null;
     }
 
-    private parsePractitioner(obj: unknown): FhirPractitioner | null {
-        const parsed = fhirPractitionerSchema.safeParse(obj);
+    private parseServiceRequest(obj: unknown): FhirServiceRequest | null {
+        const parsed = fhirServiceRequestSchema.safeParse(obj);
         return parsed.success ? parsed.data : null;
     }
 
@@ -50,18 +50,18 @@ export class EpisodeOfCareFhirRepository implements EpisodeOfCareRepository {
         const bundle = await this.client.search<unknown>("EpisodeOfCare", {
             patient: patientId,
             status: "active",
-            _include: "EpisodeOfCare:condition",
+            // include the linked Condition and any incoming referral ServiceRequest
+            _include: ["EpisodeOfCare:condition", "EpisodeOfCare:incoming-referral"],
         });
 
         const entries = safeGetEntries(bundle);
         if (entries.length === 0) return null;
 
-        const episodeEntry = entries.find(
-            (e: any) => e.resource?.resourceType === "EpisodeOfCare"
-        );
-        const conditionEntry = entries.find(
-            (e: any) => e.resource?.resourceType === "Condition"
-        );
+
+        const episodeEntry = entries.find((e) => e.resource?.resourceType === "EpisodeOfCare");
+        const conditionEntry = entries.find((e) => e.resource?.resourceType === "Condition");
+        // find an included ServiceRequest (incoming referral) when present
+        const serviceRequestEntry = entries.find((e) => e.resource?.resourceType === "ServiceRequest");
 
         if (!episodeEntry?.resource || !conditionEntry?.resource) return null;
 
@@ -86,31 +86,17 @@ export class EpisodeOfCareFhirRepository implements EpisodeOfCareRepository {
             // tolerate missing coverage by leaving `cov` undefined
         }
 
-        // optionally resolve practitioner
-        let prac: FhirPractitioner | undefined;
-        if (typeof ep.careManager?.reference === "string") {
-            const parts = ep.careManager.reference.split("/");
-            const id = parts[parts.length - 1];
-            try {
-                const res = await this.client.read<FhirPractitioner>(
-                    "Practitioner",
-                    id
-                );
-                const parsedPr = this.parsePractitioner(res);
-                if (parsedPr) prac = parsedPr;
-            } catch {
-                // ignore errors retrieving practitioner
-            }
-        }
+        const parsedSR = serviceRequestEntry?.resource ? this.parseServiceRequest(serviceRequestEntry.resource) : null;
 
-        return mapFhirEpisodeOfCareToDomain(ep, cond, cov, prac);
+        return mapFhirEpisodeOfCareToDomain(ep, cond, cov, parsedSR ?? undefined);
     }
 
     public async findAllByPatientId(patientId: string): Promise<EpisodeOfCare[]> {
         const bundle = await this.client.search<unknown>("EpisodeOfCare", {
             patient: patientId,
             _sort: "-date",
-            _include: "EpisodeOfCare:condition",
+            // include the linked Condition and any incoming referral ServiceRequest
+            _include: ["EpisodeOfCare:condition", "EpisodeOfCare:incoming-referral"],
         });
 
         const entries = safeGetEntries(bundle);
@@ -135,10 +121,16 @@ export class EpisodeOfCareFhirRepository implements EpisodeOfCareRepository {
 
         // group conditions by reference id for easy lookup
         const conditionMap: Record<string, FhirCondition> = {};
+        // also collect ServiceRequest resources keyed by id so episodes can resolve their referral
+        const serviceRequestMap: Record<string, FhirServiceRequest> = {};
         for (const e of entries) {
             if (e.resource?.resourceType === "Condition") {
                 const c = this.parseCondition(e.resource);
                 if (c) conditionMap[c.id] = c;
+            }
+            if (e.resource?.resourceType === "ServiceRequest") {
+                const sr = this.parseServiceRequest(e.resource);
+                if (sr) serviceRequestMap[sr.id] = sr;
             }
         }
 
@@ -159,24 +151,16 @@ export class EpisodeOfCareFhirRepository implements EpisodeOfCareRepository {
             }
             if (!cond) continue; // skip episodes missing condition
 
-            // optionally fetch practitioner per episode
-            let prac: FhirPractitioner | undefined;
-            if (typeof ep.careManager?.reference === "string") {
-                const parts = ep.careManager.reference.split("/");
+            // resolve the episode's referral ServiceRequest (if any)
+            let resolvedSR: FhirServiceRequest | undefined;
+            const referralRef = ep.referralRequest?.[0]?.reference;
+            if (typeof referralRef === "string") {
+                const parts = referralRef.split("/");
                 const id = parts[parts.length - 1];
-                try {
-                    const res = await this.client.read<FhirPractitioner>(
-                        "Practitioner",
-                        id
-                    );
-                    const parsedPr = this.parsePractitioner(res);
-                    if (parsedPr) prac = parsedPr;
-                } catch {
-                    /* ignore */
-                }
+                resolvedSR = serviceRequestMap[id];
             }
 
-            results.push(mapFhirEpisodeOfCareToDomain(ep, cond, cov, prac));
+            results.push(mapFhirEpisodeOfCareToDomain(ep, cond, cov, resolvedSR));
         }
 
         return results;

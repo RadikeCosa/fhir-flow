@@ -51,7 +51,15 @@ export const VitalSignsChart: React.FC<Props> = ({ title, data, lines }) => {
               if (parts.length < 3) return label;
               return `${parts[2]}/${parts[1]}/${parts[0]}`;
             }}
-            formatter={(value: number | undefined) => [value ?? 0, title]}
+            formatter={(value: unknown) => {
+              let num = 0;
+              if (typeof value === "number") num = value;
+              else if (typeof value === "string") {
+                const parsed = Number(value);
+                if (!isNaN(parsed)) num = parsed;
+              }
+              return [num, title] as [number, string];
+            }}
           />
           <Legend wrapperStyle={{ fontSize: 11 }} />
           {lines.map((line) => (
