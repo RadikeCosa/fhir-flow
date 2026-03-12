@@ -13,9 +13,7 @@ import {
   ReferenceLine,
 } from "recharts";
 
-import { CLINICAL_CHART_COLORS } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
-
-import { CLINICAL_CHART_RANGES } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
+import { CLINICAL_CHART_COLORS, CLINICAL_CHART_RANGES } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
 
 interface BloodPressureChartProps {
   data: { date: string; systolic: number; diastolic: number }[];
@@ -25,7 +23,7 @@ interface BloodPressureChartProps {
 // systolic first regardless of payload order and style each line with a
 // coloured dot matching the series colour.  The wrapper mimics other
 // small cards in the app.
-function CustomTooltip(props: TooltipContentProps<any, any>) {
+function CustomTooltip(props: TooltipContentProps<number, string>) {
   const { active, payload, label } = props;
   if (!active || !payload || payload.length === 0) {
     return null;
@@ -98,7 +96,7 @@ export default function BloodPressureChart({ data }: BloodPressureChartProps) {
           strokeDasharray="3 3"
           strokeWidth={1}
         />
-        <Tooltip content={CustomTooltip} />
+        <Tooltip content={(props) => CustomTooltip(props as TooltipContentProps<number, string>)} />
         <Legend />
         <Line
           type="monotone"

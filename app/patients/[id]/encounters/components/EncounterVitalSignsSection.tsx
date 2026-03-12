@@ -1,5 +1,5 @@
 import { SectionCard } from "../../../components/detail/SectionCard";
-import type { VitalSignRecord } from "../../../../domain/vital-sign-record/vital-sign-record";
+import type { VitalSignRecord } from "../../../../../domain/vital-sign-record/vital-sign-record";
 import { formatVitalSignsForChart } from "../../../../../lib/patient/formatters/encounter-charts.formatters";
 import HeartRateChart from "./charts/HeartRateChart";
 import RespiratoryRateChart from "./charts/RespiratoryRateChart";

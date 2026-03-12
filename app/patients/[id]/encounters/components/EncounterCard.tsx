@@ -66,11 +66,8 @@ export default function EncounterCard({
 
   return (
     <SectionCard title={title}>
-      {/* Header row: datetime + badge */}
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-sm font-semibold text-foreground">
-          {formatDateTime(encounter.periodStart) ?? ""}
-        </span>
+      {/* Header row: badge */}
+      <div className="flex items-center justify-end mb-1">
         <span
           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${visitBadge.colorClass}`}
         >
