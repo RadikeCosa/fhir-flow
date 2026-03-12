@@ -9,15 +9,17 @@ import EncounterList from "./components/EncounterList";
 import EpisodeChartsPanel from "./components/EpisodeChartsPanel";
 import type { EpisodeOfCare } from "../../../../domain/episode-of-care/episode-of-care";
 import type { Procedure } from "../../../../domain/procedures/procedure";
+import type { VitalSignRecord } from "../../../../domain/vital-sign-record/vital-sign-record";
+import type { EvaAssessment } from "../../../../domain/assessments/eva-assessment";
 
 type Props = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 export default async function Page({ params }: Props) {
-  const patientId = params.id;
+  const { id: patientId } = await params;
 
   const episodeRepo = createEpisodeOfCareRepository();
   const encounterRepo = createEncounterRepository();
@@ -64,8 +66,14 @@ export default async function Page({ params }: Props) {
 
   // Per-encounter procedures map
   const proceduresByEncounterId: Record<string, Procedure[]> = {};
+  // also build maps for vitals and EVA assessments
+  const vitalsByEncounterId: Record<string, VitalSignRecord[]> = {};
+  const evaByEncounterId: Record<string, EvaAssessment[]> = {};
+
   encounters.forEach((enc, i) => {
     proceduresByEncounterId[enc.id] = procedureArrays[i];
+    vitalsByEncounterId[enc.id] = vitalArrays[i];
+    evaByEncounterId[enc.id] = evaArrays[i];
   });
 
   return (
@@ -85,8 +93,9 @@ export default async function Page({ params }: Props) {
       <EncounterList
         encounters={encounters}
         proceduresByEncounterId={proceduresByEncounterId}
+        vitalsByEncounterId={vitalsByEncounterId}
+        evaByEncounterId={evaByEncounterId}
       />
     </>
   );
 }
-

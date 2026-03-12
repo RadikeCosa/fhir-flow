@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { SectionCard } from "../../../components/detail/SectionCard";
 import { formatDateTime } from "../../../../../lib/patient/formatters";
+import { formatEncounterVisitType } from "../../../../../lib/patient/formatters/encounter.formatters";
 import {
   formatProcedureCategory,
   groupProceduresByCategory,
@@ -12,10 +13,16 @@ import type {
   EncounterVisitType,
 } from "../../../../../domain/encounters/encounter";
 import type { Procedure } from "../../../../../domain/procedures/procedure";
+import type { VitalSignRecord } from "../../../../../domain/vital-sign-record/vital-sign-record";
+import type { EvaAssessment } from "../../../../../domain/assessments/eva-assessment";
+import EncounterVitalSignsSection from "./EncounterVitalSignsSection";
+import EncounterEvaSection from "./EncounterEvaSection";
 
 interface Props {
   encounter: Encounter;
   procedures: Procedure[];
+  vitalSigns: VitalSignRecord[];
+  evaRecords: EvaAssessment[];
 }
 
 interface BadgeInfo {
@@ -39,17 +46,26 @@ function getVisitTypeBadge(visitType: EncounterVisitType): BadgeInfo {
   }
 }
 
-export default function EncounterCard({ encounter, procedures }: Props) {
+export default function EncounterCard({
+  encounter,
+  procedures,
+  vitalSigns,
+  evaRecords,
+}: Props) {
   const [expanded, setExpanded] = useState(false);
   const [noteExpanded, setNoteExpanded] = useState(false);
 
   const visitBadge = getVisitTypeBadge(encounter.visitType);
   const hasDetails = !!encounter.clinicalNote || procedures.length > 0;
 
+  const formattedDate = formatDateTime(encounter.periodStart) ?? "";
+  const visitLabel = formatEncounterVisitType(encounter.visitType);
+  const title = `${visitLabel} — ${formattedDate}`;
+
   const groupedProcedures = groupProceduresByCategory(procedures);
 
   return (
-    <SectionCard title="Encuentro">
+    <SectionCard title={title}>
       {/* Header row: datetime + badge */}
       <div className="flex items-center justify-between mb-1">
         <span className="text-sm font-semibold text-foreground">
@@ -163,6 +179,12 @@ export default function EncounterCard({ encounter, procedures }: Props) {
               </div>
             </div>
           )}
+
+          {/* Vital signs section */}
+          <EncounterVitalSignsSection records={vitalSigns} />
+
+          {/* EVA assessments section */}
+          <EncounterEvaSection records={evaRecords} />
         </div>
       )}
     </SectionCard>
