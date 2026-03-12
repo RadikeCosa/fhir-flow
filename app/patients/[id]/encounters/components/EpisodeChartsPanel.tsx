@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { SectionCard } from "../../../components/detail/SectionCard";
 import type { VitalSignRecord } from "../../../../../domain/vital-sign-record/vital-sign-record";
 import type { EvaAssessment } from "../../../../../domain/assessments/eva-assessment";
@@ -40,8 +40,8 @@ interface Props {
 export default function EpisodeChartsPanel({ vitalSigns, evaRecords }: Props) {
   const [metric, setMetric] = useState<MetricKey>("heart-rate");
 
-  const chartData = formatVitalSignsForChart(vitalSigns);
-  const evaData = formatEvaForChart(evaRecords);
+  const chartData = useMemo(() => formatVitalSignsForChart(vitalSigns), [vitalSigns]);
+  const evaData = useMemo(() => formatEvaForChart(evaRecords), [evaRecords]);
 
   function renderChart() {
     switch (metric) {

@@ -12,9 +12,7 @@ import {
   ReferenceLine,
 } from "recharts";
 
-import { CLINICAL_CHART_COLORS } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
-
-import { CLINICAL_CHART_RANGES } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
+import { CLINICAL_CHART_COLORS, CLINICAL_CHART_RANGES } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
 
 interface Datum {
   date: string;

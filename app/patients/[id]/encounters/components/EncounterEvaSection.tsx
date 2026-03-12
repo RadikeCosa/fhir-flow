@@ -1,5 +1,5 @@
 import { SectionCard } from "../../../components/detail/SectionCard";
-import type { EvaAssessment } from "../../../../domain/assessments/eva-assessment";
+import type { EvaAssessment } from "../../../../../domain/assessments/eva-assessment";
 import { formatEvaForChart } from "../../../../../lib/patient/formatters/encounter-charts.formatters";
 import EvaScoreChart from "./charts/EvaScoreChart";
 

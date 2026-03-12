@@ -6,14 +6,13 @@ import {
   XAxis,
   YAxis,
   Tooltip,
+  Legend,
   CartesianGrid,
   ResponsiveContainer,
   ReferenceLine,
 } from "recharts";
 
-import { CLINICAL_CHART_COLORS } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
-
-import { CLINICAL_CHART_RANGES } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
+import { CLINICAL_CHART_COLORS, CLINICAL_CHART_RANGES } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
 
 interface Datum {
   date: string;
@@ -86,9 +85,11 @@ export default function EvaScoreChart({ data }: EvaScoreChartProps) {
           }}
         />
         <Tooltip formatter={(v) => [`Dolor: ${v} / 10`, "EVA"]} />
+        <Legend />
         <Line
           type="monotone"
           dataKey="value"
+          name="EVA"
           stroke={CLINICAL_CHART_COLORS.neutral}
           dot={false}
         />
