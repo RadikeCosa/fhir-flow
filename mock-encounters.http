@@ -1,1535 +1,15 @@
-### Los datos incluidos en este archivo corresponden a **registros simulados utilizados exclusivamente para desarrollo y pruebas**. Si bien la estructura general sigue el estándar FHIR, algunos valores, perfiles y sistemas de identificación se utilizan de forma simplificada para facilitar la implementación inicial. En etapas posteriores del proyecto, estos recursos serán **normalizados y ajustados** para cumplir plenamente con los perfiles y requisitos definidos por el Bus de Interoperabilidad del Ministerio de Salud de la Nación.
+### DATOS SIMULADOS — solo para desarrollo y pruebas.
+### La estructura sigue FHIR R4 simplificado. En produccion se ajustara a los
+### perfiles del Bus de Interoperabilidad del Ministerio de Salud de la Nacion.
 ###
- GET http://localhost:8080/fhir/Encounter/enc-1
- 
-### Encounter — enc-1 (Visita domiciliaria finalizada — pac-1 / kine-1)
-PUT http://localhost:8080/fhir/Encounter/enc-1
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Encounter",
-  "id": "enc-1",
-  "status": "finished",
-  "class": {
-    "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
-    "code": "HH",
-    "display": "home health"
-  },
-  "type": [
-    {
-      "coding": [
-        {
-          "system": "http://snomed.info/sct",
-          "code": "439708006",
-          "display": "Home visit"
-        }
-      ],
-      "text": "Visita domiciliaria"
-    }
-  ],
-  "subject": {
-    "reference": "Patient/pac-1",
-    "display": "Ricardo Fort"
-  },
-  "participant": [
-    {
-      "type": [
-        {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
-              "code": "PPRF",
-              "display": "primary performer"
-            }
-          ]
-        }
-      ],
-      "individual": {
-        "reference": "Practitioner/kine-1",
-        "display": "Lic. Marty McFly"
-      }
-    }
-  ],
-  "period": {
-    "start": "2025-03-10T10:00:00-03:00",
-    "end": "2025-03-10T11:00:00-03:00"
-  },
-  "length": {
-    "value": 60,
-    "unit": "min",
-    "system": "http://unitsofmeasure.org",
-    "code": "min"
-  },
-  "episodeOfCare": [
-    {
-      "reference": "EpisodeOfCare/ep-1"
-    }
-  ],
-  "reasonCode": [
-    {
-      "coding": [
-        {
-          "system": "http://snomed.info/sct",
-          "code": "229070002",
-          "display": "Physiotherapy of upper limb"
-        }
-      ],
-      "text": "Rehabilitación kinesiológica — hemiparesia izquierda post-ACV"
-    }
-  ],
-  "extension": [
-    {
-      "url": "http://kinesiologia-domiciliaria.local/StructureDefinition/clinical-note",
-      "valueString": "Paciente colaborador, se fatiga rápidamente. Tolera bien el decúbito dorsal."
-    }
-  ]
-}
-
+### Este archivo contiene UN UNICO request: un FHIR transaction bundle que
+### carga todos los recursos de una sola vez (enc-1 a enc-7 con signos
+### vitales, EVA y procedimientos de cada encuentro).
 ###
+### Para ejecutarlo: click en "Send Request" encima del bloque POST, o usar
+### la extension REST Client de VS Code.
 
-### Encounter — enc-2 (Próxima visita planificada — pac-1 / kine-1)
-PUT http://localhost:8080/fhir/Encounter/enc-2
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Encounter",
-  "id": "enc-2",
-  "status": "planned",
-  "class": {
-    "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
-    "code": "HH",
-    "display": "home health"
-  },
-  "type": [
-    {
-      "coding": [
-        {
-          "system": "http://snomed.info/sct",
-          "code": "439708006",
-          "display": "Home visit"
-        }
-      ],
-      "text": "Visita domiciliaria"
-    }
-  ],
-  "subject": {
-    "reference": "Patient/pac-1",
-    "display": "Ricardo Fort"
-  },
-  "participant": [
-    {
-      "type": [
-        {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
-              "code": "PPRF",
-              "display": "primary performer"
-            }
-          ]
-        }
-      ],
-      "individual": {
-        "reference": "Practitioner/kine-1",
-        "display": "Lic. Marty McFly"
-      }
-    }
-  ],
-  "period": {
-    "start": "2025-03-13T10:00:00-03:00"
-  },
-  "episodeOfCare": [
-    {
-      "reference": "EpisodeOfCare/ep-1"
-    }
-  ]
-}
-
-### Observation — obs-vs-heart-rate
-PUT http://localhost:8080/fhir/Observation/obs-vs-heart-rate
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "obs-vs-heart-rate",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "8867-4","display": "Heart rate"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-1"},
-  "effectiveDateTime": "2025-03-10T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueQuantity": {"value": 78, "unit": "beats/minute","system": "http://unitsofmeasure.org", "code": "/min"}
-}
-
-### Observation — obs-vs-respiratory-rate
-PUT http://localhost:8080/fhir/Observation/obs-vs-respiratory-rate
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "obs-vs-respiratory-rate",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "9279-1","display": "Respiratory rate"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-1"},
-  "effectiveDateTime": "2025-03-10T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueQuantity": {"value": 16, "unit": "breaths/minute","system": "http://unitsofmeasure.org", "code": "/min"}
-}
-
-### Observation — obs-vs-oxygen-saturation
-PUT http://localhost:8080/fhir/Observation/obs-vs-oxygen-saturation
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "obs-vs-oxygen-saturation",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "59408-5","display": "Oxygen saturation"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-1"},
-  "effectiveDateTime": "2025-03-10T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueQuantity": {"value": 97, "unit": "%","system": "http://unitsofmeasure.org", "code": "%"}
-}
-
-### Observation — obs-vs-body-temperature
-PUT http://localhost:8080/fhir/Observation/obs-vs-body-temperature
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "obs-vs-body-temperature",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "8310-5","display": "Body temperature"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-1"},
-  "effectiveDateTime": "2025-03-10T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueQuantity": {"value": 36.7, "unit": "°C","system": "http://unitsofmeasure.org", "code": "Cel"}
-}
-
-### Observation — obs-vs-blood-pressure
-PUT http://localhost:8080/fhir/Observation/obs-vs-blood-pressure
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "obs-vs-blood-pressure",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "55284-4","display": "Blood pressure"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-1"},
-  "effectiveDateTime": "2025-03-10T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "component": [
-    {
-      "code": {"coding": [{"system": "http://loinc.org","code": "8480-6","display": "Systolic blood pressure"}]},
-      "valueQuantity": {"value": 128, "unit": "mmHg","system": "http://unitsofmeasure.org", "code": "mm[Hg]"}
-    },
-    {
-      "code": {"coding": [{"system": "http://loinc.org","code": "8462-4","display": "Diastolic blood pressure"}]},
-      "valueQuantity": {"value": 82, "unit": "mmHg","system": "http://unitsofmeasure.org", "code": "mm[Hg]"}
-    }
-  ]
-}
-
-### Procedure — proc-1 (Movilización pasiva MMII — enc-1)
-
-###
-
-### Procedure — proc-1 (Movilización pasiva MMII — enc-1)
-PUT http://localhost:8080/fhir/Procedure/proc-1
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Procedure",
-  "id": "proc-1",
-  "status": "completed",
-  "category": {
-    "coding": [
-      {
-        "system": "http://snomed.info/sct",
-        "code": "229070002",
-        "display": "Physiotherapy of lower limb"
-      }
-    ],
-    "text": "Kinesioterapia — Miembro inferior"
-  },
-  "code": {
-    "coding": [
-      {
-        "system": "http://kinesiologia-domiciliaria.local/procedimientos",
-        "code": "movilizacion-articular-pasiva"
-      }
-    ],
-    "text": "Movilización pasiva de miembro inferior izquierdo"
-  },
-  "subject": {
-    "reference": "Patient/pac-1",
-    "display": "Ricardo Fort"
-  },
-  "encounter": {
-    "reference": "Encounter/enc-1"
-  },
-  "performedDateTime": "2025-03-10T10:20:00-03:00",
-  "performer": [
-    {
-      "actor": {
-        "reference": "Practitioner/kine-1",
-        "display": "Lic. Marty McFly"
-      }
-    }
-  ]
-}
-
-###
-
-### Procedure — proc-2 (Ejercicios de fortalecimiento MMSS — enc-1)
-PUT http://localhost:8080/fhir/Procedure/proc-2
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Procedure",
-  "id": "proc-2",
-  "status": "completed",
-  "category": {
-    "coding": [
-      {
-        "system": "http://snomed.info/sct",
-        "code": "229070002",
-        "display": "Physiotherapy of upper limb"
-      }
-    ],
-    "text": "Kinesioterapia — Miembro superior"
-  },
-  "code": {
-    "coding": [
-      {
-        "system": "http://kinesiologia-domiciliaria.local/procedimientos",
-        "code": "fortalecimiento"
-      }
-    ],
-    "text": "Ejercicios de fortalecimiento de miembro superior izquierdo"
-  },
-  "subject": {
-    "reference": "Patient/pac-1",
-    "display": "Ricardo Fort"
-  },
-  "encounter": {
-    "reference": "Encounter/enc-1"
-  },
-  "performedDateTime": "2025-03-10T10:35:00-03:00",
-  "performer": [
-    {
-      "actor": {
-        "reference": "Practitioner/kine-1",
-        "display": "Lic. Marty McFly"
-      }
-    }
-  ]
-}
-
-###
-
-### Procedure — proc-3 (Reeducación de la marcha — enc-1)
-PUT http://localhost:8080/fhir/Procedure/proc-3
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Procedure",
-  "id": "proc-3",
-  "status": "completed",
-  "category": {
-    "coding": [
-      {
-        "system": "http://snomed.info/sct",
-        "code": "229070002",
-        "display": "Gait retraining"
-      }
-    ],
-    "text": "Reeducación de la marcha"
-  },
-  "code": {
-    "coding": [
-      {
-        "system": "http://kinesiologia-domiciliaria.local/procedimientos",
-        "code": "reeducacion-marcha"
-      }
-    ],
-    "text": "Reeducación de la marcha con bastón"
-  },
-  "subject": {
-    "reference": "Patient/pac-1",
-    "display": "Ricardo Fort"
-  },
-  "encounter": {
-    "reference": "Encounter/enc-1"
-  },
-  "performedDateTime": "2025-03-10T10:45:00-03:00",
-  "performer": [
-    {
-      "actor": {
-        "reference": "Practitioner/kine-1",
-        "display": "Lic. Marty McFly"
-      }
-    }
-  ]
-}
-
-###
-
-### Observation — obs-eva-1 (Escala EVA de dolor — enc-1)
-PUT http://localhost:8080/fhir/Observation/obs-eva-1
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "obs-eva-1",
-  "status": "final",
-  "category": [
-    {
-      "coding": [
-        {
-          "system": "http://terminology.hl7.org/CodeSystem/observation-category",
-          "code": "survey",
-          "display": "Survey"
-        }
-      ]
-    }
-  ],
-  "code": {
-    "coding": [
-      {
-        "system": "http://loinc.org",
-        "code": "72514-3",
-        "display": "Pain severity - 0-10 verbal numeric rating [Score] - Reported"
-      }
-    ],
-    "text": "Escala visual analógica del dolor (EVA)"
-  },
-  "subject": {
-    "reference": "Patient/pac-1",
-    "display": "Ricardo Fort"
-  },
-  "encounter": {
-    "reference": "Encounter/enc-1"
-  },
-  "effectiveDateTime": "2025-03-10T10:10:00-03:00",
-  "performer": [
-    {
-      "reference": "Practitioner/kine-1",
-      "display": "Lic. Marty McFly"
-    }
-  ],
-  "valueInteger": 3
-}
-
-### Encounter — enc-3 (Visita domiciliaria finalizada — pac-1 / kine-1)
-PUT http://localhost:8080/fhir/Encounter/enc-3
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Encounter",
-  "id": "enc-3",
-  "status": "finished",
-  "class": {
-    "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
-    "code": "HH",
-    "display": "home health"
-  },
-  "type": [
-    {
-      "coding": [
-        {
-          "system": "http://snomed.info/sct",
-          "code": "439708006",
-          "display": "Home visit"
-        }
-      ],
-      "text": "Visita domiciliaria - seguimiento"
-    }
-  ],
-  "subject": {
-    "reference": "Patient/pac-1",
-    "display": "Ricardo Fort"
-  },
-  "participant": [
-    {
-      "type": [
-        {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
-              "code": "PPRF",
-              "display": "primary performer"
-            }
-          ]
-        }
-      ],
-      "individual": {
-        "reference": "Practitioner/kine-1",
-        "display": "Lic. Marty McFly"
-      }
-    }
-  ],
-  "period": {
-    "start": "2025-02-20T10:00:00-03:00",
-    "end": "2025-02-20T11:00:00-03:00"
-  },
-  "length": {
-    "value": 60,
-    "unit": "min",
-    "system": "http://unitsofmeasure.org",
-    "code": "min"
-  },
-  "episodeOfCare": [
-    {
-      "reference": "EpisodeOfCare/ep-1"
-    }
-  ],
-  "reasonCode": [
-    {
-      "coding": [
-        {
-          "system": "http://snomed.info/sct",
-          "code": "229070002",
-          "display": "Physiotherapy of upper limb"
-        }
-      ],
-      "text": "Rehabilitación kinesiológica — hemiparesia izquierda post-ACV"
-    }
-  ],
-  "extension": [
-    {
-      "url": "http://kinesiologia-domiciliaria.local/StructureDefinition/clinical-note",
-      "valueString": "Paciente con mejoría evidente, camina con menos dolor y mayor resistencia."
-    }
-  ]
-}
-
-### Observation — enc-3-obs-hr
-PUT http://localhost:8080/fhir/Observation/enc-3-obs-hr
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-3-obs-hr",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "8867-4","display": "Heart rate"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-3"},
-  "effectiveDateTime": "2025-02-20T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueQuantity": {"value": 75, "unit": "beats/minute","system": "http://unitsofmeasure.org", "code": "/min"}
-}
-
-### Observation — enc-3-obs-resp
-PUT http://localhost:8080/fhir/Observation/enc-3-obs-resp
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-3-obs-resp",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "9279-1","display": "Respiratory rate"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-3"},
-  "effectiveDateTime": "2025-02-20T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueQuantity": {"value": 15, "unit": "breaths/minute","system": "http://unitsofmeasure.org", "code": "/min"}
-}
-
-### Observation — enc-3-obs-oxy
-PUT http://localhost:8080/fhir/Observation/enc-3-obs-oxy
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-3-obs-oxy",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "59408-5","display": "Oxygen saturation"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-3"},
-  "effectiveDateTime": "2025-02-20T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueQuantity": {"value": 98, "unit": "%","system": "http://unitsofmeasure.org", "code": "%"}
-}
-
-### Observation — enc-3-obs-temp
-PUT http://localhost:8080/fhir/Observation/enc-3-obs-temp
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-3-obs-temp",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "8310-5","display": "Body temperature"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-3"},
-  "effectiveDateTime": "2025-02-20T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueQuantity": {"value": 36.5, "unit": "°C","system": "http://unitsofmeasure.org", "code": "Cel"}
-}
-
-### Observation — enc-3-obs-bp
-PUT http://localhost:8080/fhir/Observation/enc-3-obs-bp
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-3-obs-bp",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "55284-4","display": "Blood pressure"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-3"},
-  "effectiveDateTime": "2025-02-20T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "component": [
-    {
-      "code": {"coding": [{"system": "http://loinc.org","code": "8480-6","display": "Systolic blood pressure"}]},
-      "valueQuantity": {"value": 125, "unit": "mmHg","system": "http://unitsofmeasure.org", "code": "mm[Hg]"}
-    },
-    {
-      "code": {"coding": [{"system": "http://loinc.org","code": "8462-4","display": "Diastolic blood pressure"}]},
-      "valueQuantity": {"value": 80, "unit": "mmHg","system": "http://unitsofmeasure.org", "code": "mm[Hg]"}
-    }
-  ]
-}
-
-### Procedure — enc-3-proc-1 (Cinesiterapia respiratoria — enc-3)
-PUT http://localhost:8080/fhir/Procedure/enc-3-proc-1
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Procedure",
-  "id": "enc-3-proc-1",
-  "status": "completed",
-  "category": {"coding": [{"system": "http://snomed.info/sct","code": "229070002","display": "Physiotherapy"}],"text": "Kinesioterapia respiratoria"},
-  "code": {"coding": [{"system": "http://kinesiologia-domiciliaria.local/procedimientos","code": "cinesiterapia-respiratoria"}],"text": "Cinesiterapia respiratoria"},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-3"},
-  "performedDateTime": "2025-02-20T10:20:00-03:00",
-  "performer": [{"actor": {"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}}]
-}
-
-### Observation — enc-3-obs-eva
-PUT http://localhost:8080/fhir/Observation/enc-3-obs-eva
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-3-obs-eva",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "survey","display": "Survey"}]}],
-  "code": {"coding": [{"system": "http://loinc.org","code": "72514-3","display": "Pain severity - 0-10 verbal numeric rating [Score] - Reported"}],"text": "Escala visual analógica del dolor (EVA)"},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-3"},
-  "effectiveDateTime": "2025-02-20T10:10:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueInteger": 4
-}
-
-### Encounter — enc-4 (Visita domiciliaria finalizada — pac-1 / kine-1)
-PUT http://localhost:8080/fhir/Encounter/enc-4
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Encounter",
-  "id": "enc-4",
-  "status": "finished",
-  "class": {
-    "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
-    "code": "HH",
-    "display": "home health"
-  },
-  "type": [
-    {
-      "coding": [
-        {
-          "system": "http://snomed.info/sct",
-          "code": "439708006",
-          "display": "Home visit"
-        }
-      ],
-      "text": "Visita domiciliaria - seguimiento"
-    }
-  ],
-  "subject": {
-    "reference": "Patient/pac-1",
-    "display": "Ricardo Fort"
-  },
-  "participant": [
-    {
-      "type": [
-        {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
-              "code": "PPRF",
-              "display": "primary performer"
-            }
-          ]
-        }
-      ],
-      "individual": {
-        "reference": "Practitioner/kine-1",
-        "display": "Lic. Marty McFly"
-      }
-    }
-  ],
-  "period": {
-    "start": "2025-02-15T10:00:00-03:00",
-    "end": "2025-02-15T11:00:00-03:00"
-  },
-  "length": {
-    "value": 60,
-    "unit": "min",
-    "system": "http://unitsofmeasure.org",
-    "code": "min"
-  },
-  "episodeOfCare": [
-    {
-      "reference": "EpisodeOfCare/ep-1"
-    }
-  ],
-  "reasonCode": [
-    {
-      "coding": [
-        {
-          "system": "http://snomed.info/sct",
-          "code": "229070002",
-          "display": "Physiotherapy of upper limb"
-        }
-      ],
-      "text": "Rehabilitación kinesiológica — hemiparesia izquierda post-ACV"
-    }
-  ],
-  "extension": [
-    {
-      "url": "http://kinesiologia-domiciliaria.local/StructureDefinition/clinical-note",
-      "valueString": "Dolor moderado, marcha más estable pero aún fatigado tras breves caminatas."
-    }
-  ]
-}
-
-### Observation — enc-4-obs-hr
-PUT http://localhost:8080/fhir/Observation/enc-4-obs-hr
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-4-obs-hr",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "8867-4","display": "Heart rate"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-4"},
-  "effectiveDateTime": "2025-02-15T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueQuantity": {"value": 80, "unit": "beats/minute","system": "http://unitsofmeasure.org", "code": "/min"}
-}
-
-### Observation — enc-4-obs-resp
-PUT http://localhost:8080/fhir/Observation/enc-4-obs-resp
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-4-obs-resp",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "9279-1","display": "Respiratory rate"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-4"},
-  "effectiveDateTime": "2025-02-15T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueQuantity": {"value": 17, "unit": "breaths/minute","system": "http://unitsofmeasure.org", "code": "/min"}
-}
-
-### Observation — enc-4-obs-oxy
-PUT http://localhost:8080/fhir/Observation/enc-4-obs-oxy
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-4-obs-oxy",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "59408-5","display": "Oxygen saturation"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-4"},
-  "effectiveDateTime": "2025-02-15T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueQuantity": {"value": 97, "unit": "%","system": "http://unitsofmeasure.org", "code": "%"}
-}
-
-### Observation — enc-4-obs-temp
-PUT http://localhost:8080/fhir/Observation/enc-4-obs-temp
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-4-obs-temp",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "8310-5","display": "Body temperature"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-4"},
-  "effectiveDateTime": "2025-02-15T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueQuantity": {"value": 36.8, "unit": "°C","system": "http://unitsofmeasure.org", "code": "Cel"}
-}
-
-### Observation — enc-4-obs-bp
-PUT http://localhost:8080/fhir/Observation/enc-4-obs-bp
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-4-obs-bp",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "55284-4","display": "Blood pressure"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-4"},
-  "effectiveDateTime": "2025-02-15T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "component": [
-    {
-      "code": {"coding": [{"system": "http://loinc.org","code": "8480-6","display": "Systolic blood pressure"}]},
-      "valueQuantity": {"value": 130, "unit": "mmHg","system": "http://unitsofmeasure.org", "code": "mm[Hg]"}
-    },
-    {
-      "code": {"coding": [{"system": "http://loinc.org","code": "8462-4","display": "Diastolic blood pressure"}]},
-      "valueQuantity": {"value": 85, "unit": "mmHg","system": "http://unitsofmeasure.org", "code": "mm[Hg]"}
-    }
-  ]
-}
-
-### Procedure — enc-4-proc-1 (Electroterapia analgésica — enc-4)
-PUT http://localhost:8080/fhir/Procedure/enc-4-proc-1
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Procedure",
-  "id": "enc-4-proc-1",
-  "status": "completed",
-  "category": {"coding": [{"system": "http://snomed.info/sct","code": "229070002","display": "Physiotherapy"}],"text": "Electroterapia"},
-  "code": {"coding": [{"system": "http://kinesiologia-domiciliaria.local/procedimientos","code": "electroterapia"}],"text": "Electroterapia analgésica (TENS)"},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-4"},
-  "performedDateTime": "2025-02-15T10:20:00-03:00",
-  "performer": [{"actor": {"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}}]
-}
-
-### Procedure — enc-4-proc-2 (Reeducación de la marcha — enc-4)
-PUT http://localhost:8080/fhir/Procedure/enc-4-proc-2
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Procedure",
-  "id": "enc-4-proc-2",
-  "status": "completed",
-  "category": {"coding": [{"system": "http://snomed.info/sct","code": "229070002","display": "Gait retraining"}]},
-  "code": {"coding": [{"system": "http://kinesiologia-domiciliaria.local/procedimientos","code": "reeducacion-marcha"}],"text": "Reeducación de la marcha con bastón"},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-4"},
-  "performedDateTime": "2025-02-15T10:45:00-03:00",
-  "performer": [{"actor": {"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}}]
-}
-
-### Observation — enc-4-obs-eva
-PUT http://localhost:8080/fhir/Observation/enc-4-obs-eva
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-4-obs-eva",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "survey","display": "Survey"}]}],
-  "code": {"coding": [{"system": "http://loinc.org","code": "72514-3","display": "Pain severity - 0-10 verbal numeric rating [Score] - Reported"}],"text": "Escala visual analógica del dolor (EVA)"},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-4"},
-  "effectiveDateTime": "2025-02-15T10:10:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueInteger": 5
-}
-
-### Encounter — enc-5 (Visita domiciliaria finalizada — pac-1 / kine-1)
-PUT http://localhost:8080/fhir/Encounter/enc-5
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Encounter",
-  "id": "enc-5",
-  "status": "finished",
-  "class": {
-    "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
-    "code": "HH",
-    "display": "home health"
-  },
-  "type": [
-    {
-      "coding": [
-        {
-          "system": "http://snomed.info/sct",
-          "code": "439708006",
-          "display": "Home visit"
-        }
-      ],
-      "text": "Visita domiciliaria - seguimiento"
-    }
-  ],
-  "subject": {
-    "reference": "Patient/pac-1",
-    "display": "Ricardo Fort"
-  },
-  "participant": [
-    {
-      "type": [
-        {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
-              "code": "PPRF",
-              "display": "primary performer"
-            }
-          ]
-        }
-      ],
-      "individual": {
-        "reference": "Practitioner/kine-1",
-        "display": "Lic. Marty McFly"
-      }
-    }
-  ],
-  "period": {
-    "start": "2025-02-11T10:00:00-03:00",
-    "end": "2025-02-11T11:00:00-03:00"
-  },
-  "length": {
-    "value": 60,
-    "unit": "min",
-    "system": "http://unitsofmeasure.org",
-    "code": "min"
-  },
-  "episodeOfCare": [
-    {
-      "reference": "EpisodeOfCare/ep-1"
-    }
-  ],
-  "reasonCode": [
-    {
-      "coding": [
-        {
-          "system": "http://snomed.info/sct",
-          "code": "229070002",
-          "display": "Physiotherapy of upper limb"
-        }
-      ],
-      "text": "Rehabilitación kinesiológica — hemiparesia izquierda post-ACV"
-    }
-  ],
-  "extension": [
-    {
-      "url": "http://kinesiologia-domiciliaria.local/StructureDefinition/clinical-note",
-      "valueString": "Se observa progreso en fuerza del miembro superior y menor dolor en descanso."
-    }
-  ]
-}
-
-### Observation — enc-5-obs-hr
-PUT http://localhost:8080/fhir/Observation/enc-5-obs-hr
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-5-obs-hr",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "8867-4","display": "Heart rate"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-5"},
-  "effectiveDateTime": "2025-02-11T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueQuantity": {"value": 85, "unit": "beats/minute","system": "http://unitsofmeasure.org", "code": "/min"}
-}
-
-### Observation — enc-5-obs-resp
-PUT http://localhost:8080/fhir/Observation/enc-5-obs-resp
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-5-obs-resp",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "9279-1","display": "Respiratory rate"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-5"},
-  "effectiveDateTime": "2025-02-11T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueQuantity": {"value": 18, "unit": "breaths/minute","system": "http://unitsofmeasure.org", "code": "/min"}
-}
-
-### Observation — enc-5-obs-oxy
-PUT http://localhost:8080/fhir/Observation/enc-5-obs-oxy
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-5-obs-oxy",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "59408-5","display": "Oxygen saturation"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-5"},
-  "effectiveDateTime": "2025-02-11T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueQuantity": {"value": 96, "unit": "%","system": "http://unitsofmeasure.org", "code": "%"}
-}
-
-### Observation — enc-5-obs-temp
-PUT http://localhost:8080/fhir/Observation/enc-5-obs-temp
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-5-obs-temp",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "8310-5","display": "Body temperature"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-5"},
-  "effectiveDateTime": "2025-02-11T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueQuantity": {"value": 37.0, "unit": "°C","system": "http://unitsofmeasure.org", "code": "Cel"}
-}
-
-### Observation — enc-5-obs-bp
-PUT http://localhost:8080/fhir/Observation/enc-5-obs-bp
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-5-obs-bp",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "55284-4","display": "Blood pressure"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-5"},
-  "effectiveDateTime": "2025-02-11T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "component": [
-    {
-      "code": {"coding": [{"system": "http://loinc.org","code": "8480-6","display": "Systolic blood pressure"}]},
-      "valueQuantity": {"value": 135, "unit": "mmHg","system": "http://unitsofmeasure.org", "code": "mm[Hg]"}
-    },
-    {
-      "code": {"coding": [{"system": "http://loinc.org","code": "8462-4","display": "Diastolic blood pressure"}]},
-      "valueQuantity": {"value": 88, "unit": "mmHg","system": "http://unitsofmeasure.org", "code": "mm[Hg]"}
-    }
-  ]
-}
-
-### Procedure — enc-5-proc-1 (Fortalecimiento MMSS — enc-5)
-PUT http://localhost:8080/fhir/Procedure/enc-5-proc-1
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Procedure",
-  "id": "enc-5-proc-1",
-  "status": "completed",
-  "category": {"coding": [{"system": "http://snomed.info/sct","code": "229070002","display": "Physiotherapy"}],"text": "Kinesioterapia — Miembro superior"},
-  "code": {"coding": [{"system": "http://kinesiologia-domiciliaria.local/procedimientos","code": "fortalecimiento"}],"text": "Ejercicios de fortalecimiento de miembro superior izquierdo"},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-5"},
-  "performedDateTime": "2025-02-11T10:35:00-03:00",
-  "performer": [{"actor": {"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}}]
-}
-
-### Procedure — enc-5-proc-2 (Cinesiterapia respiratoria — enc-5)
-PUT http://localhost:8080/fhir/Procedure/enc-5-proc-2
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Procedure",
-  "id": "enc-5-proc-2",
-  "status": "completed",
-  "category": {"coding": [{"system": "http://snomed.info/sct","code": "229070002","display": "Physiotherapy"}],"text": "Kinesioterapia respiratoria"},
-  "code": {"coding": [{"system": "http://kinesiologia-domiciliaria.local/procedimientos","code": "cinesiterapia-respiratoria"}],"text": "Cinesiterapia respiratoria"},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-5"},
-  "performedDateTime": "2025-02-11T10:20:00-03:00",
-  "performer": [{"actor": {"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}}]
-}
-
-### Observation — enc-5-obs-eva
-PUT http://localhost:8080/fhir/Observation/enc-5-obs-eva
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-5-obs-eva",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "survey","display": "Survey"}]}],
-  "code": {"coding": [{"system": "http://loinc.org","code": "72514-3","display": "Pain severity - 0-10 verbal numeric rating [Score] - Reported"}],"text": "Escala visual analógica del dolor (EVA)"},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-5"},
-  "effectiveDateTime": "2025-02-11T10:10:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueInteger": 6
-}
-
-### Encounter — enc-6 (Visita domiciliaria finalizada — pac-1 / kine-1)
-PUT http://localhost:8080/fhir/Encounter/enc-6
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Encounter",
-  "id": "enc-6",
-  "status": "finished",
-  "class": {
-    "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
-    "code": "HH",
-    "display": "home health"
-  },
-  "type": [
-    {
-      "coding": [
-        {
-          "system": "http://snomed.info/sct",
-          "code": "439708006",
-          "display": "Home visit"
-        }
-      ],
-      "text": "Visita domiciliaria - seguimiento"
-    }
-  ],
-  "subject": {
-    "reference": "Patient/pac-1",
-    "display": "Ricardo Fort"
-  },
-  "participant": [
-    {
-      "type": [
-        {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
-              "code": "PPRF",
-              "display": "primary performer"
-            }
-          ]
-        }
-      ],
-      "individual": {
-        "reference": "Practitioner/kine-1",
-        "display": "Lic. Marty McFly"
-      }
-    }
-  ],
-  "period": {
-    "start": "2025-02-07T10:00:00-03:00",
-    "end": "2025-02-07T11:00:00-03:00"
-  },
-  "length": {
-    "value": 60,
-    "unit": "min",
-    "system": "http://unitsofmeasure.org",
-    "code": "min"
-  },
-  "episodeOfCare": [
-    {
-      "reference": "EpisodeOfCare/ep-1"
-    }
-  ],
-  "reasonCode": [
-    {
-      "coding": [
-        {
-          "system": "http://snomed.info/sct",
-          "code": "229070002",
-          "display": "Physiotherapy of upper limb"
-        }
-      ],
-      "text": "Rehabilitación kinesiológica — hemiparesia izquierda post-ACV"
-    }
-  ],
-  "extension": [
-    {
-      "url": "http://kinesiologia-domiciliaria.local/StructureDefinition/clinical-note",
-      "valueString": "Paciente fatigado tras pocos minutos de marcha, se trabaja reeducación de la marcha."
-    }
-  ]
-}
-
-### Observation — enc-6-obs-hr
-PUT http://localhost:8080/fhir/Observation/enc-6-obs-hr
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-6-obs-hr",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "8867-4","display": "Heart rate"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-6"},
-  "effectiveDateTime": "2025-02-07T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueQuantity": {"value": 88, "unit": "beats/minute","system": "http://unitsofmeasure.org", "code": "/min"}
-}
-
-### Observation — enc-6-obs-resp
-PUT http://localhost:8080/fhir/Observation/enc-6-obs-resp
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-6-obs-resp",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "9279-1","display": "Respiratory rate"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-6"},
-  "effectiveDateTime": "2025-02-07T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueQuantity": {"value": 19, "unit": "breaths/minute","system": "http://unitsofmeasure.org", "code": "/min"}
-}
-
-### Observation — enc-6-obs-oxy
-PUT http://localhost:8080/fhir/Observation/enc-6-obs-oxy
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-6-obs-oxy",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "59408-5","display": "Oxygen saturation"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-6"},
-  "effectiveDateTime": "2025-02-07T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueQuantity": {"value": 95, "unit": "%","system": "http://unitsofmeasure.org", "code": "%"}
-}
-
-### Observation — enc-6-obs-temp
-PUT http://localhost:8080/fhir/Observation/enc-6-obs-temp
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-6-obs-temp",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "8310-5","display": "Body temperature"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-6"},
-  "effectiveDateTime": "2025-02-07T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueQuantity": {"value": 37.2, "unit": "°C","system": "http://unitsofmeasure.org", "code": "Cel"}
-}
-
-
-### Observation — enc-6-obs-bp
-PUT http://localhost:8080/fhir/Observation/enc-6-obs-bp
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-6-obs-bp",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "55284-4","display": "Blood pressure"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-6"},
-  "effectiveDateTime": "2025-02-07T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "component": [
-    {
-      "code": {"coding": [{"system": "http://loinc.org","code": "8480-6","display": "Systolic blood pressure"}]},
-      "valueQuantity": {"value": 140, "unit": "mmHg","system": "http://unitsofmeasure.org", "code": "mm[Hg]"}
-    },
-    {
-      "code": {"coding": [{"system": "http://loinc.org","code": "8462-4","display": "Diastolic blood pressure"}]},
-      "valueQuantity": {"value": 90, "unit": "mmHg","system": "http://unitsofmeasure.org", "code": "mm[Hg]"}
-    }
-  ]
-}
-
-### Procedure — enc-6-proc-1 (Reeducación de la marcha — enc-6)
-PUT http://localhost:8080/fhir/Procedure/enc-6-proc-1
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Procedure",
-  "id": "enc-6-proc-1",
-  "status": "completed",
-  "category": {"coding": [{"system": "http://snomed.info/sct","code": "229070002","display": "Gait retraining"}],"text": "Reeducación de la marcha"},
-  "code": {"coding": [{"system": "http://kinesiologia-domiciliaria.local/procedimientos","code": "reeducacion-marcha"}],"text": "Reeducación de la marcha con bastón"},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-6"},
-  "performedDateTime": "2025-02-07T10:45:00-03:00",
-  "performer": [{"actor": {"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}}]
-}
-
-### Observation — enc-6-obs-eva
-PUT http://localhost:8080/fhir/Observation/enc-6-obs-eva
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-6-obs-eva",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "survey","display": "Survey"}]}],
-  "code": {"coding": [{"system": "http://loinc.org","code": "72514-3","display": "Pain severity - 0-10 verbal numeric rating [Score] - Reported"}],"text": "Escala visual analógica del dolor (EVA)"},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-6"},
-  "effectiveDateTime": "2025-02-07T10:10:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueInteger": 7
-}
-
-### Encounter — enc-7 (Visita domiciliaria finalizada — pac-1 / kine-1)
-PUT http://localhost:8080/fhir/Encounter/enc-7
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Encounter",
-  "id": "enc-7",
-  "status": "finished",
-  "class": {
-    "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
-    "code": "HH",
-    "display": "home health"
-  },
-  "type": [
-    {
-      "coding": [
-        {
-          "system": "http://snomed.info/sct",
-          "code": "439708006",
-          "display": "Home visit"
-        }
-      ],
-      "text": "Visita domiciliaria - inicial"
-    }
-  ],
-  "subject": {
-    "reference": "Patient/pac-1",
-    "display": "Ricardo Fort"
-  },
-  "participant": [
-    {
-      "type": [
-        {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
-              "code": "PPRF",
-              "display": "primary performer"
-            }
-          ]
-        }
-      ],
-      "individual": {
-        "reference": "Practitioner/kine-1",
-        "display": "Lic. Marty McFly"
-      }
-    }
-  ],
-  "period": {
-    "start": "2025-02-03T10:00:00-03:00",
-    "end": "2025-02-03T11:00:00-03:00"
-  },
-  "length": {
-    "value": 60,
-    "unit": "min",
-    "system": "http://unitsofmeasure.org",
-    "code": "min"
-  },
-  "episodeOfCare": [
-    {
-      "reference": "EpisodeOfCare/ep-1"
-    }
-  ],
-  "reasonCode": [
-    {
-      "coding": [
-        {
-          "system": "http://snomed.info/sct",
-          "code": "229070002",
-          "display": "Physiotherapy of upper limb"
-        }
-      ],
-      "text": "Rehabilitación kinesiológica — hemiparesia izquierda post-ACV"
-    }
-  ],
-  "extension": [
-    {
-      "url": "http://kinesiologia-domiciliaria.local/StructureDefinition/clinical-note",
-      "valueString": "Primera sesión, movilidad mínima y dolor intenso. Se inicia plan de cuidado domiciliario."
-    }
-  ]
-}
-
-### Observation — enc-7-obs-hr
-PUT http://localhost:8080/fhir/Observation/enc-7-obs-hr
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-7-obs-hr",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "8867-4","display": "Heart rate"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-7"},
-  "effectiveDateTime": "2025-02-03T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueQuantity": {"value": 92, "unit": "beats/minute","system": "http://unitsofmeasure.org", "code": "/min"}
-}
-
-### Observation — enc-7-obs-resp
-PUT http://localhost:8080/fhir/Observation/enc-7-obs-resp
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-7-obs-resp",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "9279-1","display": "Respiratory rate"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-7"},
-  "effectiveDateTime": "2025-02-03T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueQuantity": {"value": 20, "unit": "breaths/minute","system": "http://unitsofmeasure.org", "code": "/min"}
-}
-
-### Observation — enc-7-obs-oxy
-PUT http://localhost:8080/fhir/Observation/enc-7-obs-oxy
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-7-obs-oxy",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "59408-5","display": "Oxygen saturation"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-7"},
-  "effectiveDateTime": "2025-02-03T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueQuantity": {"value": 94, "unit": "%","system": "http://unitsofmeasure.org", "code": "%"}
-}
-
-### Observation — enc-7-obs-temp
-PUT http://localhost:8080/fhir/Observation/enc-7-obs-temp
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-7-obs-temp",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "8310-5","display": "Body temperature"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-7"},
-  "effectiveDateTime": "2025-02-03T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueQuantity": {"value": 37.5, "unit": "°C","system": "http://unitsofmeasure.org", "code": "Cel"}
-}
-
-### Observation — enc-7-obs-bp
-PUT http://localhost:8080/fhir/Observation/enc-7-obs-bp
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-7-obs-bp",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "vital-signs"}]}],
-  "code": {"coding": [{"system": "http://loinc.org", "code": "55284-4","display": "Blood pressure"}]},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-7"},
-  "effectiveDateTime": "2025-02-03T10:15:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "component": [
-    {
-      "code": {"coding": [{"system": "http://loinc.org","code": "8480-6","display": "Systolic blood pressure"}]},
-      "valueQuantity": {"value": 148, "unit": "mmHg","system": "http://unitsofmeasure.org", "code": "mm[Hg]"}
-    },
-    {
-      "code": {"coding": [{"system": "http://loinc.org","code": "8462-4","display": "Diastolic blood pressure"}]},
-      "valueQuantity": {"value": 95, "unit": "mmHg","system": "http://unitsofmeasure.org", "code": "mm[Hg]"}
-    }
-  ]
-}
-
-### Procedure — enc-7-proc-1 (Movilización pasiva MMII — enc-7)
-PUT http://localhost:8080/fhir/Procedure/enc-7-proc-1
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Procedure",
-  "id": "enc-7-proc-1",
-  "status": "completed",
-  "category": {"coding": [{"system": "http://snomed.info/sct","code": "229070002","display": "Physiotherapy of lower limb"}],"text": "Kinesioterapia — Miembro inferior"},
-  "code": {"coding": [{"system": "http://kinesiologia-domiciliaria.local/procedimientos","code": "movilizacion-articular-pasiva"}],"text": "Movilización pasiva de miembro inferior izquierdo"},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-7"},
-  "performedDateTime": "2025-02-03T10:20:00-03:00",
-  "performer": [{"actor": {"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}}]
-}
-
-### Procedure — enc-7-proc-2 (Fortalecimiento MMSS — enc-7)
-PUT http://localhost:8080/fhir/Procedure/enc-7-proc-2
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Procedure",
-  "id": "enc-7-proc-2",
-  "status": "completed",
-  "category": {"coding": [{"system": "http://snomed.info/sct","code": "229070002","display": "Physiotherapy of upper limb"}],"text": "Kinesioterapia — Miembro superior"},
-  "code": {"coding": [{"system": "http://kinesiologia-domiciliaria.local/procedimientos","code": "fortalecimiento"}],"text": "Ejercicios de fortalecimiento de miembro superior izquierdo"},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-7"},
-  "performedDateTime": "2025-02-03T10:35:00-03:00",
-  "performer": [{"actor": {"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}}]
-}
-
-### Observation — enc-7-obs-eva
-PUT http://localhost:8080/fhir/Observation/enc-7-obs-eva
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Observation",
-  "id": "enc-7-obs-eva",
-  "status": "final",
-  "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category","code": "survey","display": "Survey"}]}],
-  "code": {"coding": [{"system": "http://loinc.org","code": "72514-3","display": "Pain severity - 0-10 verbal numeric rating [Score] - Reported"}],"text": "Escala visual analógica del dolor (EVA)"},
-  "subject": {"reference": "Patient/pac-1"},
-  "encounter": {"reference": "Encounter/enc-7"},
-  "effectiveDateTime": "2025-02-03T10:10:00-03:00",
-  "performer": [{"reference": "Practitioner/kine-1","display": "Lic. Marty McFly"}],
-  "valueInteger": 8
-}
-
-### Transaction bundle for new encounters
+### POST — Transaction bundle completo (enc-1 a enc-7)
 POST http://localhost:8080/fhir
 Content-Type: application/fhir+json
 
@@ -1537,48 +17,3098 @@ Content-Type: application/fhir+json
   "resourceType": "Bundle",
   "type": "transaction",
   "entry": [
-    {"resource": {"resourceType": "Encounter","id": "enc-3"},"request":{"method":"PUT","url":"Encounter/enc-3"}},
-    {"resource": {"resourceType": "Observation","id": "enc-3-obs-hr"},"request":{"method":"PUT","url":"Observation/enc-3-obs-hr"}},
-    {"resource": {"resourceType": "Observation","id": "enc-3-obs-resp"},"request":{"method":"PUT","url":"Observation/enc-3-obs-resp"}},
-    {"resource": {"resourceType": "Observation","id": "enc-3-obs-oxy"},"request":{"method":"PUT","url":"Observation/enc-3-obs-oxy"}},
-    {"resource": {"resourceType": "Observation","id": "enc-3-obs-temp"},"request":{"method":"PUT","url":"Observation/enc-3-obs-temp"}},
-    {"resource": {"resourceType": "Observation","id": "enc-3-obs-bp"},"request":{"method":"PUT","url":"Observation/enc-3-obs-bp"}},
-    {"resource": {"resourceType": "Procedure","id": "enc-3-proc-1"},"request":{"method":"PUT","url":"Procedure/enc-3-proc-1"}},
-    {"resource": {"resourceType": "Observation","id": "enc-3-obs-eva"},"request":{"method":"PUT","url":"Observation/enc-3-obs-eva"}},
-    {"resource": {"resourceType": "Encounter","id": "enc-4"},"request":{"method":"PUT","url":"Encounter/enc-4"}},
-    {"resource": {"resourceType": "Observation","id": "enc-4-obs-hr"},"request":{"method":"PUT","url":"Observation/enc-4-obs-hr"}},
-    {"resource": {"resourceType": "Observation","id": "enc-4-obs-resp"},"request":{"method":"PUT","url":"Observation/enc-4-obs-resp"}},
-    {"resource": {"resourceType": "Observation","id": "enc-4-obs-oxy"},"request":{"method":"PUT","url":"Observation/enc-4-obs-oxy"}},
-    {"resource": {"resourceType": "Observation","id": "enc-4-obs-temp"},"request":{"method":"PUT","url":"Observation/enc-4-obs-temp"}},
-    {"resource": {"resourceType": "Observation","id": "enc-4-obs-bp"},"request":{"method":"PUT","url":"Observation/enc-4-obs-bp"}},
-    {"resource": {"resourceType": "Procedure","id": "enc-4-proc-1"},"request":{"method":"PUT","url":"Procedure/enc-4-proc-1"}},
-    {"resource": {"resourceType": "Procedure","id": "enc-4-proc-2"},"request":{"method":"PUT","url":"Procedure/enc-4-proc-2"}},
-    {"resource": {"resourceType": "Observation","id": "enc-4-obs-eva"},"request":{"method":"PUT","url":"Observation/enc-4-obs-eva"}},
-    {"resource": {"resourceType": "Encounter","id": "enc-5"},"request":{"method":"PUT","url":"Encounter/enc-5"}},
-    {"resource": {"resourceType": "Observation","id": "enc-5-obs-hr"},"request":{"method":"PUT","url":"Observation/enc-5-obs-hr"}},
-    {"resource": {"resourceType": "Observation","id": "enc-5-obs-resp"},"request":{"method":"PUT","url":"Observation/enc-5-obs-resp"}},
-    {"resource": {"resourceType": "Observation","id": "enc-5-obs-oxy"},"request":{"method":"PUT","url":"Observation/enc-5-obs-oxy"}},
-    {"resource": {"resourceType": "Observation","id": "enc-5-obs-temp"},"request":{"method":"PUT","url":"Observation/enc-5-obs-temp"}},
-    {"resource": {"resourceType": "Observation","id": "enc-5-obs-bp"},"request":{"method":"PUT","url":"Observation/enc-5-obs-bp"}},
-    {"resource": {"resourceType": "Procedure","id": "enc-5-proc-1"},"request":{"method":"PUT","url":"Procedure/enc-5-proc-1"}},
-    {"resource": {"resourceType": "Procedure","id": "enc-5-proc-2"},"request":{"method":"PUT","url":"Procedure/enc-5-proc-2"}},
-    {"resource": {"resourceType": "Observation","id": "enc-5-obs-eva"},"request":{"method":"PUT","url":"Observation/enc-5-obs-eva"}},
-    {"resource": {"resourceType": "Encounter","id": "enc-6"},"request":{"method":"PUT","url":"Encounter/enc-6"}},
-    {"resource": {"resourceType": "Observation","id": "enc-6-obs-hr"},"request":{"method":"PUT","url":"Observation/enc-6-obs-hr"}},
-    {"resource": {"resourceType": "Observation","id": "enc-6-obs-resp"},"request":{"method":"PUT","url":"Observation/enc-6-obs-resp"}},
-    {"resource": {"resourceType": "Observation","id": "enc-6-obs-oxy"},"request":{"method":"PUT","url":"Observation/enc-6-obs-oxy"}},
-    {"resource": {"resourceType": "Observation","id": "enc-6-obs-temp"},"request":{"method":"PUT","url":"Observation/enc-6-obs-temp"}},
-    {"resource": {"resourceType": "Observation","id": "enc-6-obs-bp"},"request":{"method":"PUT","url":"Observation/enc-6-obs-bp"}},
-    {"resource": {"resourceType": "Procedure","id": "enc-6-proc-1"},"request":{"method":"PUT","url":"Procedure/enc-6-proc-1"}},
-    {"resource": {"resourceType": "Observation","id": "enc-6-obs-eva"},"request":{"method":"PUT","url":"Observation/enc-6-obs-eva"}},
-    {"resource": {"resourceType": "Encounter","id": "enc-7"},"request":{"method":"PUT","url":"Encounter/enc-7"}},
-    {"resource": {"resourceType": "Observation","id": "enc-7-obs-hr"},"request":{"method":"PUT","url":"Observation/enc-7-obs-hr"}},
-    {"resource": {"resourceType": "Observation","id": "enc-7-obs-resp"},"request":{"method":"PUT","url":"Observation/enc-7-obs-resp"}},
-    {"resource": {"resourceType": "Observation","id": "enc-7-obs-oxy"},"request":{"method":"PUT","url":"Observation/enc-7-obs-oxy"}},
-    {"resource": {"resourceType": "Observation","id": "enc-7-obs-temp"},"request":{"method":"PUT","url":"Observation/enc-7-obs-temp"}},
-    {"resource": {"resourceType": "Observation","id": "enc-7-obs-bp"},"request":{"method":"PUT","url":"Observation/enc-7-obs-bp"}},
-    {"resource": {"resourceType": "Procedure","id": "enc-7-proc-1"},"request":{"method":"PUT","url":"Procedure/enc-7-proc-1"}},
-    {"resource": {"resourceType": "Procedure","id": "enc-7-proc-2"},"request":{"method":"PUT","url":"Procedure/enc-7-proc-2"}},
-    {"resource": {"resourceType": "Observation","id": "enc-7-obs-eva"},"request":{"method":"PUT","url":"Observation/enc-7-obs-eva"}}
+    {
+      "resource": {
+        "resourceType": "Encounter",
+        "id": "enc-1",
+        "status": "finished",
+        "class": {
+          "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+          "code": "HH",
+          "display": "home health"
+        },
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "439708006",
+                "display": "Home visit"
+              }
+            ],
+            "text": "Visita domiciliaria - seguimiento"
+          }
+        ],
+        "subject": {
+          "reference": "Patient/pac-1",
+          "display": "Ricardo Fort"
+        },
+        "participant": [
+          {
+            "type": [
+              {
+                "coding": [
+                  {
+                    "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+                    "code": "PPRF",
+                    "display": "primary performer"
+                  }
+                ]
+              }
+            ],
+            "individual": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ],
+        "period": {
+          "start": "2025-03-10T10:00:00-03:00",
+          "end": "2025-03-10T11:00:00-03:00"
+        },
+        "episodeOfCare": [
+          {
+            "reference": "EpisodeOfCare/ep-1"
+          }
+        ],
+        "length": {
+          "value": 60,
+          "unit": "min",
+          "system": "http://unitsofmeasure.org",
+          "code": "min"
+        },
+        "reasonCode": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "229070002",
+                "display": "Physiotherapy of upper limb"
+              }
+            ],
+            "text": "Rehabilitacion kinesiologica - hemiparesia izquierda post-ACV"
+          }
+        ],
+        "extension": [
+          {
+            "url": "http://kinesiologia-domiciliaria.local/StructureDefinition/clinical-note",
+            "valueString": "Paciente colaborador, se fatiga rapidamente. Tolera bien el decubito dorsal. Mejora progresiva notable."
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Encounter/enc-1"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "obs-vs-heart-rate",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8867-4",
+              "display": "Heart rate"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-1"
+        },
+        "effectiveDateTime": "2025-03-10T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 78,
+          "unit": "beats/minute",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/obs-vs-heart-rate"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "obs-vs-respiratory-rate",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "9279-1",
+              "display": "Respiratory rate"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-1"
+        },
+        "effectiveDateTime": "2025-03-10T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 16,
+          "unit": "breaths/minute",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/obs-vs-respiratory-rate"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "obs-vs-oxygen-saturation",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "59408-5",
+              "display": "Oxygen saturation"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-1"
+        },
+        "effectiveDateTime": "2025-03-10T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 97,
+          "unit": "%",
+          "system": "http://unitsofmeasure.org",
+          "code": "%"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/obs-vs-oxygen-saturation"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "obs-vs-body-temperature",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8310-5",
+              "display": "Body temperature"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-1"
+        },
+        "effectiveDateTime": "2025-03-10T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 36.7,
+          "unit": "C",
+          "system": "http://unitsofmeasure.org",
+          "code": "Cel"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/obs-vs-body-temperature"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "obs-vs-blood-pressure",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "55284-4",
+              "display": "Blood pressure"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-1"
+        },
+        "effectiveDateTime": "2025-03-10T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "component": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8480-6",
+                  "display": "Systolic blood pressure"
+                }
+              ]
+            },
+            "valueQuantity": {
+              "value": 128,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8462-4",
+                  "display": "Diastolic blood pressure"
+                }
+              ]
+            },
+            "valueQuantity": {
+              "value": 82,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/obs-vs-blood-pressure"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Procedure",
+        "id": "proc-1",
+        "status": "completed",
+        "category": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "229070002",
+              "display": "Physiotherapy"
+            }
+          ],
+          "text": "Kinesioterapia - Miembro inferior"
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://kinesiologia-domiciliaria.local/procedimientos",
+              "code": "movilizacion-articular-pasiva"
+            }
+          ],
+          "text": "Movilizacion pasiva de miembro inferior izquierdo"
+        },
+        "subject": {
+          "reference": "Patient/pac-1",
+          "display": "Ricardo Fort"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-1"
+        },
+        "performedDateTime": "2025-03-10T10:20:00-03:00",
+        "performer": [
+          {
+            "actor": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Procedure/proc-1"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Procedure",
+        "id": "proc-2",
+        "status": "completed",
+        "category": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "229070002",
+              "display": "Physiotherapy"
+            }
+          ],
+          "text": "Kinesioterapia - Miembro superior"
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://kinesiologia-domiciliaria.local/procedimientos",
+              "code": "fortalecimiento"
+            }
+          ],
+          "text": "Ejercicios de fortalecimiento de miembro superior izquierdo"
+        },
+        "subject": {
+          "reference": "Patient/pac-1",
+          "display": "Ricardo Fort"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-1"
+        },
+        "performedDateTime": "2025-03-10T10:35:00-03:00",
+        "performer": [
+          {
+            "actor": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Procedure/proc-2"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Procedure",
+        "id": "proc-3",
+        "status": "completed",
+        "category": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "229070002",
+              "display": "Physiotherapy"
+            }
+          ],
+          "text": "Reeducacion de la marcha"
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://kinesiologia-domiciliaria.local/procedimientos",
+              "code": "reeducacion-marcha"
+            }
+          ],
+          "text": "Reeducacion de la marcha con baston"
+        },
+        "subject": {
+          "reference": "Patient/pac-1",
+          "display": "Ricardo Fort"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-1"
+        },
+        "performedDateTime": "2025-03-10T10:45:00-03:00",
+        "performer": [
+          {
+            "actor": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Procedure/proc-3"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "obs-eva-1",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey",
+                "display": "Survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "72514-3",
+              "display": "Pain severity - 0-10 verbal numeric rating [Score] - Reported"
+            }
+          ],
+          "text": "Escala visual analogica del dolor (EVA)"
+        },
+        "subject": {
+          "reference": "Patient/pac-1",
+          "display": "Ricardo Fort"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-1"
+        },
+        "effectiveDateTime": "2025-03-10T10:10:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueInteger": 3
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/obs-eva-1"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Encounter",
+        "id": "enc-2",
+        "status": "planned",
+        "class": {
+          "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+          "code": "HH",
+          "display": "home health"
+        },
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "439708006",
+                "display": "Home visit"
+              }
+            ],
+            "text": "Visita domiciliaria"
+          }
+        ],
+        "subject": {
+          "reference": "Patient/pac-1",
+          "display": "Ricardo Fort"
+        },
+        "participant": [
+          {
+            "type": [
+              {
+                "coding": [
+                  {
+                    "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+                    "code": "PPRF",
+                    "display": "primary performer"
+                  }
+                ]
+              }
+            ],
+            "individual": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ],
+        "period": {
+          "start": "2025-03-13T10:00:00-03:00"
+        },
+        "episodeOfCare": [
+          {
+            "reference": "EpisodeOfCare/ep-1"
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Encounter/enc-2"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Encounter",
+        "id": "enc-3",
+        "status": "finished",
+        "class": {
+          "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+          "code": "HH",
+          "display": "home health"
+        },
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "439708006",
+                "display": "Home visit"
+              }
+            ],
+            "text": "Visita domiciliaria - seguimiento"
+          }
+        ],
+        "subject": {
+          "reference": "Patient/pac-1",
+          "display": "Ricardo Fort"
+        },
+        "participant": [
+          {
+            "type": [
+              {
+                "coding": [
+                  {
+                    "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+                    "code": "PPRF",
+                    "display": "primary performer"
+                  }
+                ]
+              }
+            ],
+            "individual": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ],
+        "period": {
+          "start": "2025-02-20T10:00:00-03:00",
+          "end": "2025-02-20T11:00:00-03:00"
+        },
+        "episodeOfCare": [
+          {
+            "reference": "EpisodeOfCare/ep-1"
+          }
+        ],
+        "length": {
+          "value": 60,
+          "unit": "min",
+          "system": "http://unitsofmeasure.org",
+          "code": "min"
+        },
+        "reasonCode": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "229070002",
+                "display": "Physiotherapy of upper limb"
+              }
+            ],
+            "text": "Rehabilitacion kinesiologica - hemiparesia izquierda post-ACV"
+          }
+        ],
+        "extension": [
+          {
+            "url": "http://kinesiologia-domiciliaria.local/StructureDefinition/clinical-note",
+            "valueString": "Mejoria evidente, camina con menos dolor y mayor resistencia. Reduce uso de baston en interiores."
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Encounter/enc-3"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-3-obs-hr",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8867-4",
+              "display": "Heart rate"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-3"
+        },
+        "effectiveDateTime": "2025-02-20T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 75,
+          "unit": "beats/minute",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-3-obs-hr"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-3-obs-resp",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "9279-1",
+              "display": "Respiratory rate"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-3"
+        },
+        "effectiveDateTime": "2025-02-20T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 15,
+          "unit": "breaths/minute",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-3-obs-resp"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-3-obs-oxy",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "59408-5",
+              "display": "Oxygen saturation"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-3"
+        },
+        "effectiveDateTime": "2025-02-20T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 98,
+          "unit": "%",
+          "system": "http://unitsofmeasure.org",
+          "code": "%"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-3-obs-oxy"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-3-obs-temp",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8310-5",
+              "display": "Body temperature"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-3"
+        },
+        "effectiveDateTime": "2025-02-20T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 36.5,
+          "unit": "C",
+          "system": "http://unitsofmeasure.org",
+          "code": "Cel"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-3-obs-temp"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-3-obs-bp",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "55284-4",
+              "display": "Blood pressure"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-3"
+        },
+        "effectiveDateTime": "2025-02-20T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "component": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8480-6",
+                  "display": "Systolic blood pressure"
+                }
+              ]
+            },
+            "valueQuantity": {
+              "value": 125,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8462-4",
+                  "display": "Diastolic blood pressure"
+                }
+              ]
+            },
+            "valueQuantity": {
+              "value": 80,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-3-obs-bp"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Procedure",
+        "id": "enc-3-proc-1",
+        "status": "completed",
+        "category": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "229070002",
+              "display": "Physiotherapy"
+            }
+          ],
+          "text": "Kinesioterapia respiratoria"
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://kinesiologia-domiciliaria.local/procedimientos",
+              "code": "cinesiterapia-respiratoria"
+            }
+          ],
+          "text": "Cinesiterapia respiratoria"
+        },
+        "subject": {
+          "reference": "Patient/pac-1",
+          "display": "Ricardo Fort"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-3"
+        },
+        "performedDateTime": "2025-02-20T10:20:00-03:00",
+        "performer": [
+          {
+            "actor": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Procedure/enc-3-proc-1"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Procedure",
+        "id": "enc-3-proc-2",
+        "status": "completed",
+        "category": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "229070002",
+              "display": "Physiotherapy"
+            }
+          ],
+          "text": "Reeducacion de la marcha"
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://kinesiologia-domiciliaria.local/procedimientos",
+              "code": "reeducacion-marcha"
+            }
+          ],
+          "text": "Reeducacion de la marcha con baston"
+        },
+        "subject": {
+          "reference": "Patient/pac-1",
+          "display": "Ricardo Fort"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-3"
+        },
+        "performedDateTime": "2025-02-20T10:35:00-03:00",
+        "performer": [
+          {
+            "actor": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Procedure/enc-3-proc-2"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-3-obs-eva",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey",
+                "display": "Survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "72514-3",
+              "display": "Pain severity - 0-10 verbal numeric rating [Score] - Reported"
+            }
+          ],
+          "text": "Escala visual analogica del dolor (EVA)"
+        },
+        "subject": {
+          "reference": "Patient/pac-1",
+          "display": "Ricardo Fort"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-3"
+        },
+        "effectiveDateTime": "2025-02-20T10:10:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueInteger": 4
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-3-obs-eva"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Encounter",
+        "id": "enc-4",
+        "status": "finished",
+        "class": {
+          "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+          "code": "HH",
+          "display": "home health"
+        },
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "439708006",
+                "display": "Home visit"
+              }
+            ],
+            "text": "Visita domiciliaria - seguimiento"
+          }
+        ],
+        "subject": {
+          "reference": "Patient/pac-1",
+          "display": "Ricardo Fort"
+        },
+        "participant": [
+          {
+            "type": [
+              {
+                "coding": [
+                  {
+                    "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+                    "code": "PPRF",
+                    "display": "primary performer"
+                  }
+                ]
+              }
+            ],
+            "individual": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ],
+        "period": {
+          "start": "2025-02-15T10:00:00-03:00",
+          "end": "2025-02-15T11:00:00-03:00"
+        },
+        "episodeOfCare": [
+          {
+            "reference": "EpisodeOfCare/ep-1"
+          }
+        ],
+        "length": {
+          "value": 60,
+          "unit": "min",
+          "system": "http://unitsofmeasure.org",
+          "code": "min"
+        },
+        "reasonCode": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "229070002",
+                "display": "Physiotherapy of upper limb"
+              }
+            ],
+            "text": "Rehabilitacion kinesiologica - hemiparesia izquierda post-ACV"
+          }
+        ],
+        "extension": [
+          {
+            "url": "http://kinesiologia-domiciliaria.local/StructureDefinition/clinical-note",
+            "valueString": "Dolor moderado, marcha mas estable pero aun fatigado tras breves caminatas. Buena adherencia al plan."
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Encounter/enc-4"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-4-obs-hr",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8867-4",
+              "display": "Heart rate"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-4"
+        },
+        "effectiveDateTime": "2025-02-15T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 80,
+          "unit": "beats/minute",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-4-obs-hr"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-4-obs-resp",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "9279-1",
+              "display": "Respiratory rate"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-4"
+        },
+        "effectiveDateTime": "2025-02-15T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 17,
+          "unit": "breaths/minute",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-4-obs-resp"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-4-obs-oxy",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "59408-5",
+              "display": "Oxygen saturation"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-4"
+        },
+        "effectiveDateTime": "2025-02-15T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 97,
+          "unit": "%",
+          "system": "http://unitsofmeasure.org",
+          "code": "%"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-4-obs-oxy"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-4-obs-temp",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8310-5",
+              "display": "Body temperature"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-4"
+        },
+        "effectiveDateTime": "2025-02-15T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 36.8,
+          "unit": "C",
+          "system": "http://unitsofmeasure.org",
+          "code": "Cel"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-4-obs-temp"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-4-obs-bp",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "55284-4",
+              "display": "Blood pressure"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-4"
+        },
+        "effectiveDateTime": "2025-02-15T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "component": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8480-6",
+                  "display": "Systolic blood pressure"
+                }
+              ]
+            },
+            "valueQuantity": {
+              "value": 130,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8462-4",
+                  "display": "Diastolic blood pressure"
+                }
+              ]
+            },
+            "valueQuantity": {
+              "value": 85,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-4-obs-bp"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Procedure",
+        "id": "enc-4-proc-1",
+        "status": "completed",
+        "category": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "229070002",
+              "display": "Physiotherapy"
+            }
+          ],
+          "text": "Electroterapia"
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://kinesiologia-domiciliaria.local/procedimientos",
+              "code": "electroterapia"
+            }
+          ],
+          "text": "Electroterapia analgesica (TENS)"
+        },
+        "subject": {
+          "reference": "Patient/pac-1",
+          "display": "Ricardo Fort"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-4"
+        },
+        "performedDateTime": "2025-02-15T10:20:00-03:00",
+        "performer": [
+          {
+            "actor": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Procedure/enc-4-proc-1"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Procedure",
+        "id": "enc-4-proc-2",
+        "status": "completed",
+        "category": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "229070002",
+              "display": "Physiotherapy"
+            }
+          ],
+          "text": "Reeducacion de la marcha"
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://kinesiologia-domiciliaria.local/procedimientos",
+              "code": "reeducacion-marcha"
+            }
+          ],
+          "text": "Reeducacion de la marcha con baston"
+        },
+        "subject": {
+          "reference": "Patient/pac-1",
+          "display": "Ricardo Fort"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-4"
+        },
+        "performedDateTime": "2025-02-15T10:45:00-03:00",
+        "performer": [
+          {
+            "actor": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Procedure/enc-4-proc-2"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-4-obs-eva",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey",
+                "display": "Survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "72514-3",
+              "display": "Pain severity - 0-10 verbal numeric rating [Score] - Reported"
+            }
+          ],
+          "text": "Escala visual analogica del dolor (EVA)"
+        },
+        "subject": {
+          "reference": "Patient/pac-1",
+          "display": "Ricardo Fort"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-4"
+        },
+        "effectiveDateTime": "2025-02-15T10:10:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueInteger": 5
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-4-obs-eva"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Encounter",
+        "id": "enc-5",
+        "status": "finished",
+        "class": {
+          "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+          "code": "HH",
+          "display": "home health"
+        },
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "439708006",
+                "display": "Home visit"
+              }
+            ],
+            "text": "Visita domiciliaria - seguimiento"
+          }
+        ],
+        "subject": {
+          "reference": "Patient/pac-1",
+          "display": "Ricardo Fort"
+        },
+        "participant": [
+          {
+            "type": [
+              {
+                "coding": [
+                  {
+                    "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+                    "code": "PPRF",
+                    "display": "primary performer"
+                  }
+                ]
+              }
+            ],
+            "individual": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ],
+        "period": {
+          "start": "2025-02-11T10:00:00-03:00",
+          "end": "2025-02-11T11:00:00-03:00"
+        },
+        "episodeOfCare": [
+          {
+            "reference": "EpisodeOfCare/ep-1"
+          }
+        ],
+        "length": {
+          "value": 60,
+          "unit": "min",
+          "system": "http://unitsofmeasure.org",
+          "code": "min"
+        },
+        "reasonCode": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "229070002",
+                "display": "Physiotherapy of upper limb"
+              }
+            ],
+            "text": "Rehabilitacion kinesiologica - hemiparesia izquierda post-ACV"
+          }
+        ],
+        "extension": [
+          {
+            "url": "http://kinesiologia-domiciliaria.local/StructureDefinition/clinical-note",
+            "valueString": "Progreso en fuerza del miembro superior y menor dolor en reposo. Dificultad persistente en escaleras."
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Encounter/enc-5"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-5-obs-hr",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8867-4",
+              "display": "Heart rate"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-5"
+        },
+        "effectiveDateTime": "2025-02-11T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 85,
+          "unit": "beats/minute",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-5-obs-hr"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-5-obs-resp",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "9279-1",
+              "display": "Respiratory rate"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-5"
+        },
+        "effectiveDateTime": "2025-02-11T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 18,
+          "unit": "breaths/minute",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-5-obs-resp"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-5-obs-oxy",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "59408-5",
+              "display": "Oxygen saturation"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-5"
+        },
+        "effectiveDateTime": "2025-02-11T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 96,
+          "unit": "%",
+          "system": "http://unitsofmeasure.org",
+          "code": "%"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-5-obs-oxy"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-5-obs-temp",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8310-5",
+              "display": "Body temperature"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-5"
+        },
+        "effectiveDateTime": "2025-02-11T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 37.0,
+          "unit": "C",
+          "system": "http://unitsofmeasure.org",
+          "code": "Cel"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-5-obs-temp"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-5-obs-bp",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "55284-4",
+              "display": "Blood pressure"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-5"
+        },
+        "effectiveDateTime": "2025-02-11T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "component": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8480-6",
+                  "display": "Systolic blood pressure"
+                }
+              ]
+            },
+            "valueQuantity": {
+              "value": 135,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8462-4",
+                  "display": "Diastolic blood pressure"
+                }
+              ]
+            },
+            "valueQuantity": {
+              "value": 88,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-5-obs-bp"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Procedure",
+        "id": "enc-5-proc-1",
+        "status": "completed",
+        "category": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "229070002",
+              "display": "Physiotherapy"
+            }
+          ],
+          "text": "Kinesioterapia - Miembro superior"
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://kinesiologia-domiciliaria.local/procedimientos",
+              "code": "fortalecimiento"
+            }
+          ],
+          "text": "Ejercicios de fortalecimiento de miembro superior izquierdo"
+        },
+        "subject": {
+          "reference": "Patient/pac-1",
+          "display": "Ricardo Fort"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-5"
+        },
+        "performedDateTime": "2025-02-11T10:35:00-03:00",
+        "performer": [
+          {
+            "actor": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Procedure/enc-5-proc-1"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Procedure",
+        "id": "enc-5-proc-2",
+        "status": "completed",
+        "category": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "229070002",
+              "display": "Physiotherapy"
+            }
+          ],
+          "text": "Kinesioterapia respiratoria"
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://kinesiologia-domiciliaria.local/procedimientos",
+              "code": "cinesiterapia-respiratoria"
+            }
+          ],
+          "text": "Cinesiterapia respiratoria"
+        },
+        "subject": {
+          "reference": "Patient/pac-1",
+          "display": "Ricardo Fort"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-5"
+        },
+        "performedDateTime": "2025-02-11T10:20:00-03:00",
+        "performer": [
+          {
+            "actor": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Procedure/enc-5-proc-2"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-5-obs-eva",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey",
+                "display": "Survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "72514-3",
+              "display": "Pain severity - 0-10 verbal numeric rating [Score] - Reported"
+            }
+          ],
+          "text": "Escala visual analogica del dolor (EVA)"
+        },
+        "subject": {
+          "reference": "Patient/pac-1",
+          "display": "Ricardo Fort"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-5"
+        },
+        "effectiveDateTime": "2025-02-11T10:10:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueInteger": 6
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-5-obs-eva"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Encounter",
+        "id": "enc-6",
+        "status": "finished",
+        "class": {
+          "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+          "code": "HH",
+          "display": "home health"
+        },
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "439708006",
+                "display": "Home visit"
+              }
+            ],
+            "text": "Visita domiciliaria - seguimiento"
+          }
+        ],
+        "subject": {
+          "reference": "Patient/pac-1",
+          "display": "Ricardo Fort"
+        },
+        "participant": [
+          {
+            "type": [
+              {
+                "coding": [
+                  {
+                    "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+                    "code": "PPRF",
+                    "display": "primary performer"
+                  }
+                ]
+              }
+            ],
+            "individual": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ],
+        "period": {
+          "start": "2025-02-07T10:00:00-03:00",
+          "end": "2025-02-07T11:00:00-03:00"
+        },
+        "episodeOfCare": [
+          {
+            "reference": "EpisodeOfCare/ep-1"
+          }
+        ],
+        "length": {
+          "value": 60,
+          "unit": "min",
+          "system": "http://unitsofmeasure.org",
+          "code": "min"
+        },
+        "reasonCode": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "229070002",
+                "display": "Physiotherapy of upper limb"
+              }
+            ],
+            "text": "Rehabilitacion kinesiologica - hemiparesia izquierda post-ACV"
+          }
+        ],
+        "extension": [
+          {
+            "url": "http://kinesiologia-domiciliaria.local/StructureDefinition/clinical-note",
+            "valueString": "Paciente fatigado tras pocos minutos de marcha, dolor al movimiento activo. Reeducacion de la marcha con apoyo."
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Encounter/enc-6"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-6-obs-hr",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8867-4",
+              "display": "Heart rate"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-6"
+        },
+        "effectiveDateTime": "2025-02-07T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 88,
+          "unit": "beats/minute",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-6-obs-hr"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-6-obs-resp",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "9279-1",
+              "display": "Respiratory rate"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-6"
+        },
+        "effectiveDateTime": "2025-02-07T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 19,
+          "unit": "breaths/minute",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-6-obs-resp"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-6-obs-oxy",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "59408-5",
+              "display": "Oxygen saturation"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-6"
+        },
+        "effectiveDateTime": "2025-02-07T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 95,
+          "unit": "%",
+          "system": "http://unitsofmeasure.org",
+          "code": "%"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-6-obs-oxy"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-6-obs-temp",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8310-5",
+              "display": "Body temperature"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-6"
+        },
+        "effectiveDateTime": "2025-02-07T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 37.2,
+          "unit": "C",
+          "system": "http://unitsofmeasure.org",
+          "code": "Cel"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-6-obs-temp"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-6-obs-bp",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "55284-4",
+              "display": "Blood pressure"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-6"
+        },
+        "effectiveDateTime": "2025-02-07T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "component": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8480-6",
+                  "display": "Systolic blood pressure"
+                }
+              ]
+            },
+            "valueQuantity": {
+              "value": 140,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8462-4",
+                  "display": "Diastolic blood pressure"
+                }
+              ]
+            },
+            "valueQuantity": {
+              "value": 90,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-6-obs-bp"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Procedure",
+        "id": "enc-6-proc-1",
+        "status": "completed",
+        "category": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "229070002",
+              "display": "Physiotherapy"
+            }
+          ],
+          "text": "Reeducacion de la marcha"
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://kinesiologia-domiciliaria.local/procedimientos",
+              "code": "reeducacion-marcha"
+            }
+          ],
+          "text": "Reeducacion de la marcha con baston"
+        },
+        "subject": {
+          "reference": "Patient/pac-1",
+          "display": "Ricardo Fort"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-6"
+        },
+        "performedDateTime": "2025-02-07T10:45:00-03:00",
+        "performer": [
+          {
+            "actor": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Procedure/enc-6-proc-1"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Procedure",
+        "id": "enc-6-proc-2",
+        "status": "completed",
+        "category": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "229070002",
+              "display": "Physiotherapy"
+            }
+          ],
+          "text": "Kinesioterapia - Miembro inferior"
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://kinesiologia-domiciliaria.local/procedimientos",
+              "code": "movilizacion-articular-pasiva"
+            }
+          ],
+          "text": "Movilizacion pasiva de miembro inferior izquierdo"
+        },
+        "subject": {
+          "reference": "Patient/pac-1",
+          "display": "Ricardo Fort"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-6"
+        },
+        "performedDateTime": "2025-02-07T10:25:00-03:00",
+        "performer": [
+          {
+            "actor": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Procedure/enc-6-proc-2"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-6-obs-eva",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey",
+                "display": "Survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "72514-3",
+              "display": "Pain severity - 0-10 verbal numeric rating [Score] - Reported"
+            }
+          ],
+          "text": "Escala visual analogica del dolor (EVA)"
+        },
+        "subject": {
+          "reference": "Patient/pac-1",
+          "display": "Ricardo Fort"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-6"
+        },
+        "effectiveDateTime": "2025-02-07T10:10:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueInteger": 7
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-6-obs-eva"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Encounter",
+        "id": "enc-7",
+        "status": "finished",
+        "class": {
+          "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+          "code": "HH",
+          "display": "home health"
+        },
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "439708006",
+                "display": "Home visit"
+              }
+            ],
+            "text": "Visita domiciliaria - inicial"
+          }
+        ],
+        "subject": {
+          "reference": "Patient/pac-1",
+          "display": "Ricardo Fort"
+        },
+        "participant": [
+          {
+            "type": [
+              {
+                "coding": [
+                  {
+                    "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+                    "code": "PPRF",
+                    "display": "primary performer"
+                  }
+                ]
+              }
+            ],
+            "individual": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ],
+        "period": {
+          "start": "2025-02-03T10:00:00-03:00",
+          "end": "2025-02-03T11:00:00-03:00"
+        },
+        "episodeOfCare": [
+          {
+            "reference": "EpisodeOfCare/ep-1"
+          }
+        ],
+        "length": {
+          "value": 60,
+          "unit": "min",
+          "system": "http://unitsofmeasure.org",
+          "code": "min"
+        },
+        "reasonCode": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "229070002",
+                "display": "Physiotherapy of upper limb"
+              }
+            ],
+            "text": "Rehabilitacion kinesiologica - hemiparesia izquierda post-ACV"
+          }
+        ],
+        "extension": [
+          {
+            "url": "http://kinesiologia-domiciliaria.local/StructureDefinition/clinical-note",
+            "valueString": "Primera sesion. Movilidad muy limitada y dolor intenso. Paciente ansioso. Se inicia plan de cuidado domiciliario."
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Encounter/enc-7"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-7-obs-hr",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8867-4",
+              "display": "Heart rate"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-7"
+        },
+        "effectiveDateTime": "2025-02-03T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 92,
+          "unit": "beats/minute",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-7-obs-hr"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-7-obs-resp",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "9279-1",
+              "display": "Respiratory rate"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-7"
+        },
+        "effectiveDateTime": "2025-02-03T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 20,
+          "unit": "breaths/minute",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-7-obs-resp"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-7-obs-oxy",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "59408-5",
+              "display": "Oxygen saturation"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-7"
+        },
+        "effectiveDateTime": "2025-02-03T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 94,
+          "unit": "%",
+          "system": "http://unitsofmeasure.org",
+          "code": "%"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-7-obs-oxy"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-7-obs-temp",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8310-5",
+              "display": "Body temperature"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-7"
+        },
+        "effectiveDateTime": "2025-02-03T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 37.5,
+          "unit": "C",
+          "system": "http://unitsofmeasure.org",
+          "code": "Cel"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-7-obs-temp"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-7-obs-bp",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "55284-4",
+              "display": "Blood pressure"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-1"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-7"
+        },
+        "effectiveDateTime": "2025-02-03T10:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "component": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8480-6",
+                  "display": "Systolic blood pressure"
+                }
+              ]
+            },
+            "valueQuantity": {
+              "value": 148,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8462-4",
+                  "display": "Diastolic blood pressure"
+                }
+              ]
+            },
+            "valueQuantity": {
+              "value": 95,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-7-obs-bp"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Procedure",
+        "id": "enc-7-proc-1",
+        "status": "completed",
+        "category": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "229070002",
+              "display": "Physiotherapy"
+            }
+          ],
+          "text": "Kinesioterapia - Miembro inferior"
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://kinesiologia-domiciliaria.local/procedimientos",
+              "code": "movilizacion-articular-pasiva"
+            }
+          ],
+          "text": "Movilizacion pasiva de miembro inferior izquierdo"
+        },
+        "subject": {
+          "reference": "Patient/pac-1",
+          "display": "Ricardo Fort"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-7"
+        },
+        "performedDateTime": "2025-02-03T10:20:00-03:00",
+        "performer": [
+          {
+            "actor": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Procedure/enc-7-proc-1"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Procedure",
+        "id": "enc-7-proc-2",
+        "status": "completed",
+        "category": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "229070002",
+              "display": "Physiotherapy"
+            }
+          ],
+          "text": "Kinesioterapia - Miembro superior"
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://kinesiologia-domiciliaria.local/procedimientos",
+              "code": "fortalecimiento"
+            }
+          ],
+          "text": "Ejercicios de fortalecimiento de miembro superior izquierdo"
+        },
+        "subject": {
+          "reference": "Patient/pac-1",
+          "display": "Ricardo Fort"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-7"
+        },
+        "performedDateTime": "2025-02-03T10:35:00-03:00",
+        "performer": [
+          {
+            "actor": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Procedure/enc-7-proc-2"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-7-obs-eva",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey",
+                "display": "Survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "72514-3",
+              "display": "Pain severity - 0-10 verbal numeric rating [Score] - Reported"
+            }
+          ],
+          "text": "Escala visual analogica del dolor (EVA)"
+        },
+        "subject": {
+          "reference": "Patient/pac-1",
+          "display": "Ricardo Fort"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-7"
+        },
+        "effectiveDateTime": "2025-02-03T10:10:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueInteger": 8
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-7-obs-eva"
+      }
+    }
   ]
 }

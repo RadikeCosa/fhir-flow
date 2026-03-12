@@ -10,7 +10,7 @@ import {
   CartesianGrid,
   ResponsiveContainer,
   TooltipContentProps,
-  ReferenceLine,
+  ReferenceArea,
 } from "recharts";
 
 import { CLINICAL_CHART_COLORS, CLINICAL_CHART_RANGES } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
@@ -81,20 +81,12 @@ export default function BloodPressureChart({ data }: BloodPressureChartProps) {
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="date" />
         <YAxis domain={domain} />
-        {/* normal systolic range, light opacity so it stays subtle */}
-        <ReferenceLine
-          y={90}
-          stroke={CLINICAL_CHART_COLORS.normal}
-          strokeOpacity={0.5}
-          strokeDasharray="3 3"
-          strokeWidth={1}
-        />
-        <ReferenceLine
-          y={120}
-          stroke={CLINICAL_CHART_COLORS.normal}
-          strokeOpacity={0.5}
-          strokeDasharray="3 3"
-          strokeWidth={1}
+        {/* normal systolic range, light opacity zone */}
+        <ReferenceArea
+          y1={90}
+          y2={120}
+          fill={CLINICAL_CHART_COLORS.normal}
+          fillOpacity={0.08}
         />
         <Tooltip content={(props) => CustomTooltip(props as TooltipContentProps<number, string>)} />
         <Legend />

@@ -9,7 +9,7 @@ import {
   Legend,
   CartesianGrid,
   ResponsiveContainer,
-  ReferenceLine,
+  ReferenceArea,
 } from "recharts";
 
 import { CLINICAL_CHART_COLORS, CLINICAL_CHART_RANGES } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
@@ -48,17 +48,11 @@ export default function HeartRateChart({ data }: HeartRateChartProps) {
         <XAxis dataKey="date" />
         <YAxis domain={domain} />
         {/* normal heart rate range */}
-        <ReferenceLine
-          y={60}
-          stroke={CLINICAL_CHART_COLORS.normal}
-          strokeDasharray="3 3"
-          strokeWidth={1}
-        />
-        <ReferenceLine
-          y={100}
-          stroke={CLINICAL_CHART_COLORS.normal}
-          strokeDasharray="3 3"
-          strokeWidth={1}
+        <ReferenceArea
+          y1={60}
+          y2={100}
+          fill={CLINICAL_CHART_COLORS.normal}
+          fillOpacity={0.08}
         />
         <Tooltip />
         <Legend />

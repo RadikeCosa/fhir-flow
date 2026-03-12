@@ -9,7 +9,7 @@ import {
   Legend,
   CartesianGrid,
   ResponsiveContainer,
-  ReferenceLine,
+  ReferenceArea,
 } from "recharts";
 
 import { CLINICAL_CHART_COLORS, CLINICAL_CHART_RANGES } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
@@ -48,18 +48,12 @@ export default function OxygenSaturationChart({
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="date" />
         <YAxis domain={domain} />
-        {/* normal lower bound for SpO2 */}
-        <ReferenceLine
-          y={95}
-          stroke={CLINICAL_CHART_COLORS.normal}
-          strokeDasharray="3 3"
-          strokeWidth={1}
-          label={{
-            position: "right",
-            value: "Normal",
-            fill: CLINICAL_CHART_COLORS.normal,
-            fontSize: 10,
-          }}
+        {/* normal oxygen saturation range */}
+        <ReferenceArea
+          y1={95}
+          y2={100}
+          fill={CLINICAL_CHART_COLORS.normal}
+          fillOpacity={0.08}
         />
         <Tooltip />
         <Legend />

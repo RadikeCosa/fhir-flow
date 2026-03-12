@@ -9,7 +9,7 @@ import {
   Legend,
   CartesianGrid,
   ResponsiveContainer,
-  ReferenceLine,
+  ReferenceArea,
 } from "recharts";
 
 import { CLINICAL_CHART_COLORS, CLINICAL_CHART_RANGES } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
@@ -48,42 +48,9 @@ export default function EvaScoreChart({ data }: EvaScoreChartProps) {
           ticks={[0, 2, 4, 6, 8, 10]}
         />
         {/* clinical pain zones */}
-        <ReferenceLine
-          y={3}
-          stroke={CLINICAL_CHART_COLORS.normal}
-          strokeDasharray="3 3"
-          strokeWidth={1}
-          label={{
-            position: "right",
-            value: "Leve",
-            fill: CLINICAL_CHART_COLORS.normal,
-            fontSize: 10,
-          }}
-        />
-        <ReferenceLine
-          y={6}
-          stroke={CLINICAL_CHART_COLORS.alert}
-          strokeDasharray="3 3"
-          strokeWidth={1}
-          label={{
-            position: "right",
-            value: "Moderado",
-            fill: CLINICAL_CHART_COLORS.alert,
-            fontSize: 10,
-          }}
-        />
-        <ReferenceLine
-          y={9}
-          stroke={CLINICAL_CHART_COLORS.critical}
-          strokeDasharray="3 3"
-          strokeWidth={1}
-          label={{
-            position: "right",
-            value: "Severo",
-            fill: CLINICAL_CHART_COLORS.critical,
-            fontSize: 10,
-          }}
-        />
+        <ReferenceArea y1={0} y2={3} fill="#16a34a" fillOpacity={0.08} />
+        <ReferenceArea y1={3} y2={6} fill="#d97706" fillOpacity={0.08} />
+        <ReferenceArea y1={6} y2={10} fill="#dc2626" fillOpacity={0.08} />
         <Tooltip formatter={(v) => [`Dolor: ${v} / 10`, "EVA"]} />
         <Legend />
         <Line
