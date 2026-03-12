@@ -118,3 +118,20 @@ export function formatEvaForChart(records: EvaAssessment[]): TimeValueDatum[] {
     out.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
     return out;
 }
+
+/**
+ * Convert an ISO date string into a short dd/MM label suitable for chart
+ * axes.  Handles bare dates or full timestamps by normalizing to UTC.  If the
+ * input is falsy or cannot be parsed, an empty string is returned so that
+ * chart libraries can gracefully ignore the value.
+ */
+export function formatChartDate(dateStr: string): string {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    if (Number.isNaN(d.getTime())) return "";
+    return new Intl.DateTimeFormat("es-AR", {
+        day: "2-digit",
+        month: "2-digit",
+        timeZone: "UTC",
+    }).format(d);
+}

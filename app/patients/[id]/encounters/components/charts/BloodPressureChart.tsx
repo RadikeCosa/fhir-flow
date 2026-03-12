@@ -13,7 +13,11 @@ import {
   ReferenceArea,
 } from "recharts";
 
-import { CLINICAL_CHART_COLORS, CLINICAL_CHART_RANGES } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
+import {
+  CLINICAL_CHART_COLORS,
+  CLINICAL_CHART_RANGES,
+  formatChartDate,
+} from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
 
 interface BloodPressureChartProps {
   data: { date: string; systolic: number; diastolic: number }[];
@@ -79,7 +83,7 @@ export default function BloodPressureChart({ data }: BloodPressureChartProps) {
     <ResponsiveContainer width="100%" height={180}>
       <LineChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="date" />
+        <XAxis dataKey="date" tickFormatter={formatChartDate} />
         <YAxis domain={domain} />
         {/* normal systolic range, light opacity zone */}
         <ReferenceArea
@@ -88,7 +92,12 @@ export default function BloodPressureChart({ data }: BloodPressureChartProps) {
           fill={CLINICAL_CHART_COLORS.normal}
           fillOpacity={0.08}
         />
-        <Tooltip content={(props) => CustomTooltip(props as TooltipContentProps<number, string>)} />
+        <Tooltip
+          content={(props) =>
+            CustomTooltip(props as TooltipContentProps<number, string>)
+          }
+          labelFormatter={(label) => formatChartDate(String(label))}
+        />
         <Legend />
         <Line
           type="monotone"

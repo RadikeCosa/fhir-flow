@@ -12,7 +12,11 @@ import {
   ReferenceArea,
 } from "recharts";
 
-import { CLINICAL_CHART_COLORS, CLINICAL_CHART_RANGES } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
+import {
+  CLINICAL_CHART_COLORS,
+  CLINICAL_CHART_RANGES,
+  formatChartDate,
+} from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
 
 interface Datum {
   date: string;
@@ -39,7 +43,7 @@ export default function EvaScoreChart({ data }: EvaScoreChartProps) {
     <ResponsiveContainer width="100%" height={180}>
       <LineChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="date" />
+        <XAxis dataKey="date" tickFormatter={formatChartDate} />
         <YAxis
           domain={[
             CLINICAL_CHART_RANGES.eva.min,
@@ -51,7 +55,10 @@ export default function EvaScoreChart({ data }: EvaScoreChartProps) {
         <ReferenceArea y1={0} y2={3} fill="#16a34a" fillOpacity={0.08} />
         <ReferenceArea y1={3} y2={6} fill="#d97706" fillOpacity={0.08} />
         <ReferenceArea y1={6} y2={10} fill="#dc2626" fillOpacity={0.08} />
-        <Tooltip formatter={(v) => [`Dolor: ${v} / 10`, "EVA"]} />
+        <Tooltip
+          formatter={(v) => [`Dolor: ${v} / 10`, "EVA"]}
+          labelFormatter={(label) => formatChartDate(String(label))}
+        />
         <Legend />
         <Line
           type="monotone"

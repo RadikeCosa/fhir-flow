@@ -12,7 +12,11 @@ import {
   ReferenceArea,
 } from "recharts";
 
-import { CLINICAL_CHART_COLORS, CLINICAL_CHART_RANGES } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
+import {
+  CLINICAL_CHART_COLORS,
+  CLINICAL_CHART_RANGES,
+  formatChartDate,
+} from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
 
 interface Datum {
   date: string;
@@ -45,7 +49,7 @@ export default function HeartRateChart({ data }: HeartRateChartProps) {
     <ResponsiveContainer width="100%" height={180}>
       <LineChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="date" />
+        <XAxis dataKey="date" tickFormatter={formatChartDate} />
         <YAxis domain={domain} />
         {/* normal heart rate range */}
         <ReferenceArea
@@ -54,7 +58,7 @@ export default function HeartRateChart({ data }: HeartRateChartProps) {
           fill={CLINICAL_CHART_COLORS.normal}
           fillOpacity={0.08}
         />
-        <Tooltip />
+        <Tooltip labelFormatter={(label) => formatChartDate(String(label))} />
         <Legend />
         <Line
           type="monotone"
