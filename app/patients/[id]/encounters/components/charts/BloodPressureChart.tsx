@@ -9,10 +9,54 @@ import {
   Legend,
   CartesianGrid,
   ResponsiveContainer,
+  TooltipContentProps,
+  ReferenceLine,
 } from "recharts";
+
+import { CLINICAL_CHART_COLORS } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
+
+import { CLINICAL_CHART_RANGES } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
 
 interface BloodPressureChartProps {
   data: { date: string; systolic: number; diastolic: number }[];
+}
+
+// custom tooltip element used by the BP chart.  We intentionally pick
+// systolic first regardless of payload order and style each line with a
+// coloured dot matching the series colour.  The wrapper mimics other
+// small cards in the app.
+function CustomTooltip(props: TooltipContentProps<any, any>) {
+  const { active, payload, label } = props;
+  if (!active || !payload || payload.length === 0) {
+    return null;
+  }
+
+  const systolicEntry = payload.find((p) => p.dataKey === "systolic");
+  const diastolicEntry = payload.find((p) => p.dataKey === "diastolic");
+
+  return (
+    <div className="border border-border bg-surface rounded-md text-xs p-2">
+      <div className="font-medium mb-1">{label}</div>
+      {systolicEntry && (
+        <div className="flex items-center">
+          <span
+            className="inline-block w-2 h-2 rounded-full mr-1"
+            style={{ backgroundColor: CLINICAL_CHART_COLORS.systolic }}
+          />
+          <span>Sistólica: {systolicEntry.value} mmHg</span>
+        </div>
+      )}
+      {diastolicEntry && (
+        <div className="flex items-center">
+          <span
+            className="inline-block w-2 h-2 rounded-full mr-1"
+            style={{ backgroundColor: CLINICAL_CHART_COLORS.diastolic }}
+          />
+          <span>Diastólica: {diastolicEntry.value} mmHg</span>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function BloodPressureChart({ data }: BloodPressureChartProps) {
@@ -27,33 +71,47 @@ export default function BloodPressureChart({ data }: BloodPressureChartProps) {
     );
   }
 
-  // compute domain with a bit of padding around the min/max values
-  const values = data.flatMap((d) => [d.systolic, d.diastolic]);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const padding = 10;
-  const domain: [number, number] = [min - padding, max + padding];
+  // use fixed clinical range for both systolic and diastolic
+  const domain: [number, number] = [
+    CLINICAL_CHART_RANGES.bloodPressure.min,
+    CLINICAL_CHART_RANGES.bloodPressure.max,
+  ];
 
   return (
-    <ResponsiveContainer width="100%" height={300}>
+    <ResponsiveContainer width="100%" height={180}>
       <LineChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="date" />
         <YAxis domain={domain} />
-        <Tooltip />
+        {/* normal systolic range, light opacity so it stays subtle */}
+        <ReferenceLine
+          y={90}
+          stroke={CLINICAL_CHART_COLORS.normal}
+          strokeOpacity={0.5}
+          strokeDasharray="3 3"
+          strokeWidth={1}
+        />
+        <ReferenceLine
+          y={120}
+          stroke={CLINICAL_CHART_COLORS.normal}
+          strokeOpacity={0.5}
+          strokeDasharray="3 3"
+          strokeWidth={1}
+        />
+        <Tooltip content={CustomTooltip} />
         <Legend />
         <Line
           type="monotone"
           dataKey="systolic"
           name="Sistólica"
-          stroke="#ff6b6b"
+          stroke={CLINICAL_CHART_COLORS.systolic}
           dot={false}
         />
         <Line
           type="monotone"
           dataKey="diastolic"
           name="Diastólica"
-          stroke="#4c87d9"
+          stroke={CLINICAL_CHART_COLORS.diastolic}
           dot={false}
         />
       </LineChart>

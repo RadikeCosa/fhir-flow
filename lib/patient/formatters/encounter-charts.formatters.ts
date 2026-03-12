@@ -25,6 +25,38 @@ export interface VitalSignsChartData {
 }
 
 /**
+ * Predefined clinical display ranges for vital signs and assessments.
+ * These are not the full physiologic extremes but rather a useful window
+ * for outpatient monitoring.  Chart components can rely on these fixed
+ * domains instead of computing dynamic ranges from the data.
+ */
+export const CLINICAL_CHART_RANGES = {
+    heartRate: { min: 40, max: 180 },
+    respiratoryRate: { min: 8, max: 30 },
+    oxygenSaturation: { min: 85, max: 100 },
+    bodyTemperature: { min: 35.0, max: 42.0 },
+    bloodPressure: { min: 60, max: 200 }, // applies to both systolic and diastolic axes
+    eva: { min: 0, max: 10 },
+};
+
+/**
+ * Standard color palette for clinical charts.  This keeps hues consistent
+ * across components and matches the rest of the UI (e.g. badges).
+ */
+export const CLINICAL_CHART_COLORS = {
+    normal: "#16a34a",
+    alert: "#d97706",
+    critical: "#dc2626",
+    neutral: "#6b7280",
+    heartRate: "#2563eb",
+    respiratoryRate: "#16a34a",
+    oxygenSaturation: "#0891b2",
+    bodyTemperature: "#d97706",
+    systolic: "#ff6b6b",
+    diastolic: "#4c87d9",
+};
+
+/**
  * Convert a list of domain {@link VitalSignRecord} objects into separate
  * series suitable for charting.  Each array is sorted ascending by date and
  * only populated with entries where the corresponding measurement is present.

@@ -9,7 +9,12 @@ import {
   Legend,
   CartesianGrid,
   ResponsiveContainer,
+  ReferenceLine,
 } from "recharts";
+
+import { CLINICAL_CHART_COLORS } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
+
+import { CLINICAL_CHART_RANGES } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
 
 interface Datum {
   date: string;
@@ -34,25 +39,37 @@ export default function BodyTemperatureChart({
     );
   }
 
-  const values = data.map((d) => d.value);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const padding = 0.5;
-  const domain: [number, number] = [min - padding, max + padding];
+  const domain: [number, number] = [
+    CLINICAL_CHART_RANGES.bodyTemperature.min,
+    CLINICAL_CHART_RANGES.bodyTemperature.max,
+  ];
 
   return (
-    <ResponsiveContainer width="100%" height={300}>
+    <ResponsiveContainer width="100%" height={180}>
       <LineChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="date" />
         <YAxis domain={domain} />
+        {/* normal body temperature range */}
+        <ReferenceLine
+          y={36.1}
+          stroke={CLINICAL_CHART_COLORS.normal}
+          strokeDasharray="3 3"
+          strokeWidth={1}
+        />
+        <ReferenceLine
+          y={37.2}
+          stroke={CLINICAL_CHART_COLORS.normal}
+          strokeDasharray="3 3"
+          strokeWidth={1}
+        />
         <Tooltip />
         <Legend />
         <Line
           type="monotone"
           dataKey="value"
           name="Temp (°C)"
-          stroke="#d97706"
+          stroke={CLINICAL_CHART_COLORS.bodyTemperature}
           dot={false}
         />
       </LineChart>

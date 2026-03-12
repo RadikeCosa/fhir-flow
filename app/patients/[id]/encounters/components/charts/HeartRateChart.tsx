@@ -9,7 +9,12 @@ import {
   Legend,
   CartesianGrid,
   ResponsiveContainer,
+  ReferenceLine,
 } from "recharts";
+
+import { CLINICAL_CHART_COLORS } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
+
+import { CLINICAL_CHART_RANGES } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
 
 interface Datum {
   date: string;
@@ -32,25 +37,38 @@ export default function HeartRateChart({ data }: HeartRateChartProps) {
     );
   }
 
-  const values = data.map((d) => d.value);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const padding = 10;
-  const domain: [number, number] = [min - padding, max + padding];
+  // fixed clinical display range
+  const domain: [number, number] = [
+    CLINICAL_CHART_RANGES.heartRate.min,
+    CLINICAL_CHART_RANGES.heartRate.max,
+  ];
 
   return (
-    <ResponsiveContainer width="100%" height={300}>
+    <ResponsiveContainer width="100%" height={180}>
       <LineChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="date" />
         <YAxis domain={domain} />
+        {/* normal heart rate range */}
+        <ReferenceLine
+          y={60}
+          stroke={CLINICAL_CHART_COLORS.normal}
+          strokeDasharray="3 3"
+          strokeWidth={1}
+        />
+        <ReferenceLine
+          y={100}
+          stroke={CLINICAL_CHART_COLORS.normal}
+          strokeDasharray="3 3"
+          strokeWidth={1}
+        />
         <Tooltip />
         <Legend />
         <Line
           type="monotone"
           dataKey="value"
           name="FC (lpm)"
-          stroke="#2563eb"
+          stroke={CLINICAL_CHART_COLORS.heartRate}
           dot={false}
         />
       </LineChart>
