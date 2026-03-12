@@ -21,17 +21,38 @@ export default function EncounterList({
     return <p className="text-xs text-muted">No hay encuentros registrados</p>;
   }
 
+  // split the list by status so we can render planned encounters first
+  const planned = encounters.filter((e) => e.status === "planned");
+  const others = encounters.filter((e) => e.status !== "planned");
+
+  const renderGroup = (
+    title: string,
+    list: Encounter[],
+  ) => {
+    if (list.length === 0) return null;
+
+    return (
+      <>
+        <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+        <div className="space-y-4">
+          {list.map((enc) => (
+            <EncounterCard
+              key={enc.id}
+              encounter={enc}
+              procedures={proceduresByEncounterId[enc.id] ?? []}
+              vitalSigns={vitalsByEncounterId[enc.id] ?? []}
+              evaRecords={evaByEncounterId[enc.id] ?? []}
+            />
+          ))}
+        </div>
+      </>
+    );
+  };
+
   return (
-    <div className="space-y-4">
-      {encounters.map((enc) => (
-        <EncounterCard
-          key={enc.id}
-          encounter={enc}
-          procedures={proceduresByEncounterId[enc.id] ?? []}
-          vitalSigns={vitalsByEncounterId[enc.id] ?? []}
-          evaRecords={evaByEncounterId[enc.id] ?? []}
-        />
-      ))}
+    <div className="space-y-8">
+      {renderGroup("Próximas sesiones", planned)}
+      {renderGroup("Sesiones anteriores", others)}
     </div>
   );
 }

@@ -1,7 +1,6 @@
 import { SectionCard } from "../../../components/detail/SectionCard";
 import type { EvaAssessment } from "../../../../../domain/assessments/eva-assessment";
-import { formatEvaForChart } from "../../../../../lib/patient/formatters/encounter-charts.formatters";
-import EvaScoreChart from "./charts/EvaScoreChart";
+import EvaThermometerCard from "./EvaThermometerCard";
 
 interface Props {
   records: EvaAssessment[];
@@ -16,10 +15,14 @@ export default function EncounterEvaSection({ records }: Props) {
     );
   }
 
-  const chartData = formatEvaForChart(records);
+  // render one thermometer card per record, wrapping on small screens
   return (
     <SectionCard title="EVA">
-      <EvaScoreChart data={chartData} />
+      <div className="flex flex-wrap gap-2">
+        {records.map((r, idx) => (
+          <EvaThermometerCard key={idx} score={r.score} />
+        ))}
+      </div>
     </SectionCard>
   );
 }
