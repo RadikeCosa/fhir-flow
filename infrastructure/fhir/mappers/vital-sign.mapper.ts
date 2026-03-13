@@ -41,6 +41,7 @@ export function mapFhirObservationsToVitalSignRecords(
             case "8310-5":
                 type = "body-temperature";
                 break;
+            case "85354-9":
             case "55284-4":
                 type = "blood-pressure";
                 break;

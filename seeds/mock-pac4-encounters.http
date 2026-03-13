@@ -2235,6 +2235,130 @@ Content-Type: application/fhir+json
         "method": "PUT",
         "url": "Encounter/enc-pac4-4"
       }
+    },
+    {
+      "resource": {
+        "resourceType": "CarePlan",
+        "id": "cp-pac4-0",
+        "status": "active",
+        "intent": "plan",
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-0"
+        },
+        "author": {
+          "reference": "Practitioner/kine-1",
+          "display": "Lic. Marty McFly"
+        },
+        "created": "2025-01-10",
+        "period": {
+          "start": "2025-01-10",
+          "end": "2025-03-10"
+        },
+        "note": [
+          {
+            "text": "Plan de rehabilitación respiratoria domiciliaria para EPOC estadio III, enfocado en mecánica ventilatoria, tolerancia al esfuerzo y actividades de la vida diaria"
+          }
+        ],
+        "goal": [
+          {
+            "reference": "Goal/goal-pac4-1"
+          },
+          {
+            "reference": "Goal/goal-pac4-2"
+          }
+        ],
+        "activity": [
+          {
+            "detail": {
+              "status": "in-progress",
+              "description": "Cinesiterapia respiratoria diafragmática",
+              "scheduledTiming": {
+                "repeat": {
+                  "frequency": 3,
+                  "period": 1,
+                  "periodUnit": "wk"
+                }
+              }
+            }
+          },
+          {
+            "detail": {
+              "status": "in-progress",
+              "description": "Reeducación de la marcha con andador",
+              "scheduledTiming": {
+                "repeat": {
+                  "frequency": 2,
+                  "period": 1,
+                  "periodUnit": "wk"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "CarePlan/cp-pac4-0"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Goal",
+        "id": "goal-pac4-1",
+        "lifecycleStatus": "active",
+        "description": {
+          "text": "Mejorar saturación de oxígeno en reposo a ≥ 94%"
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "target": [
+          {
+            "dueDate": "2025-02-10"
+          }
+        ],
+        "extension": [
+          {
+            "url": "http://kinesiologia-domiciliaria.local/StructureDefinition/goal-category",
+            "valueCode": "short-term"
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Goal/goal-pac4-1"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Goal",
+        "id": "goal-pac4-2",
+        "lifecycleStatus": "active",
+        "description": {
+          "text": "Recuperar independencia funcional en actividades de la vida diaria (Barthel ≥ 70)"
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "target": [
+          {
+            "dueDate": "2025-03-10"
+          }
+        ],
+        "extension": [
+          {
+            "url": "http://kinesiologia-domiciliaria.local/StructureDefinition/goal-category",
+            "valueCode": "long-term"
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Goal/goal-pac4-2"
+      }
     }
   ]
 }
