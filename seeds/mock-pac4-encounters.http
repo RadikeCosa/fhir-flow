@@ -1,0 +1,2240 @@
+### DATOS SIMULADOS — solo para desarrollo y pruebas.
+### La estructura sigue FHIR R4 simplificado. En produccion se ajustara a los
+### perfiles del Bus de Interoperabilidad del Ministerio de Salud de la Nacion.
+###
+### Este archivo contiene UN UNICO request: un FHIR transaction bundle que
+### carga todos los recursos de una sola vez (pac-4 / enc-pac4-0 a enc-pac4-4
+### con signos vitales, EVA, Barthel y procedimientos asociados).
+###
+### Para ejecutarlo: click en "Send Request" encima del bloque POST, o usar
+### la extension REST Client de VS Code.
+
+### POST — Transaction bundle completo (pac-4)
+POST http://localhost:8080/fhir
+Content-Type: application/fhir+json
+
+{
+  "resourceType": "Bundle",
+  "type": "transaction",
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Encounter",
+        "id": "enc-pac4-0",
+        "status": "finished",
+        "class": {
+          "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+          "code": "HH",
+          "display": "home health"
+        },
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://fhir-flow.dev/encounter-type",
+                "code": "initial",
+                "display": "Evaluación inicial"
+              }
+            ],
+            "text": "Evaluación inicial"
+          }
+        ],
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "participant": [
+          {
+            "type": [
+              {
+                "coding": [
+                  {
+                    "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+                    "code": "PPRF",
+                    "display": "primary performer"
+                  }
+                ]
+              }
+            ],
+            "individual": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ],
+        "period": {
+          "start": "2025-01-10T09:00:00-03:00",
+          "end": "2025-01-10T10:30:00-03:00"
+        },
+        "episodeOfCare": [
+          {
+            "reference": "EpisodeOfCare/ep-pac4"
+          }
+        ],
+        "length": {
+          "value": 90,
+          "unit": "min",
+          "system": "http://unitsofmeasure.org",
+          "code": "min"
+        },
+        "reasonCode": [
+          {
+            "text": "Evaluación inicial - EPOC estadio III"
+          }
+        ],
+        "extension": [
+          {
+            "url": "http://kinesiologia-domiciliaria.local/StructureDefinition/clinical-note",
+            "valueString": "Primera sesión de evaluación. Paciente con disnea en reposo y al mínimo esfuerzo. Marcha muy limitada por fatiga. Se realiza evaluación funcional completa y se establece plan de cuidado respiratorio domiciliario."
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Encounter/enc-pac4-0"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-pac4-0-obs-hr",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8867-4",
+              "display": "Heart rate"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-0"
+        },
+        "effectiveDateTime": "2025-01-10T09:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 98,
+          "unit": "beats/minute",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-pac4-0-obs-hr"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-pac4-0-obs-resp",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "9279-1",
+              "display": "Respiratory rate"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-0"
+        },
+        "effectiveDateTime": "2025-01-10T09:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 24,
+          "unit": "breaths/minute",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-pac4-0-obs-resp"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-pac4-0-obs-oxy",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "59408-5",
+              "display": "Oxygen saturation in Arterial blood by Pulse oximetry"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-0"
+        },
+        "effectiveDateTime": "2025-01-10T09:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 91,
+          "unit": "%",
+          "system": "http://unitsofmeasure.org",
+          "code": "%"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-pac4-0-obs-oxy"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-pac4-0-obs-temp",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8310-5",
+              "display": "Body temperature"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-0"
+        },
+        "effectiveDateTime": "2025-01-10T09:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 37.1,
+          "unit": "°C",
+          "system": "http://unitsofmeasure.org",
+          "code": "Cel"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-pac4-0-obs-temp"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-pac4-0-obs-bp",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "85354-9",
+              "display": "Blood pressure panel with all children optional"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-0"
+        },
+        "effectiveDateTime": "2025-01-10T09:15:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "component": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8480-6",
+                  "display": "Systolic blood pressure"
+                }
+              ]
+            },
+            "valueQuantity": {
+              "value": 145,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8462-4",
+                  "display": "Diastolic blood pressure"
+                }
+              ]
+            },
+            "valueQuantity": {
+              "value": 92,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-pac4-0-obs-bp"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-pac4-0-obs-eva",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey",
+                "display": "Survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "72514-3",
+              "display": "Pain severity - 0-10 verbal numeric rating [Score] - Reported"
+            }
+          ],
+          "text": "Escala visual analogica del dolor (EVA)"
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-0"
+        },
+        "effectiveDateTime": "2025-01-10T09:10:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueInteger": 7
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-pac4-0-obs-eva"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-pac4-0-obs-barthel",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "96761-6",
+              "display": "Barthel index"
+            }
+          ],
+          "text": "Índice de Barthel"
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-0"
+        },
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "effectiveDateTime": "2025-01-10T09:30:00-03:00",
+        "valueInteger": 45,
+        "component": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "feeding",
+                  "display": "Alimentación"
+                }
+              ],
+              "text": "Alimentación"
+            },
+            "valueInteger": 5
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "bathing",
+                  "display": "Baño"
+                }
+              ],
+              "text": "Baño"
+            },
+            "valueInteger": 0
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "grooming",
+                  "display": "Higiene personal"
+                }
+              ],
+              "text": "Higiene personal"
+            },
+            "valueInteger": 0
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "dressing",
+                  "display": "Vestido"
+                }
+              ],
+              "text": "Vestido"
+            },
+            "valueInteger": 5
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "bowel",
+                  "display": "Control intestinal"
+                }
+              ],
+              "text": "Control intestinal"
+            },
+            "valueInteger": 5
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "bladder",
+                  "display": "Control vesical"
+                }
+              ],
+              "text": "Control vesical"
+            },
+            "valueInteger": 5
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "toilet",
+                  "display": "Uso del baño"
+                }
+              ],
+              "text": "Uso del baño"
+            },
+            "valueInteger": 5
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "transfer",
+                  "display": "Transferencias"
+                }
+              ],
+              "text": "Transferencias"
+            },
+            "valueInteger": 10
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "mobility",
+                  "display": "Deambulación"
+                }
+              ],
+              "text": "Deambulación"
+            },
+            "valueInteger": 10
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "stairs",
+                  "display": "Escaleras"
+                }
+              ],
+              "text": "Escaleras"
+            },
+            "valueInteger": 0
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-pac4-0-obs-barthel"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-pac4-0-obs-necpal",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "96779-8",
+              "display": "Palliative care screening [NECPAL]"
+            }
+          ],
+          "text": "NECPAL"
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-0"
+        },
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "effectiveDateTime": "2025-01-10T09:35:00-03:00",
+        "valueBoolean": true,
+        "component": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "surprise-question",
+                  "display": "Surprise question"
+                }
+              ],
+              "text": "Surprise question"
+            },
+            "valueBoolean": false
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "demand-indicator",
+                  "display": "Demand indicator"
+                }
+              ],
+              "text": "Demand indicator"
+            },
+            "valueBoolean": true
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "need-indicator",
+                  "display": "Need indicator"
+                }
+              ],
+              "text": "Need indicator"
+            },
+            "valueBoolean": true
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "disease-indicator",
+                  "display": "Disease indicator"
+                }
+              ],
+              "text": "Disease indicator"
+            },
+            "valueBoolean": false
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-pac4-0-obs-necpal"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Procedure",
+        "id": "enc-pac4-0-proc-1",
+        "status": "completed",
+        "category": {
+          "text": "Kinesioterapia respiratoria"
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://kinesiologia-domiciliaria.local/procedimientos",
+              "code": "evaluacion-funcional-respiratoria",
+              "display": "Evaluación funcional respiratoria inicial"
+            }
+          ],
+          "text": "Evaluación funcional respiratoria inicial"
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-0"
+        },
+        "performedDateTime": "2025-01-10T09:45:00-03:00",
+        "performer": [
+          {
+            "actor": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Procedure/enc-pac4-0-proc-1"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Procedure",
+        "id": "enc-pac4-0-proc-2",
+        "status": "completed",
+        "category": {
+          "text": "Educación terapéutica"
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://kinesiologia-domiciliaria.local/procedimientos",
+              "code": "educacion-paciente",
+              "display": "Educación al paciente y familia sobre manejo de la EPOC"
+            }
+          ],
+          "text": "Educación al paciente y familia sobre manejo de la EPOC"
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-0"
+        },
+        "performedDateTime": "2025-01-10T10:10:00-03:00",
+        "performer": [
+          {
+            "actor": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Procedure/enc-pac4-0-proc-2"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Encounter",
+        "id": "enc-pac4-1",
+        "status": "finished",
+        "class": {
+          "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+          "code": "HH",
+          "display": "home health"
+        },
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://fhir-flow.dev/encounter-type",
+                "code": "follow-up",
+                "display": "Seguimiento"
+              }
+            ],
+            "text": "Seguimiento"
+          }
+        ],
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "participant": [
+          {
+            "type": [
+              {
+                "coding": [
+                  {
+                    "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+                    "code": "PPRF",
+                    "display": "primary performer"
+                  }
+                ]
+              }
+            ],
+            "individual": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ],
+        "period": {
+          "start": "2025-01-14T09:00:00-03:00",
+          "end": "2025-01-14T10:00:00-03:00"
+        },
+        "episodeOfCare": [
+          {
+            "reference": "EpisodeOfCare/ep-pac4"
+          }
+        ],
+        "length": {
+          "value": 60,
+          "unit": "min",
+          "system": "http://unitsofmeasure.org",
+          "code": "min"
+        },
+        "reasonCode": [
+          {
+            "text": "Seguimiento - EPOC estadio III"
+          }
+        ],
+        "extension": [
+          {
+            "url": "http://kinesiologia-domiciliaria.local/StructureDefinition/clinical-note",
+            "valueString": "Mejora leve en tolerancia al esfuerzo. Disnea persiste pero paciente más tranquilo. Continúa con dificultad para actividades del hogar."
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Encounter/enc-pac4-1"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-pac4-1-obs-hr",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8867-4",
+              "display": "Heart rate"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-1"
+        },
+        "effectiveDateTime": "2025-01-14T09:10:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 94,
+          "unit": "beats/minute",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-pac4-1-obs-hr"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-pac4-1-obs-resp",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "9279-1",
+              "display": "Respiratory rate"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-1"
+        },
+        "effectiveDateTime": "2025-01-14T09:10:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 22,
+          "unit": "breaths/minute",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-pac4-1-obs-resp"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-pac4-1-obs-oxy",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "59408-5",
+              "display": "Oxygen saturation in Arterial blood by Pulse oximetry"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-1"
+        },
+        "effectiveDateTime": "2025-01-14T09:10:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 92,
+          "unit": "%",
+          "system": "http://unitsofmeasure.org",
+          "code": "%"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-pac4-1-obs-oxy"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-pac4-1-obs-temp",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8310-5",
+              "display": "Body temperature"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-1"
+        },
+        "effectiveDateTime": "2025-01-14T09:10:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 36.9,
+          "unit": "°C",
+          "system": "http://unitsofmeasure.org",
+          "code": "Cel"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-pac4-1-obs-temp"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-pac4-1-obs-bp",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "85354-9",
+              "display": "Blood pressure panel with all children optional"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-1"
+        },
+        "effectiveDateTime": "2025-01-14T09:10:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "component": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8480-6",
+                  "display": "Systolic blood pressure"
+                }
+              ]
+            },
+            "valueQuantity": {
+              "value": 140,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8462-4",
+                  "display": "Diastolic blood pressure"
+                }
+              ]
+            },
+            "valueQuantity": {
+              "value": 88,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-pac4-1-obs-bp"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-pac4-1-obs-eva",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey",
+                "display": "Survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "72514-3",
+              "display": "Pain severity - 0-10 verbal numeric rating [Score] - Reported"
+            }
+          ],
+          "text": "Escala visual analogica del dolor (EVA)"
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-1"
+        },
+        "effectiveDateTime": "2025-01-14T09:10:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueInteger": 6
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-pac4-1-obs-eva"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Procedure",
+        "id": "enc-pac4-1-proc-1",
+        "status": "completed",
+        "category": {
+          "text": "Kinesioterapia respiratoria"
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://kinesiologia-domiciliaria.local/procedimientos",
+              "code": "cinesiterapia-respiratoria",
+              "display": "Cinesiterapia respiratoria"
+            }
+          ],
+          "text": "Cinesiterapia respiratoria"
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-1"
+        },
+        "performedDateTime": "2025-01-14T09:20:00-03:00",
+        "performer": [
+          {
+            "actor": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Procedure/enc-pac4-1-proc-1"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Procedure",
+        "id": "enc-pac4-1-proc-2",
+        "status": "completed",
+        "category": {
+          "text": "Reeducación de la marcha"
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://kinesiologia-domiciliaria.local/procedimientos",
+              "code": "reeducacion-marcha",
+              "display": "Reeducación de la marcha con andador"
+            }
+          ],
+          "text": "Reeducación de la marcha con andador"
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-1"
+        },
+        "performedDateTime": "2025-01-14T09:45:00-03:00",
+        "performer": [
+          {
+            "actor": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Procedure/enc-pac4-1-proc-2"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Encounter",
+        "id": "enc-pac4-2",
+        "status": "finished",
+        "class": {
+          "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+          "code": "HH",
+          "display": "home health"
+        },
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://fhir-flow.dev/encounter-type",
+                "code": "follow-up",
+                "display": "Seguimiento"
+              }
+            ],
+            "text": "Seguimiento"
+          }
+        ],
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "participant": [
+          {
+            "type": [
+              {
+                "coding": [
+                  {
+                    "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+                    "code": "PPRF",
+                    "display": "primary performer"
+                  }
+                ]
+              }
+            ],
+            "individual": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ],
+        "period": {
+          "start": "2025-01-18T09:00:00-03:00",
+          "end": "2025-01-18T10:00:00-03:00"
+        },
+        "episodeOfCare": [
+          {
+            "reference": "EpisodeOfCare/ep-pac4"
+          }
+        ],
+        "length": {
+          "value": 60,
+          "unit": "min",
+          "system": "http://unitsofmeasure.org",
+          "code": "min"
+        },
+        "reasonCode": [
+          {
+            "text": "Seguimiento - EPOC estadio III"
+          }
+        ],
+        "extension": [
+          {
+            "url": "http://kinesiologia-domiciliaria.local/StructureDefinition/clinical-note",
+            "valueString": "Paciente refiere dormir mejor. Menor disnea nocturna. Ejercicios respiratorios con buena adherencia en domicilio."
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Encounter/enc-pac4-2"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-pac4-2-obs-hr",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8867-4",
+              "display": "Heart rate"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-2"
+        },
+        "effectiveDateTime": "2025-01-18T09:10:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 90,
+          "unit": "beats/minute",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-pac4-2-obs-hr"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-pac4-2-obs-resp",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "9279-1",
+              "display": "Respiratory rate"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-2"
+        },
+        "effectiveDateTime": "2025-01-18T09:10:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 21,
+          "unit": "breaths/minute",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-pac4-2-obs-resp"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-pac4-2-obs-oxy",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "59408-5",
+              "display": "Oxygen saturation in Arterial blood by Pulse oximetry"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-2"
+        },
+        "effectiveDateTime": "2025-01-18T09:10:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 93,
+          "unit": "%",
+          "system": "http://unitsofmeasure.org",
+          "code": "%"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-pac4-2-obs-oxy"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-pac4-2-obs-temp",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8310-5",
+              "display": "Body temperature"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-2"
+        },
+        "effectiveDateTime": "2025-01-18T09:10:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 36.7,
+          "unit": "°C",
+          "system": "http://unitsofmeasure.org",
+          "code": "Cel"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-pac4-2-obs-temp"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-pac4-2-obs-bp",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "85354-9",
+              "display": "Blood pressure panel with all children optional"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-2"
+        },
+        "effectiveDateTime": "2025-01-18T09:10:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "component": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8480-6",
+                  "display": "Systolic blood pressure"
+                }
+              ]
+            },
+            "valueQuantity": {
+              "value": 138,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8462-4",
+                  "display": "Diastolic blood pressure"
+                }
+              ]
+            },
+            "valueQuantity": {
+              "value": 86,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-pac4-2-obs-bp"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-pac4-2-obs-eva",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey",
+                "display": "Survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "72514-3",
+              "display": "Pain severity - 0-10 verbal numeric rating [Score] - Reported"
+            }
+          ],
+          "text": "Escala visual analogica del dolor (EVA)"
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-2"
+        },
+        "effectiveDateTime": "2025-01-18T09:10:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueInteger": 5
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-pac4-2-obs-eva"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Procedure",
+        "id": "enc-pac4-2-proc-1",
+        "status": "completed",
+        "category": {
+          "text": "Kinesioterapia respiratoria"
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://kinesiologia-domiciliaria.local/procedimientos",
+              "code": "cinesiterapia-respiratoria",
+              "display": "Cinesiterapia respiratoria"
+            }
+          ],
+          "text": "Cinesiterapia respiratoria"
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-2"
+        },
+        "performedDateTime": "2025-01-18T09:20:00-03:00",
+        "performer": [
+          {
+            "actor": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Procedure/enc-pac4-2-proc-1"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Procedure",
+        "id": "enc-pac4-2-proc-2",
+        "status": "completed",
+        "category": {
+          "text": "Kinesioterapia - Miembro inferior"
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://kinesiologia-domiciliaria.local/procedimientos",
+              "code": "fortalecimiento",
+              "display": "Ejercicios de fortalecimiento de miembros inferiores"
+            }
+          ],
+          "text": "Ejercicios de fortalecimiento de miembros inferiores"
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-2"
+        },
+        "performedDateTime": "2025-01-18T09:45:00-03:00",
+        "performer": [
+          {
+            "actor": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Procedure/enc-pac4-2-proc-2"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Encounter",
+        "id": "enc-pac4-3",
+        "status": "finished",
+        "class": {
+          "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+          "code": "HH",
+          "display": "home health"
+        },
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://fhir-flow.dev/encounter-type",
+                "code": "follow-up",
+                "display": "Seguimiento"
+              }
+            ],
+            "text": "Seguimiento"
+          }
+        ],
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "participant": [
+          {
+            "type": [
+              {
+                "coding": [
+                  {
+                    "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+                    "code": "PPRF",
+                    "display": "primary performer"
+                  }
+                ]
+              }
+            ],
+            "individual": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ],
+        "period": {
+          "start": "2025-01-22T09:00:00-03:00",
+          "end": "2025-01-22T10:00:00-03:00"
+        },
+        "episodeOfCare": [
+          {
+            "reference": "EpisodeOfCare/ep-pac4"
+          }
+        ],
+        "length": {
+          "value": 60,
+          "unit": "min",
+          "system": "http://unitsofmeasure.org",
+          "code": "min"
+        },
+        "reasonCode": [
+          {
+            "text": "Seguimiento - EPOC estadio III"
+          }
+        ],
+        "extension": [
+          {
+            "url": "http://kinesiologia-domiciliaria.local/StructureDefinition/clinical-note",
+            "valueString": "Buena evolución general. Paciente camina hasta el patio sin detenerse. Disnea de esfuerzo moderada pero controlada."
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Encounter/enc-pac4-3"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-pac4-3-obs-hr",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8867-4",
+              "display": "Heart rate"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-3"
+        },
+        "effectiveDateTime": "2025-01-22T09:10:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 86,
+          "unit": "beats/minute",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-pac4-3-obs-hr"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-pac4-3-obs-resp",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "9279-1",
+              "display": "Respiratory rate"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-3"
+        },
+        "effectiveDateTime": "2025-01-22T09:10:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 19,
+          "unit": "breaths/minute",
+          "system": "http://unitsofmeasure.org",
+          "code": "/min"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-pac4-3-obs-resp"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-pac4-3-obs-oxy",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "59408-5",
+              "display": "Oxygen saturation in Arterial blood by Pulse oximetry"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-3"
+        },
+        "effectiveDateTime": "2025-01-22T09:10:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 94,
+          "unit": "%",
+          "system": "http://unitsofmeasure.org",
+          "code": "%"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-pac4-3-obs-oxy"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-pac4-3-obs-temp",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8310-5",
+              "display": "Body temperature"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-3"
+        },
+        "effectiveDateTime": "2025-01-22T09:10:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueQuantity": {
+          "value": 36.8,
+          "unit": "°C",
+          "system": "http://unitsofmeasure.org",
+          "code": "Cel"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-pac4-3-obs-temp"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-pac4-3-obs-bp",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "85354-9",
+              "display": "Blood pressure panel with all children optional"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-3"
+        },
+        "effectiveDateTime": "2025-01-22T09:10:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "component": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8480-6",
+                  "display": "Systolic blood pressure"
+                }
+              ]
+            },
+            "valueQuantity": {
+              "value": 135,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "8462-4",
+                  "display": "Diastolic blood pressure"
+                }
+              ]
+            },
+            "valueQuantity": {
+              "value": 84,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-pac4-3-obs-bp"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-pac4-3-obs-eva",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey",
+                "display": "Survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "72514-3",
+              "display": "Pain severity - 0-10 verbal numeric rating [Score] - Reported"
+            }
+          ],
+          "text": "Escala visual analogica del dolor (EVA)"
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-3"
+        },
+        "effectiveDateTime": "2025-01-22T09:10:00-03:00",
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "valueInteger": 4
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-pac4-3-obs-eva"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Procedure",
+        "id": "enc-pac4-3-proc-1",
+        "status": "completed",
+        "category": {
+          "text": "Kinesioterapia respiratoria"
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://kinesiologia-domiciliaria.local/procedimientos",
+              "code": "cinesiterapia-respiratoria",
+              "display": "Cinesiterapia respiratoria"
+            }
+          ],
+          "text": "Cinesiterapia respiratoria"
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-3"
+        },
+        "performedDateTime": "2025-01-22T09:20:00-03:00",
+        "performer": [
+          {
+            "actor": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Procedure/enc-pac4-3-proc-1"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Procedure",
+        "id": "enc-pac4-3-proc-2",
+        "status": "completed",
+        "category": {
+          "text": "Reeducación de la marcha"
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://kinesiologia-domiciliaria.local/procedimientos",
+              "code": "reeducacion-marcha",
+              "display": "Reeducación de la marcha con andador"
+            }
+          ],
+          "text": "Reeducación de la marcha con andador"
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-3"
+        },
+        "performedDateTime": "2025-01-22T09:45:00-03:00",
+        "performer": [
+          {
+            "actor": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Procedure/enc-pac4-3-proc-2"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Encounter",
+        "id": "enc-pac4-4",
+        "status": "planned",
+        "class": {
+          "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+          "code": "HH",
+          "display": "home health"
+        },
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://fhir-flow.dev/encounter-type",
+                "code": "follow-up",
+                "display": "Seguimiento"
+              }
+            ],
+            "text": "Seguimiento"
+          }
+        ],
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "participant": [
+          {
+            "type": [
+              {
+                "coding": [
+                  {
+                    "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+                    "code": "PPRF",
+                    "display": "primary performer"
+                  }
+                ]
+              }
+            ],
+            "individual": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ],
+        "period": {
+          "start": "2025-01-25T09:00:00-03:00"
+        },
+        "episodeOfCare": [
+          {
+            "reference": "EpisodeOfCare/ep-pac4"
+          }
+        ],
+        "reasonCode": [
+          {
+            "text": "Control y seguimiento - EPOC estadio III"
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Encounter/enc-pac4-4"
+      }
+    }
+  ]
+}

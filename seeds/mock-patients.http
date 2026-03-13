@@ -115,3 +115,44 @@ Content-Type: application/fhir+json
   ],
   "generalPractitioner": [ { "reference": "Practitioner/medico-1", "display": "Dr. Roque Favaloro" } ]
 }
+
+###
+PUT http://localhost:8080/fhir/Patient/pac-4
+Content-Type: application/fhir+json
+
+{
+  "resourceType": "Patient",
+  "id": "pac-4",
+  "meta": { "profile": ["https://bus.msal.gob.ar"] },
+  "active": true,
+  "identifier": [
+    { "use": "official", "system": "http://www.anses.gov.ar", "value": "20987654321", "assigner": { "display": "ANSES" } },
+    { "use": "secondary", "system": "http://www.renaper.gob.ar/dni", "value": "98765432" }
+  ],
+  "name": [ { "use": "official", "family": "Villanueva", "given": ["Jorge", "Luis"] } ],
+  "gender": "male",
+  "birthDate": "1948-09-14",
+  "maritalStatus": { "coding": [ { "system": "http://terminology.hl7.org/CodeSystem/v3-MaritalStatus", "code": "W", "display": "Widowed" } ] },
+  "telecom": [
+    { "system": "phone", "value": "+54 299 154-112233", "use": "mobile" },
+    { "system": "email", "value": "jorge.villanueva@gmail.com", "use": "home" }
+  ],
+  "address": [
+    {
+      "use": "home",
+      "line": ["Ruta 22 km 5, Casa 3"],
+      "city": "Neuquén",
+      "state": "Neuquén",
+      "postalCode": "8300",
+      "country": "AR"
+    }
+  ],
+  "contact": [
+    {
+      "relationship": [ { "coding": [ { "system": "http://terminology.hl7.org/CodeSystem/v2-0131", "code": "C", "display": "Emergency Contact" } ] } ],
+      "name": { "use": "official", "family": "Villanueva", "given": ["Carlos", "Andrés"] },
+      "telecom": [ { "system": "phone", "value": "+54 299 154-998877", "use": "mobile" } ]
+    }
+  ],
+  "generalPractitioner": [ { "reference": "Practitioner/medico-1", "display": "Dr. Roque Favaloro" } ]
+}

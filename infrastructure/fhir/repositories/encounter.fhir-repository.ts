@@ -109,4 +109,31 @@ export class EncounterFhirRepository implements EncounterRepository {
         }
         return null;
     }
+
+    public async findInitialByEpisodeOfCareId(
+        episodeOfCareId: string
+    ): Promise<Encounter | null> {
+        try {
+            const bundle = await this.client.search<unknown>("Encounter", {
+                "episode-of-care": `EpisodeOfCare/${episodeOfCareId}`,
+                type: "initial",
+                _sort: "date",
+                _count: "1",
+            });
+
+            const entries = safeGetEntries(bundle);
+            for (const e of entries) {
+                if (!e.resource) continue;
+                const enc = this.parseEncounter(e.resource);
+                if (!enc) continue;
+                const mapped = mapFhirEncounterToEncounter(enc);
+                if (mapped.visitType === "initial") return mapped;
+            }
+            return null;
+        } catch (err: unknown) {
+            throw new Error(
+                `Failed to fetch initial encounter for episode: ${episodeOfCareId}`
+            );
+        }
+    }
 }

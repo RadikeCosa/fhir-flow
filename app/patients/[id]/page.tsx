@@ -5,10 +5,14 @@ import { createEpisodeOfCareRepository } from "../../../infrastructure/fhir/fact
 import { createVitalSignRecordRepository } from "../../../infrastructure/fhir/factories/vital-sign-record.factory";
 import { createAssessmentRepository } from "../../../infrastructure/fhir/factories/assessment.factory";
 import { createEncounterRepository } from "../../../infrastructure/fhir/factories/encounter.factory";
+import { createBarthelAssessmentRepository } from "../../../infrastructure/fhir/factories/barthel-assessment.factory";
+import { createNecpalAssessmentRepository } from "../../../infrastructure/fhir/factories/necpal-assessment.factory";
+import { createPlanOfCareRepository } from "../../../infrastructure/fhir/factories/plan-of-care.factory";
 import { currentPractitionerId } from "../../../config/fhir.config";
 import { PatientPersonalSection } from "../components/detail/PatientPersonalSection";
 import { PatientContactSection } from "../components/detail/PatientContactSection";
 import { EpisodeOfCareSection } from "../components/detail/EpisodeOfCareSection";
+import { InitialEvaluationSection } from "../components/detail/InitialEvaluationSection";
 import { LastEncounterSection } from "../components/detail/LastEncounterSection";
 import { createProcedureRepository } from "../../../infrastructure/fhir/factories/procedure.factory";
 
@@ -29,14 +33,25 @@ export default async function Page({ params }: Props) {
   const episodeRepo = createEpisodeOfCareRepository();
   const vitalRepo = createVitalSignRecordRepository();
   const assessmentRepo = createAssessmentRepository();
+  const barthelRepo = createBarthelAssessmentRepository();
+  const necpalRepo = createNecpalAssessmentRepository();
+  const planOfCareRepo = createPlanOfCareRepository();
 
   const encounterRepo = createEncounterRepository();
 
-  const [patient, episodes, lastEncounter, nextPlannedEncounter] =
+  const [patient, episodes] = await Promise.all([
+    patientRepo.findById(id),
+    // fetch all episodes concurrently; page will render them if present
+    episodeRepo.findAllByPatientId(id),
+  ]);
+
+  const activeEpisode = episodes.find((e) => e.status === "active");
+  const activeEpisodeId = activeEpisode?.id;
+  // activeEpisodeId will be used once we implement findInitialByEpisodeOfCareId
+  void activeEpisodeId;
+
+  const [lastEncounter, nextPlannedEncounter, initialEncounter] =
     await Promise.all([
-      patientRepo.findById(id),
-      // fetch all episodes concurrently; page will render them if present
-      episodeRepo.findAllByPatientId(id),
       encounterRepo.findLastByPatientIdAndPractitionerId(
         id,
         currentPractitionerId,
@@ -45,6 +60,9 @@ export default async function Page({ params }: Props) {
         id,
         currentPractitionerId,
       ),
+      activeEpisodeId
+        ? encounterRepo.findInitialByEpisodeOfCareId(activeEpisodeId)
+        : Promise.resolve<null>(null),
     ]);
 
   const procedureRepo = createProcedureRepository();
@@ -53,13 +71,29 @@ export default async function Page({ params }: Props) {
     lastEncounterProcedures,
     lastEncounterEvaRecords,
     lastEncounterVitalSigns,
-  ] = lastEncounter
-    ? await Promise.all([
-        procedureRepo.findAllByEncounterId(lastEncounter.id),
-        assessmentRepo.findEvaByEncounterId(lastEncounter.id),
-        vitalRepo.findAllByEncounterId(lastEncounter.id),
-      ])
-    : [[], [], []];
+    barthelAssessment,
+    necpalAssessment,
+    planOfCare,
+  ] = await Promise.all([
+    lastEncounter
+      ? procedureRepo.findAllByEncounterId(lastEncounter.id)
+      : Promise.resolve([]),
+    lastEncounter
+      ? assessmentRepo.findEvaByEncounterId(lastEncounter.id)
+      : Promise.resolve([]),
+    lastEncounter
+      ? vitalRepo.findAllByEncounterId(lastEncounter.id)
+      : Promise.resolve([]),
+    initialEncounter
+      ? barthelRepo.findByEncounterId(initialEncounter.id)
+      : Promise.resolve(null),
+    initialEncounter
+      ? necpalRepo.findByEncounterId(initialEncounter.id)
+      : Promise.resolve(null),
+    initialEncounter
+      ? planOfCareRepo.findByEncounterId(initialEncounter.id)
+      : Promise.resolve(null),
+  ]);
 
   if (!patient) {
     return (
@@ -96,6 +130,13 @@ export default async function Page({ params }: Props) {
           <PatientContactSection patient={patient} contacts={patient.contact} />
         </div>
         <EpisodeOfCareSection episodes={episodes} patientId={id} />
+        <InitialEvaluationSection
+          encounterId={initialEncounter?.id ?? null}
+          encounterDate={initialEncounter?.periodStart ?? null}
+          planOfCare={planOfCare}
+          barthelAssessment={barthelAssessment}
+          necpalAssessment={necpalAssessment}
+        />
         <LastEncounterSection
           lastEncounter={lastEncounter}
           nextPlannedEncounter={nextPlannedEncounter}

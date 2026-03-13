@@ -44,4 +44,10 @@ export interface EncounterRepository {
         patientId: string,
         practitionerId: string
     ): Promise<Encounter | null>;
+
+    /**
+     * Returns the first encounter for an episode of care where the visit type is
+     * "initial". This is used for rendering initial evaluation details.
+     */
+    findInitialByEpisodeOfCareId(episodeOfCareId: string): Promise<Encounter | null>;
 }
