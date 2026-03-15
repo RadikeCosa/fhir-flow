@@ -1,4 +1,5 @@
-import Link from "next/link";
+import Breadcrumbs from "../../../components/Breadcrumbs";
+import { createPatientRepository } from "../../../../infrastructure/fhir/factories/patient.factory";
 import { createEpisodeOfCareRepository } from "../../../../infrastructure/fhir/factories/episode-of-care.factory";
 import { createEncounterRepository } from "../../../../infrastructure/fhir/factories/encounter.factory";
 import { createVitalSignRecordRepository } from "../../../../infrastructure/fhir/factories/vital-sign-record.factory";
@@ -6,6 +7,7 @@ import { createAssessmentRepository } from "../../../../infrastructure/fhir/fact
 import { createProcedureRepository } from "../../../../infrastructure/fhir/factories/procedure.factory";
 import { createBarthelAssessmentRepository } from "../../../../infrastructure/fhir/factories/barthel-assessment.factory";
 import { createNecpalAssessmentRepository } from "../../../../infrastructure/fhir/factories/necpal-assessment.factory";
+import { formatPatientName } from "@/lib/patient/formatters";
 import EmptyState from "../../components/EmptyState";
 import EncounterList from "./components/EncounterList";
 import EpisodeChartsPanel from "./components/EpisodeChartsPanel";
@@ -25,6 +27,7 @@ type Props = {
 export default async function Page({ params }: Props) {
   const { id: patientId } = await params;
 
+  const patientRepo = createPatientRepository();
   const episodeRepo = createEpisodeOfCareRepository();
   const encounterRepo = createEncounterRepository();
   const vitalRepo = createVitalSignRecordRepository();
@@ -32,6 +35,26 @@ export default async function Page({ params }: Props) {
   const procedureRepo = createProcedureRepository();
   const barthelRepo = createBarthelAssessmentRepository();
   const necpalRepo = createNecpalAssessmentRepository();
+
+  const patient = await patientRepo.findById(patientId);
+
+  if (!patient) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-surface border border-border rounded-lg shadow-md p-6 text-center">
+          <h2 className="text-base font-semibold text-foreground mb-2">
+            Paciente no encontrado
+          </h2>
+          <p className="text-sm text-muted mb-4">
+            No se encontró un paciente con el id proporcionado.
+          </p>
+          <Link href="/patients" className="text-sm text-primary">
+            ← Volver
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   // fetch episode list to find the active one
   const episodes: EpisodeOfCare[] =
@@ -89,13 +112,11 @@ export default async function Page({ params }: Props) {
     necpalByEncounterId[enc.id] = necpalArrays[i];
   });
 
+  const fullName = patient ? formatPatientName(patient.name) : undefined;
+
   return (
     <>
-      <div className="mb-4">
-        <Link href={`/patients/${patientId}`} className="text-sm text-primary">
-          ← Volver
-        </Link>
-      </div>
+      <Breadcrumbs patientName={fullName} />
 
       <h1 className="text-2xl font-semibold mb-6">Historial de Encuentros</h1>
 

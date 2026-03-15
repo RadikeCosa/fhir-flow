@@ -1,3 +1,4 @@
+import Breadcrumbs from "../../components/Breadcrumbs";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createPatientRepository } from "../../../infrastructure/fhir/factories/patient.factory";
@@ -15,6 +16,7 @@ import { EpisodeOfCareSection } from "../components/detail/EpisodeOfCareSection"
 import { InitialEvaluationSection } from "../components/detail/InitialEvaluationSection";
 import { LastEncounterSection } from "../components/detail/LastEncounterSection";
 import { createProcedureRepository } from "../../../infrastructure/fhir/factories/procedure.factory";
+import { formatPatientName } from "@/lib/patient/formatters";
 
 type Props = {
   params: Promise<{
@@ -113,8 +115,11 @@ export default async function Page({ params }: Props) {
     );
   }
 
+  const patientFullName = formatPatientName(patient.name);
+
   return (
     <>
+      <Breadcrumbs patientName={patientFullName} />
       <div className="mb-4">
         <Link href="/patients" className="text-sm text-primary">
           ← Volver

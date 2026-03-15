@@ -1,3 +1,4 @@
+import Breadcrumbs from "../components/Breadcrumbs";
 import PatientList from "./components/PatientList";
 import { createPatientRepository } from "../../infrastructure/fhir/factories/patient.factory";
 
@@ -24,5 +25,10 @@ export default async function Page() {
     return ok;
   });
 
-  return <PatientList items={items} />;
+  return (
+    <>
+      <Breadcrumbs />
+      <PatientList items={items} />
+    </>
+  );
 }
