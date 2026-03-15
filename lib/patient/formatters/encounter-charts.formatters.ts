@@ -54,6 +54,9 @@ export const CLINICAL_CHART_COLORS = {
     bodyTemperature: "#d97706",
     systolic: "#ff6b6b",
     diastolic: "#4c87d9",
+    painLow: "#16a34a",
+    painModerate: "#d97706",
+    painHigh: "#dc2626",
 };
 
 /**

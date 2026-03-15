@@ -8,12 +8,10 @@ import {
   formatVitalSignsForChart,
   formatEvaForChart,
 } from "../../../../../lib/patient/formatters/encounter-charts.formatters";
-import HeartRateChart from "./charts/HeartRateChart";
-import RespiratoryRateChart from "./charts/RespiratoryRateChart";
-import OxygenSaturationChart from "./charts/OxygenSaturationChart";
-import BodyTemperatureChart from "./charts/BodyTemperatureChart";
+import SingleSeriesChart, {
+  SINGLE_SERIES_CHART_CONFIGS,
+} from "./charts/SingleSeriesChart";
 import BloodPressureChart from "./charts/BloodPressureChart";
-import EvaScoreChart from "./charts/EvaScoreChart";
 
 type MetricKey =
   | "heart-rate"
@@ -40,23 +38,51 @@ interface Props {
 export default function EpisodeChartsPanel({ vitalSigns, evaRecords }: Props) {
   const [metric, setMetric] = useState<MetricKey>("heart-rate");
 
-  const chartData = useMemo(() => formatVitalSignsForChart(vitalSigns), [vitalSigns]);
+  const chartData = useMemo(
+    () => formatVitalSignsForChart(vitalSigns),
+    [vitalSigns],
+  );
   const evaData = useMemo(() => formatEvaForChart(evaRecords), [evaRecords]);
 
   function renderChart() {
     switch (metric) {
       case "heart-rate":
-        return <HeartRateChart data={chartData.heartRate} />;
+        return (
+          <SingleSeriesChart
+            data={chartData.heartRate}
+            {...SINGLE_SERIES_CHART_CONFIGS.heartRate}
+          />
+        );
       case "respiratory-rate":
-        return <RespiratoryRateChart data={chartData.respiratoryRate} />;
+        return (
+          <SingleSeriesChart
+            data={chartData.respiratoryRate}
+            {...SINGLE_SERIES_CHART_CONFIGS.respiratoryRate}
+          />
+        );
       case "oxygen-saturation":
-        return <OxygenSaturationChart data={chartData.oxygenSaturation} />;
+        return (
+          <SingleSeriesChart
+            data={chartData.oxygenSaturation}
+            {...SINGLE_SERIES_CHART_CONFIGS.oxygenSaturation}
+          />
+        );
       case "body-temperature":
-        return <BodyTemperatureChart data={chartData.bodyTemperature} />;
+        return (
+          <SingleSeriesChart
+            data={chartData.bodyTemperature}
+            {...SINGLE_SERIES_CHART_CONFIGS.bodyTemperature}
+          />
+        );
       case "blood-pressure":
         return <BloodPressureChart data={chartData.bloodPressure} />;
       case "eva":
-        return <EvaScoreChart data={evaData} />;
+        return (
+          <SingleSeriesChart
+            data={evaData}
+            {...SINGLE_SERIES_CHART_CONFIGS.eva}
+          />
+        );
     }
   }
 
