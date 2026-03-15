@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { Menu, X } from "lucide-react";
 import type React from "react";
 import type { NavLink } from "@/config/navigation";
 
@@ -39,11 +40,11 @@ export default function HamburgerMenu({
         aria-label="Toggle menu"
         className="p-2"
       >
-        <div className="flex flex-col gap-y-1">
-          <span className="w-5 h-px bg-foreground block" />
-          <span className="w-5 h-px bg-foreground block" />
-          <span className="w-5 h-px bg-foreground block" />
-        </div>
+        {open ? (
+          <X size={20} aria-hidden="true" />
+        ) : (
+          <Menu size={20} aria-hidden="true" />
+        )}
       </button>
 
       <nav

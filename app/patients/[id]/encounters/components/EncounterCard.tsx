@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { SectionCard } from "../../../components/detail/SectionCard";
 import { formatDateTime } from "../../../../../lib/patient/formatters";
 import { formatEncounterVisitType } from "../../../../../lib/patient/formatters/encounter.formatters";
@@ -117,10 +118,20 @@ export default function EncounterCard({
             {hasDetails && (
               <button
                 type="button"
-                className="text-xs text-primary hover:underline"
+                className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
                 onClick={() => setExpanded((v) => !v)}
               >
-                {expanded ? "Ocultar detalles ▲" : "Ver detalles ▼"}
+                {expanded ? (
+                  <>
+                    Ocultar detalles
+                    <ChevronUp size={14} aria-hidden="true" />
+                  </>
+                ) : (
+                  <>
+                    Ver detalles
+                    <ChevronDown size={14} aria-hidden="true" />
+                  </>
+                )}
               </button>
             )}
           </div>

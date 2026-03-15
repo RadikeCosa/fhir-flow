@@ -1,6 +1,7 @@
 import React from "react";
 import { EpisodeOfCare } from "../../../../domain/episode-of-care/episode-of-care";
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { SectionCard } from "./SectionCard";
 import {
   formatDate,
@@ -127,9 +128,10 @@ export const EpisodeOfCareSection: React.FC<Props> = ({
       <div className="mt-3 pt-3 border-t border-border">
         <Link
           href={`/patients/${patientId}/encounters`}
-          className="text-sm text-primary hover:underline"
+          className="text-sm text-primary hover:underline flex items-center gap-1"
         >
-          Ver historial de encuentros →
+          Ver historial de encuentros
+          <ChevronRight size={14} aria-hidden="true" />
         </Link>
       </div>
     </SectionCard>

@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import type {
   BarthelAssessment,
   BarthelFunctionalLevel,
@@ -86,12 +87,22 @@ export function BarthelCard({ assessment }: BarthelCardProps) {
           </span>
           <button
             type="button"
-            className="text-xs text-primary hover:underline"
+            className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
             onClick={() => setExpanded((v) => !v)}
             aria-expanded={expanded}
             aria-label={expanded ? "Ocultar detalle" : "Ver detalle"}
           >
-            {expanded ? "Ocultar ▲" : "Ver ▼"}
+            {expanded ? (
+              <>
+                Ocultar
+                <ChevronUp size={14} aria-hidden="true" />
+              </>
+            ) : (
+              <>
+                Ver
+                <ChevronDown size={14} aria-hidden="true" />
+              </>
+            )}
           </button>
         </div>
       </div>

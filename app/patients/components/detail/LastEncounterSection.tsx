@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { SectionCard } from "./SectionCard";
+import { Minus, TrendingDown, TrendingUp } from "lucide-react";
 import { formatDate } from "../../../../lib/patient/formatters";
 import {
   formatEncounterVisitType,
@@ -15,6 +16,7 @@ import {
   getEvaBadge,
   formatEvaScore,
   getLatestEva,
+  getEvaTrend,
 } from "../../../../lib/patient/formatters/assessments/eva-assessment.formatters";
 import {
   getVitalSignBadge,
@@ -275,6 +277,7 @@ export const LastEncounterSection: React.FC<Props> = ({
                 const latest = getLatestEva(evaRecords);
                 if (!latest) return null;
                 const badge = getEvaBadge(latest.score);
+                const trend = getEvaTrend(evaRecords);
                 return (
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-foreground">
@@ -285,6 +288,28 @@ export const LastEncounterSection: React.FC<Props> = ({
                     >
                       {badge.label}
                     </span>
+                    {trend !== "sin-datos" && (
+                      <span className="flex items-center gap-1 text-xs text-muted">
+                        {trend === "mejora" && (
+                          <>
+                            <TrendingDown size={14} className="text-success" />
+                            mejora
+                          </>
+                        )}
+                        {trend === "empeora" && (
+                          <>
+                            <TrendingUp size={14} className="text-error" />
+                            empeora
+                          </>
+                        )}
+                        {trend === "estable" && (
+                          <>
+                            <Minus size={14} className="text-muted" />
+                            estable
+                          </>
+                        )}
+                      </span>
+                    )}
                   </div>
                 );
               })()}

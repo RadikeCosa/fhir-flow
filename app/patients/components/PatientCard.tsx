@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { MapPin, Phone } from "lucide-react";
 import type { Patient } from "../../../domain/patients/patient";
 
 /**
@@ -66,10 +67,16 @@ export default function PatientCard({ patient }: { patient: Patient }) {
 
         <div className="flex flex-wrap gap-x-6 gap-y-1 mt-2 text-sm text-muted">
           {patient.phone && (
-            <div className="flex items-center gap-1">Tel: {patient.phone}</div>
+            <div className="flex items-center gap-1">
+              <Phone size={14} aria-hidden="true" />
+              {patient.phone}
+            </div>
           )}
           {addressDisplay && (
-            <div className="flex items-center gap-1">Dir: {addressDisplay}</div>
+            <div className="flex items-center gap-1">
+              <MapPin size={14} aria-hidden="true" />
+              {addressDisplay}
+            </div>
           )}
         </div>
       </article>
