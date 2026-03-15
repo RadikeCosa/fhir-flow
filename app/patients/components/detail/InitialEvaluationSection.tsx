@@ -28,7 +28,7 @@ export function InitialEvaluationSection({
       {encounterId ? (
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-xs text-muted uppercase tracking-wide">
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted">
               Sesión de evaluación
             </span>
             <span className="text-xs text-foreground">
@@ -36,22 +36,7 @@ export function InitialEvaluationSection({
             </span>
           </div>
 
-          {planOfCare ? (
-            <>
-              <div className="text-xs text-muted uppercase tracking-wide">
-                Plan de tratamiento
-              </div>
-              <PlanOfCareView plan={planOfCare} />
-            </>
-          ) : (
-            <p className="text-xs text-muted italic">
-              Plan de tratamiento no registrado
-            </p>
-          )}
-
-          <div className="border-t border-border my-3" />
-
-          <div className="text-xs text-muted uppercase tracking-wide mb-2">
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted mb-2">
             Evaluaciones basales
           </div>
 
@@ -68,6 +53,16 @@ export function InitialEvaluationSection({
           ) : (
             <p className="text-xs text-muted italic">
               Cribado NECPAL no registrado
+            </p>
+          )}
+
+          <div className="border-t border-border my-3" />
+
+          {planOfCare ? (
+            <PlanOfCareView plan={planOfCare} />
+          ) : (
+            <p className="text-xs text-muted italic">
+              Plan de tratamiento no registrado
             </p>
           )}
         </div>

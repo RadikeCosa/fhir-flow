@@ -50,7 +50,7 @@ export const PatientContactSection: React.FC<Props> = ({
 
       {contacts && contacts.length > 0 && (
         <div className="mt-3 pt-3 border-t border-border">
-          <p className="text-xs text-muted font-medium mb-1">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted mb-2">
             Contacto de emergencia
           </p>
           <ul className="space-y-2">

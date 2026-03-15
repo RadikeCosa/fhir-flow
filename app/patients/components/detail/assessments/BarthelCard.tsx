@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import { useState } from "react";
 import type {
   BarthelAssessment,
   BarthelFunctionalLevel,
@@ -55,12 +57,13 @@ interface BarthelCardProps {
 
 export function BarthelCard({ assessment }: BarthelCardProps) {
   const badge = getBarthelLevelBadge(assessment.functionalLevel);
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <div className="border border-border rounded-lg p-3">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="text-xs text-muted uppercase tracking-wide">
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted">
             Índice de Barthel
           </div>
         </div>
@@ -79,31 +82,37 @@ export function BarthelCard({ assessment }: BarthelCardProps) {
       </div>
 
       {assessment.items.length > 0 && (
-        <details className="mt-3">
-          <summary className="text-xs text-primary cursor-pointer">
-            Ver detalle por actividad
-          </summary>
-          <div className="mt-2">
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
-              {assessment.items.map(
-                (item: {
-                  activity: BarthelActivityKey;
-                  score: number;
-                  maxScore: number;
-                }) => (
-                  <React.Fragment key={item.activity}>
-                    <dt className="text-muted">
-                      {ACTIVITY_LABELS[item.activity]}
-                    </dt>
-                    <dd className="text-foreground">
-                      {item.score} / {item.maxScore}
-                    </dd>
-                  </React.Fragment>
-                ),
-              )}
-            </dl>
-          </div>
-        </details>
+        <div className="mt-3">
+          <button
+            type="button"
+            className="text-xs text-primary hover:underline"
+            onClick={() => setExpanded((v) => !v)}
+          >
+            {expanded ? "Ocultar detalle ▲" : "Ver detalle por actividad ▼"}
+          </button>
+          {expanded && (
+            <div className="mt-2">
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                {assessment.items.map(
+                  (item: {
+                    activity: BarthelActivityKey;
+                    score: number;
+                    maxScore: number;
+                  }) => (
+                    <>
+                      <dt className="text-muted">
+                        {ACTIVITY_LABELS[item.activity]}
+                      </dt>
+                      <dd className="text-foreground">
+                        {item.score} / {item.maxScore}
+                      </dd>
+                    </>
+                  ),
+                )}
+              </dl>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

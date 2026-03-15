@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { SectionCard } from "./SectionCard";
 import { formatDate } from "../../../../lib/patient/formatters";
 import {
@@ -46,35 +47,25 @@ export const LastEncounterSection: React.FC<Props> = ({
   if (!lastEncounter && !nextPlannedEncounter) {
     return (
       <SectionCard title="Visitas">
-        <div className="flex justify-end mb-2">
-          {patientId && (
-            <a
+        <p className="text-xs text-muted italic">
+          No hay visitas registradas aún
+        </p>
+        {patientId && (
+          <div className="mt-3 pt-3 border-t border-border flex justify-end">
+            <Link
               href={`/patients/${patientId}/encounters`}
               className="text-xs text-primary hover:underline"
             >
               Ver historial →
-            </a>
-          )}
-        </div>
-        <p className="text-xs text-muted italic">
-          No hay visitas registradas aún
-        </p>
+            </Link>
+          </div>
+        )}
       </SectionCard>
     );
   }
 
   return (
     <SectionCard title="Visitas">
-      <div className="flex justify-end mb-2">
-        {patientId && (
-          <a
-            href={`/patients/${patientId}/encounters`}
-            className="text-xs text-primary hover:underline"
-          >
-            Ver historial →
-          </a>
-        )}
-      </div>
 
       {/* last encounter block */}
       {lastEncounter && (
@@ -120,9 +111,9 @@ export const LastEncounterSection: React.FC<Props> = ({
 
           {vitalSigns.length > 0 && (
             <>
-              <h3 className="text-xs font-semibold text-muted uppercase tracking-wide mt-3 mb-1">
+              <div className="text-xs font-semibold text-muted uppercase tracking-wide mt-3 mb-1">
                 Signos vitales
-              </h3>
+              </div>
               <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
                 {typeof vitalSigns[0].heartRate === "number" &&
                   (() => {
@@ -278,9 +269,9 @@ export const LastEncounterSection: React.FC<Props> = ({
 
           {evaRecords.length > 0 && (
             <>
-              <h3 className="text-xs font-semibold text-muted uppercase tracking-wide mt-3 mb-1">
+              <div className="text-xs font-semibold text-muted uppercase tracking-wide mt-3 mb-1">
                 Dolor (EVA)
-              </h3>
+              </div>
               {(() => {
                 const latest = getLatestEva(evaRecords);
                 if (!latest) return null;
@@ -305,15 +296,15 @@ export const LastEncounterSection: React.FC<Props> = ({
 
       {/* divider between blocks */}
       {lastEncounter && nextPlannedEncounter && (
-        <hr className="my-3 border-border" />
+        <div className="border-t border-border my-3" />
       )}
 
       {/* next planned encounter block */}
       {nextPlannedEncounter && (
         <>
-          <span className="text-sm font-semibold text-foreground">
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted mb-2">
             Próxima visita
-          </span>
+          </div>
           <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 mt-1">
             <dt className="text-xs text-muted font-medium">Fecha:</dt>
             <dd className="text-sm text-foreground">
@@ -333,6 +324,17 @@ export const LastEncounterSection: React.FC<Props> = ({
             )}
           </dl>
         </>
+      )}
+
+      {patientId && (
+        <div className="mt-3 pt-3 border-t border-border flex justify-end">
+          <Link
+            href={`/patients/${patientId}/encounters`}
+            className="text-xs text-primary hover:underline"
+          >
+            Ver historial →
+          </Link>
+        </div>
       )}
     </SectionCard>
   );

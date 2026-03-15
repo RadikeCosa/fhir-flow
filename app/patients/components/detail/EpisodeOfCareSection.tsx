@@ -30,14 +30,6 @@ export const EpisodeOfCareSection: React.FC<Props> = ({
 
   return (
     <SectionCard title="Información del episodio">
-      <div className="mb-2">
-        <Link
-          href={`/patients/${patientId}/encounters`}
-          className="text-sm text-primary hover:underline"
-        >
-          Ver historial de encuentros →
-        </Link>
-      </div>
       {episodes.map((episode) => {
         const statusBadge = translateEpisodeStatus(episode.status);
         const severityBadge = getSeverityBadge(episode.condition.severity);
@@ -83,11 +75,11 @@ export const EpisodeOfCareSection: React.FC<Props> = ({
 
             {/* Block B — Metadata grid */}
             {(hasReferral || hasCoverage) && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-border pt-3 mt-3">
                 {hasReferral && (
                   <div className={hasCoverage ? "" : "col-span-2"}>
-                    <div className="text-xs text-muted uppercase tracking-wide">
-                      PEDIDO DE ATENCIÓN
+                    <div className="text-xs font-semibold uppercase tracking-wide text-muted">
+                      Pedido de atención
                     </div>
                     <div className="mt-1 text-sm text-foreground">
                       {formatReferralLine(episode.referral)}
@@ -101,8 +93,8 @@ export const EpisodeOfCareSection: React.FC<Props> = ({
                 )}
                 {hasCoverage && (
                   <div className={hasReferral ? "" : "col-span-2"}>
-                    <div className="text-xs text-muted uppercase tracking-wide">
-                      COBERTURA
+                    <div className="text-xs font-semibold uppercase tracking-wide text-muted">
+                      Cobertura
                     </div>
                     <div className="mt-1 text-sm text-foreground">
                       {episode.coverage?.payorName}
@@ -119,9 +111,9 @@ export const EpisodeOfCareSection: React.FC<Props> = ({
 
             {/* Block C — Indicaciones */}
             {episode.referral?.requestNote && (
-              <div className="mt-4">
-                <div className="text-xs text-muted uppercase tracking-wide">
-                  INDICACIONES
+              <div className="border-t border-border pt-3 mt-3">
+                <div className="text-xs font-semibold uppercase tracking-wide text-muted">
+                  Indicaciones
                 </div>
                 <div className="border-l-2 border-primary pl-3 mt-1 text-sm text-muted italic">
                   {episode.referral.requestNote}
@@ -131,6 +123,15 @@ export const EpisodeOfCareSection: React.FC<Props> = ({
           </div>
         );
       })}
+
+      <div className="mt-3 pt-3 border-t border-border">
+        <Link
+          href={`/patients/${patientId}/encounters`}
+          className="text-sm text-primary hover:underline"
+        >
+          Ver historial de encuentros →
+        </Link>
+      </div>
     </SectionCard>
   );
 };

@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import { useState } from "react";
 import type {
   NecpalAssessment,
   NecpalResult,
@@ -34,12 +36,13 @@ const INDICATOR_LABELS: Record<
 
 export function NecpalCard({ assessment }: NecpalCardProps) {
   const badge = getNecpalResultBadge(assessment.result);
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <div className="border border-border rounded-lg p-3">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="text-xs text-muted uppercase tracking-wide">
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted">
             Cribado de necesidades paliativas
           </div>
         </div>
@@ -69,41 +72,47 @@ export function NecpalCard({ assessment }: NecpalCardProps) {
       </div>
 
       {assessment.positiveScreen && (
-        <details className="mt-4">
-          <summary className="text-xs text-primary cursor-pointer">
-            Ver indicadores
-          </summary>
-          <div className="mt-2 space-y-2">
-            {(
-              Object.keys(INDICATOR_LABELS) as Array<
-                keyof typeof INDICATOR_LABELS
-              >
-            ).map((key) => {
-              const present = assessment.indicators[key];
-              return (
-                <div
-                  key={key}
-                  className={`flex items-center justify-between rounded px-2 py-1 text-xs ${
-                    present ? "border-l-2 border-error" : ""
-                  }`}
+        <div className="mt-4">
+          <button
+            type="button"
+            className="text-xs text-primary hover:underline"
+            onClick={() => setExpanded((v) => !v)}
+          >
+            {expanded ? "Ocultar indicadores ▲" : "Ver indicadores ▼"}
+          </button>
+          {expanded && (
+            <div className="mt-2 space-y-2">
+              {(
+                Object.keys(INDICATOR_LABELS) as Array<
+                  keyof typeof INDICATOR_LABELS
                 >
-                  <span className="text-foreground">
-                    {INDICATOR_LABELS[key]}
-                  </span>
-                  <span
-                    className={`inline-flex items-center px-2 py-0.5 rounded-full font-medium ${
-                      present
-                        ? "bg-green-100 text-green-800"
-                        : "bg-gray-100 text-gray-600"
+              ).map((key) => {
+                const present = assessment.indicators[key];
+                return (
+                  <div
+                    key={key}
+                    className={`flex items-center justify-between rounded px-2 py-1 text-xs ${
+                      present ? "border-l-2 border-error" : ""
                     }`}
                   >
-                    {present ? "Presente" : "Ausente"}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </details>
+                    <span className="text-foreground">
+                      {INDICATOR_LABELS[key]}
+                    </span>
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded-full font-medium ${
+                        present
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {present ? "Presente" : "Ausente"}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

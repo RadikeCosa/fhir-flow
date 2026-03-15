@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import { useState } from "react";
 import type {
   PlanOfCare,
   CareGoalCategory,
@@ -81,6 +83,7 @@ function getCategoryLabel(category: CareGoalCategory): string {
 
 export function PlanOfCareView({ plan }: PlanOfCareViewProps) {
   const planBadge = getPlanStatusBadge(plan.status);
+  const [activitiesExpanded, setActivitiesExpanded] = useState(false);
 
   const periodStartLabel = formatDate(plan.periodStart);
   const periodEndLabel = plan.periodEnd
@@ -91,7 +94,7 @@ export function PlanOfCareView({ plan }: PlanOfCareViewProps) {
     <div className="border border-border rounded-lg p-3">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="text-xs text-muted uppercase tracking-wide">
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted">
             Plan de tratamiento
           </div>
           <div className="text-xs text-foreground">
@@ -116,8 +119,8 @@ export function PlanOfCareView({ plan }: PlanOfCareViewProps) {
       </div>
 
       {plan.clinicalReasoning && (
-        <div className="mt-4">
-          <div className="text-xs text-muted uppercase tracking-wide mb-1">
+        <div className="mt-3 border-t border-border pt-3">
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted mb-1">
             Razonamiento clínico
           </div>
           <div className="border-l-2 border-primary pl-3 text-sm text-foreground italic">
@@ -126,8 +129,8 @@ export function PlanOfCareView({ plan }: PlanOfCareViewProps) {
         </div>
       )}
 
-      <div className="mt-4">
-        <div className="text-xs text-muted uppercase tracking-wide mb-2">
+      <div className="mt-3 border-t border-border pt-3">
+        <div className="text-xs font-semibold uppercase tracking-wide text-muted mb-2">
           Objetivos
         </div>
         {plan.goals.length === 0 ? (
@@ -169,17 +172,29 @@ export function PlanOfCareView({ plan }: PlanOfCareViewProps) {
         )}
       </div>
 
-      <details className="mt-4">
-        <summary className="text-xs text-primary cursor-pointer">
-          Actividades planificadas ({plan.activities.length})
-        </summary>
-        <div className="mt-2">
-          {plan.activities.length === 0 ? (
-            <div className="text-xs text-muted italic">
-              Sin actividades registradas
-            </div>
-          ) : (
-            <div className="space-y-2">
+      <div className="mt-3 border-t border-border pt-3">
+        <div className="flex items-center justify-between">
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted">
+            Actividades planificadas ({plan.activities.length})
+          </div>
+          {plan.activities.length > 0 && (
+            <button
+              type="button"
+              className="text-xs text-primary hover:underline"
+              onClick={() => setActivitiesExpanded((v) => !v)}
+            >
+              {activitiesExpanded ? "Ocultar ▲" : "Ver todas ▼"}
+            </button>
+          )}
+        </div>
+
+        {plan.activities.length === 0 ? (
+          <div className="text-xs text-muted italic mt-2">
+            Sin actividades registradas
+          </div>
+        ) : (
+          activitiesExpanded && (
+            <div className="mt-2 space-y-2">
               {plan.activities.map((activity) => {
                 const badge = getActivityStatusBadge(activity.status);
                 return (
@@ -206,9 +221,9 @@ export function PlanOfCareView({ plan }: PlanOfCareViewProps) {
                 );
               })}
             </div>
-          )}
-        </div>
-      </details>
+          )
+        )}
+      </div>
     </div>
   );
 }
