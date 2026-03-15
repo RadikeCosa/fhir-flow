@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { codingSchema, codeableConceptSchema, referenceSchema } from "../shared.schema";
 
 /**
  * LOINC 96779-8 — Palliative care screening [NECPAL]
@@ -6,27 +7,6 @@ import { z } from "zod";
  */
 
 // small reusable fragments --------------------------------------------------
-
-const codingSchema = z
-    .object({
-        system: z.string().optional(),
-        code: z.string().optional(),
-        display: z.string().optional(),
-    })
-    .passthrough();
-
-const codeableConceptSchema = z
-    .object({
-        coding: z.array(codingSchema).optional(),
-        text: z.string().optional(),
-    })
-    .passthrough();
-
-const referenceSchema = z
-    .object({
-        reference: z.string().optional(),
-    })
-    .passthrough();
 
 const performerSchema = z
     .object({

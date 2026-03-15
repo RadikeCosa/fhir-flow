@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { codingSchema, referenceSchema } from "./shared.schema";
 
 /*
  * CarePlan (FHIR R4) — Plan of Care
@@ -7,20 +8,6 @@ import { z } from "zod";
  */
 
 // common building blocks ---------------------------------------------------
-
-const codingSchema = z
-    .object({
-        system: z.string().optional(),
-        code: z.string().optional(),
-        display: z.string().optional(),
-    })
-    .passthrough();
-
-const referenceSchema = z
-    .object({
-        reference: z.string().optional(),
-    })
-    .passthrough();
 
 const noteSchema = z
     .object({

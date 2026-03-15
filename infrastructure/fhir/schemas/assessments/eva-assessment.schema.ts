@@ -1,21 +1,7 @@
 import { z } from "zod";
+import { codingSchema, codeableConceptSchema } from "../shared.schema";
 
 // reusable fragments -------------------------------------------------------
-
-const codingSchema = z
-    .object({
-        system: z.string().optional(),
-        code: z.string().optional(),
-        display: z.string().optional(),
-    })
-    .passthrough();
-
-const codeableConceptSchema = z
-    .object({
-        coding: z.array(codingSchema).optional(),
-        text: z.string().optional(),
-    })
-    .passthrough();
 
 const performerSchema = z
     .object({

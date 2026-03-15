@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { codingSchema, referenceSchema, periodSchema } from "./shared.schema";
 
 /**
  * Zod schemas used by the encounter mapper.  These schemas are intentionally
@@ -8,34 +9,12 @@ import { z } from "zod";
  * repository layer.
  */
 
-// basic coding structure used in multiple locations
-export const codingSchema = z
-    .object({
-        code: z.string().optional(),
-        display: z.string().optional(),
-    })
-    .passthrough();
-
-// simple reference with optional display
-export const referenceSchema = z
-    .object({
-        reference: z.string().optional(),
-        display: z.string().optional(),
-    })
-    .passthrough();
-
+// Shared building blocks imported from shared.schema.ts
 // element used for encounter.type, reasonCode.coding, participant.type etc.
 export const codeableConceptSchema = z
     .object({
         coding: z.array(codingSchema).optional(),
         // other fields such as `text`/`display` are not required by mapper
-    })
-    .passthrough();
-
-export const periodSchema = z
-    .object({
-        start: z.string().optional(),
-        end: z.string().optional(),
     })
     .passthrough();
 

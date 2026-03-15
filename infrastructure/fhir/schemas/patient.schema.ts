@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { codingSchema, identifierSchema } from "./shared.schema";
+
+export { identifierSchema } from "./shared.schema";
 
 /**
  * Zod schema for validating a raw FHIR R4 Patient resource at the
@@ -15,12 +18,6 @@ export const humanNameSchema = z
     })
     .passthrough();
 
-export const identifierSchema = z
-    .object({
-        system: z.string().optional(),
-        value: z.string().optional(),
-    })
-    .passthrough();
 
 export const telecomSchema = z
     .object({
@@ -40,13 +37,6 @@ export const addressSchema = z
     })
     .passthrough();
 
-// supporting simple coding structure used in several places
-export const codingSchema = z
-    .object({
-        code: z.string().optional(),
-        display: z.string().optional(),
-    })
-    .passthrough();
 
 // maritalStatus field on Patient resource
 export const maritalStatusSchema = z

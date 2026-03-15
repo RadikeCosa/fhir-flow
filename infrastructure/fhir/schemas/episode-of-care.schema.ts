@@ -1,33 +1,12 @@
 import { z } from "zod";
+import { codingSchema, referenceSchema, periodSchema } from "./shared.schema";
 
 /**
  * Basic building blocks reused in multiple episode-related resources.
+ *
+ * These are shared canonical fragments and should stay consistent across the
+ * project. See infrastructure/fhir/schemas/shared.schema.ts.
  */
-
-// simple coding structure with display and code
-export const codingSchema = z
-    .object({
-        system: z.string().optional(),
-        code: z.string().optional(),
-        display: z.string().optional(),
-    })
-    .passthrough();
-
-// period used in various resources
-export const periodSchema = z
-    .object({
-        start: z.string().optional(),
-        end: z.string().optional(),
-    })
-    .passthrough();
-
-// reference to another resource by id
-export const referenceSchema = z
-    .object({
-        reference: z.string().optional(),
-        display: z.string().optional(),
-    })
-    .passthrough();
 
 /**
  * Zod schema for validating an EpisodeOfCare resource.  Only the fields the

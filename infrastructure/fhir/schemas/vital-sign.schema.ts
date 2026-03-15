@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { codingSchema, referenceSchema } from "./shared.schema";
 
 /**
  * Zod schema for validating FHIR R4 Observation resources that represent
@@ -11,20 +12,8 @@ import { z } from "zod";
  * any domain types.
  */
 
-// simple coding structure reused below
-export const codingSchema = z
-    .object({
-        system: z.string().optional(),
-        code: z.string().optional(),
-    })
-    .passthrough();
-
-export const performerSchema = z
-    .object({
-        reference: z.string().optional(),
-        display: z.string().optional(),
-    })
-    .passthrough();
+// alias to preserve exported name and typing
+export const performerSchema = referenceSchema;
 
 export const valueQuantitySchema = z
     .object({

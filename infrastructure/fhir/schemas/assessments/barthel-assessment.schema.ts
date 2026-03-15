@@ -1,21 +1,5 @@
 import { z } from "zod";
-
-// reused small fragments --------------------------------------------------
-
-const codingSchema = z
-    .object({
-        system: z.string().optional(),
-        code: z.string().optional(),
-        display: z.string().optional(),
-    })
-    .passthrough();
-
-const codeableConceptSchema = z
-    .object({
-        coding: z.array(codingSchema).optional(),
-        text: z.string().optional(),
-    })
-    .passthrough();
+import { codingSchema, codeableConceptSchema } from "../shared.schema";
 
 // main observation schema ------------------------------------------------
 

@@ -9,12 +9,7 @@ import { z } from "zod";
  */
 
 // reuse common schemas from other modules to keep shapes consistent
-import { codingSchema, referenceSchema } from "./encounter.schema";
-
-// procedure-specific extension to coding to allow `system`
-export const procedureCodingSchema = codingSchema.extend({
-    system: z.string().optional(),
-});
+import { codingSchema, referenceSchema } from "./shared.schema";
 
 export const fhirProcedureSchema = z
     .object({
@@ -23,7 +18,7 @@ export const fhirProcedureSchema = z
         status: z.string(),
         code: z
             .object({
-                coding: z.array(procedureCodingSchema).optional(),
+                coding: z.array(codingSchema).optional(),
             })
             .passthrough(),
         bodySite: z
