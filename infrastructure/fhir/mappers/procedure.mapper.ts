@@ -6,6 +6,7 @@ import type {
     ProcedureCode,
 } from "../../../domain/procedures/procedure";
 import { PROCEDURE_SYSTEM } from "../../../lib/fhir/systems";
+import { extractId } from "./shared/extract-helpers";
 
 /**
  * Translate a raw FHIR status string into the domain union. Unknown values
@@ -20,15 +21,6 @@ function mapStatus(s?: string): ProcedureStatus {
         default:
             return "completed";
     }
-}
-
-/**
- * Extract the ID portion from a reference of the form `ResourceType/id`.
- */
-function extractId(ref?: string): string {
-    if (typeof ref !== "string") return "";
-    const parts = ref.split("/");
-    return parts.length > 1 ? parts[1] : "";
 }
 
 /**

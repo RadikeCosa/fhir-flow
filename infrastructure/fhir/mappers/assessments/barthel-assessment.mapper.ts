@@ -5,44 +5,12 @@ import type {
     BarthelItem,
 } from "../../../../domain/assessments/barthel-assessment";
 import { computeBarthelFunctionalLevel } from "../../../../domain/assessments/barthel-assessment";
-
-/**
- * Map the first part of a reference like `Encounter/123` to the id portion.
- */
-function extractEncounterId(ref?: string): string {
-    if (typeof ref !== "string") return "";
-    const parts = ref.split("/");
-    return parts.length > 1 ? parts[1] : "";
-}
-
-/**
- * Extract a simple performer object from the first performer entry.
- */
-function extractPerformer(
-    performer?: FhirBarthelObservation["performer"]
-): { id: string; display: string } | undefined {
-    if (!Array.isArray(performer) || performer.length === 0) return undefined;
-    const first = performer[0];
-    const reference = first?.reference;
-    if (typeof reference !== "string") return undefined;
-    const parts = reference.split("/");
-    const id = parts.length > 1 ? parts[1] : "";
-    const display = typeof first.display === "string" ? first.display : "";
-    return { id, display };
-}
-
-/**
- * Prefer effectiveDateTime, then issued, else empty string.
- */
-function extractDate(effectiveDateTime?: string, issued?: string): string {
-    if (typeof effectiveDateTime === "string" && effectiveDateTime.trim() !== "") {
-        return effectiveDateTime;
-    }
-    if (typeof issued === "string" && issued.trim() !== "") {
-        return issued;
-    }
-    return "";
-}
+import {
+    extractEncounterId,
+    extractPerformer,
+    extractDate,
+    extractId,
+} from "../shared/extract-helpers";
 
 const BARTHEL_MAX_SCORES: Record<BarthelActivityKey, number> = {
     feeding: 10,
@@ -103,12 +71,7 @@ function mapComponentToItem(component: unknown): BarthelItem | null {
 export function mapFhirBarthelToDomain(
     resource: FhirBarthelObservation
 ): BarthelAssessment {
-    const patientId = (() => {
-        const ref = resource.subject?.reference;
-        if (typeof ref !== "string") return "";
-        const parts = ref.split("/");
-        return parts.length > 1 ? parts[1] : "";
-    })();
+    const patientId = extractId(resource.subject?.reference);
 
     const encounterId = extractEncounterId(resource.encounter?.reference);
     const date = extractDate(resource.effectiveDateTime, resource.issued);

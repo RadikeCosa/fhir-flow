@@ -1,5 +1,6 @@
 import type { FhirVitalSignObservation } from "../schemas/vital-sign.schema";
 import type { VitalSignRecord, BloodPressureReading } from "../../../domain/vital-sign-record/vital-sign-record";
+import { extractId } from "./shared/extract-helpers";
 
 /**
  * Map an array of validated FHIR Observation resources representing vital
@@ -71,16 +72,7 @@ export function mapFhirObservationsToVitalSignRecords(
             // derive recordedBy.id: extract Practitioner id from reference if present
             // Prefer explicit Practitioner/{id} matches, fall back to last path
             // segment to handle alternate reference forms (full URLs, etc.).
-            let recordedById = "";
-            if (performerRef && typeof performerRef === "string") {
-                const m = /(?:Practitioner\/)([^/]+)$/.exec(performerRef);
-                if (m && m[1]) {
-                    recordedById = m[1];
-                } else {
-                    const parts = performerRef.split("/");
-                    recordedById = parts[parts.length - 1] || "";
-                }
-            }
+            const recordedById = extractId(performerRef);
 
             record = {
                 id: groupKey,

@@ -1,5 +1,6 @@
 import type { FhirEvaObservation } from "../../schemas/assessments/eva-assessment.schema";
 import type { EvaAssessment } from "../../../../domain/assessments/eva-assessment";
+import { extractId } from "../shared/extract-helpers";
 
 /**
  * Map raw FHIR Observation resources to the domain `EvaAssessment` type.
@@ -32,15 +33,7 @@ export function mapFhirObservationsToEvaAssessments(
         let recordedById = "";
         if (perf) {
             recordedByDisplay = typeof perf.display === "string" ? perf.display : "";
-            if (typeof perf.reference === "string" && perf.reference) {
-                const m = /(?:Practitioner\/)([^/]+)$/.exec(perf.reference);
-                if (m && m[1]) {
-                    recordedById = m[1];
-                } else {
-                    const parts = perf.reference.split("/");
-                    recordedById = parts[parts.length - 1] || "";
-                }
-            }
+            recordedById = extractId(perf.reference);
         }
 
         results.push({

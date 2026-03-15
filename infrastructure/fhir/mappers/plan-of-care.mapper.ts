@@ -8,15 +8,7 @@ import type {
     ActivityStatus,
     PlanOfCareStatus,
 } from "../../../domain/plan-of-care/plan-of-care";
-
-/**
- * Split a reference like `ResourceType/123` and return just the ID portion.
- */
-function extractId(ref?: string): string {
-    if (typeof ref !== "string") return "";
-    const parts = ref.split("/");
-    return parts.length > 1 ? parts[1] : "";
-}
+import { extractId } from "./shared/extract-helpers";
 
 /**
  * Prefer the primary date; fall back to the secondary date; otherwise empty.

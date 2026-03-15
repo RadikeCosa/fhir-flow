@@ -5,6 +5,7 @@ import type {
     EncounterVisitType,
     EncounterParticipant,
 } from "../../../domain/encounters/encounter";
+import { extractId } from "./shared/extract-helpers";
 
 /**
  * Translate a raw FHIR status string into the domain union.  Unrecognised
@@ -20,15 +21,6 @@ function mapStatus(s?: string): EncounterStatus {
         default:
             return "planned";
     }
-}
-
-/**
- * Pick the first ID part from a reference like `ResourceType/123`.
- */
-function extractId(ref?: string): string {
-    if (typeof ref !== "string") return "";
-    const parts = ref.split("/");
-    return parts.length > 1 ? parts[1] : "";
 }
 
 /**
@@ -122,11 +114,15 @@ export function mapFhirEncounterToEncounter(resource: FhirEncounter): Encounter 
     // look for clinical‑note extension in the resource
     let clinicalNote: string | undefined;
     if (Array.isArray(resource.extension)) {
+        type ClinicalNoteExtension = { [x: string]: unknown; url?: string; valueString?: string };
+
         const clinicalExt = resource.extension.find(
-            (e: any) =>
-                typeof e.url === "string" &&
-                e.url.includes("clinical-note")
+            (e): e is ClinicalNoteExtension => {
+                const url = (e as { url?: unknown }).url;
+                return typeof url === "string" && url.includes("clinical-note");
+            }
         );
+
         if (
             clinicalExt &&
             typeof clinicalExt.valueString === "string" &&

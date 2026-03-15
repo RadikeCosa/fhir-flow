@@ -12,6 +12,7 @@ import type {
     EpisodeCoverage,
     EpisodeReferral,
 } from "../../../domain/episode-of-care/episode-of-care";
+import { extractId } from "./shared/extract-helpers";
 
 /**
  * Convert a FHIR status string to our domain EpisodeStatus.  Unknown
@@ -162,12 +163,7 @@ function mapCoverage(cov: FhirCoverage): EpisodeCoverage {
 function mapReferral(sr: FhirServiceRequest): EpisodeReferral {
     const practitionerName = sr.requester?.display ?? "";
 
-    const practitionerId = (() => {
-        const ref = sr.requester?.reference;
-        if (!ref || typeof ref !== "string") return "";
-        const parts = ref.split("/");
-        return parts.length > 0 ? parts[parts.length - 1] : "";
-    })();
+    const practitionerId = extractId(sr.requester?.reference);
 
     const requestDate = sr.authoredOn ?? undefined;
     const reasonText = Array.isArray(sr.reasonCode) && sr.reasonCode[0]?.text ? sr.reasonCode[0].text : undefined;
@@ -193,10 +189,7 @@ export function mapFhirEpisodeOfCareToDomain(
     coverage?: FhirCoverage,
     serviceRequest?: FhirServiceRequest
 ): EpisodeOfCare {
-    const patientId =
-        typeof episode.patient?.reference === "string"
-            ? episode.patient.reference.replace(/^Patient\//, "")
-            : "";
+    const patientId = extractId(episode.patient?.reference);
 
     const result: EpisodeOfCare = {
         id: episode.id,
