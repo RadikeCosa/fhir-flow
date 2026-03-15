@@ -16,13 +16,22 @@ function getNecpalResultBadge(result: NecpalResult): {
 } {
   switch (result) {
     case "positive":
-      return { label: "NECPAL +", className: "bg-red-100 text-red-800" };
+      return {
+        label: "NECPAL +",
+        className: "bg-surface text-error border border-error",
+      };
     case "negative":
-      return { label: "NECPAL −", className: "bg-green-100 text-green-800" };
+      return {
+        label: "NECPAL −",
+        className: "bg-surface text-success border border-success",
+      };
   }
   const _exhaustiveCheck: never = result;
   void _exhaustiveCheck;
-  return { label: "NECPAL", className: "bg-gray-100 text-gray-800" };
+  return {
+    label: "NECPAL",
+    className: "bg-surface text-muted border border-border",
+  };
 }
 
 const INDICATOR_LABELS: Record<
@@ -40,48 +49,48 @@ export function NecpalCard({ assessment }: NecpalCardProps) {
 
   return (
     <div className="border border-border rounded-lg p-3">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="text-xs font-semibold uppercase tracking-wide text-muted">
-            Cribado de necesidades paliativas
-          </div>
+      <div className="flex items-center gap-3">
+        <div className="text-xs font-semibold uppercase tracking-wide text-muted">
+          Cribado NECPAL
         </div>
-        <span
-          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badge.className}`}
-        >
-          {badge.label}
-        </span>
-      </div>
-
-      <div className="mt-3">
-        <div className="text-xs text-muted">Pregunta sorpresa</div>
-        <div
-          className={
-            assessment.indicators.surpriseQuestion
-              ? "text-foreground"
-              : "text-error"
-          }
-        >
-          {assessment.indicators.surpriseQuestion
-            ? "Sí me sorprendería"
-            : "No me sorprendería"}
-        </div>
-        <div className="text-xs text-muted italic mt-1">
-          Una respuesta negativa activa el cribado NECPAL positivo
-        </div>
-      </div>
-
-      {assessment.positiveScreen && (
-        <div className="mt-4">
+        <div className="ml-auto flex items-center gap-2">
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badge.className}`}
+          >
+            {badge.label}
+          </span>
           <button
             type="button"
             className="text-xs text-primary hover:underline"
             onClick={() => setExpanded((v) => !v)}
+            aria-expanded={expanded}
+            aria-label={expanded ? "Ocultar detalle" : "Ver detalle"}
           >
-            {expanded ? "Ocultar indicadores ▲" : "Ver indicadores ▼"}
+            {expanded ? "Ocultar ▲" : "Ver ▼"}
           </button>
-          {expanded && (
-            <div className="mt-2 space-y-2">
+        </div>
+      </div>
+
+      {expanded && (
+        <div className="mt-3">
+          <div className="text-xs text-muted">Pregunta sorpresa</div>
+          <div
+            className={
+              assessment.indicators.surpriseQuestion
+                ? "text-foreground"
+                : "text-error"
+            }
+          >
+            {assessment.indicators.surpriseQuestion
+              ? "Sí me sorprendería"
+              : "No me sorprendería"}
+          </div>
+          <div className="text-xs text-muted italic mt-1">
+            Una respuesta negativa activa el cribado NECPAL positivo
+          </div>
+
+          {assessment.positiveScreen && (
+            <div className="mt-3 space-y-2">
               {(
                 Object.keys(INDICATOR_LABELS) as Array<
                   keyof typeof INDICATOR_LABELS
@@ -101,8 +110,8 @@ export function NecpalCard({ assessment }: NecpalCardProps) {
                     <span
                       className={`inline-flex items-center px-2 py-0.5 rounded-full font-medium ${
                         present
-                          ? "bg-green-100 text-green-800"
-                          : "bg-gray-100 text-gray-600"
+                          ? "bg-surface text-success border border-success"
+                          : "bg-surface text-muted border border-border"
                       }`}
                     >
                       {present ? "Presente" : "Ausente"}

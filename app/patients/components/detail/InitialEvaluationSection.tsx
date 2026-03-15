@@ -27,34 +27,31 @@ export function InitialEvaluationSection({
     <SectionCard title="Evaluación Inicial">
       {encounterId ? (
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wide text-muted">
-              Sesión de evaluación
-            </span>
-            <span className="text-xs text-foreground">
-              {encounterDate ? (formatDate(encounterDate) ?? "") : ""}
-            </span>
+          <div className="text-xs text-muted mb-3">
+            {encounterDate ? (formatDate(encounterDate) ?? "") : ""}
           </div>
 
-          <div className="text-xs font-semibold uppercase tracking-wide text-muted mb-2">
-            Evaluaciones basales
+          <div className="grid grid-cols-2 gap-3 mt-2 mb-3">
+            <div className="min-w-0">
+              {barthelAssessment ? (
+                <BarthelCard assessment={barthelAssessment} />
+              ) : (
+                <p className="text-xs text-muted italic">
+                  Índice de Barthel no registrado
+                </p>
+              )}
+            </div>
+
+            <div className="min-w-0">
+              {necpalAssessment ? (
+                <NecpalCard assessment={necpalAssessment} />
+              ) : (
+                <p className="text-xs text-muted italic">
+                  Cribado NECPAL no registrado
+                </p>
+              )}
+            </div>
           </div>
-
-          {barthelAssessment ? (
-            <BarthelCard assessment={barthelAssessment} />
-          ) : (
-            <p className="text-xs text-muted italic">
-              Índice de Barthel no registrado
-            </p>
-          )}
-
-          {necpalAssessment ? (
-            <NecpalCard assessment={necpalAssessment} />
-          ) : (
-            <p className="text-xs text-muted italic">
-              Cribado NECPAL no registrado
-            </p>
-          )}
 
           <div className="border-t border-border my-3" />
 

@@ -138,19 +138,15 @@ export function PlanOfCareView({ plan }: PlanOfCareViewProps) {
             Sin objetivos registrados
           </div>
         ) : (
-          <div className="space-y-2">
-            {plan.goals.map((goal, index) => {
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {plan.goals.map((goal) => {
               const badge = getGoalStatusBadge(goal.status);
-              const isLast = index === plan.goals.length - 1;
               const targetLabel = goal.targetDate
                 ? ` · Fecha objetivo: ${formatDate(goal.targetDate)}`
                 : "";
 
               return (
-                <div
-                  key={goal.id}
-                  className={`pb-2 ${isLast ? "" : "border-b border-border"}`}
-                >
+                <div key={goal.id}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="text-sm text-foreground">
                       {goal.description}
@@ -194,14 +190,11 @@ export function PlanOfCareView({ plan }: PlanOfCareViewProps) {
           </div>
         ) : (
           activitiesExpanded && (
-            <div className="mt-2 space-y-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
               {plan.activities.map((activity) => {
                 const badge = getActivityStatusBadge(activity.status);
                 return (
-                  <div
-                    key={activity.id}
-                    className="pb-2 border-b border-border last:border-b-0"
-                  >
+                  <div key={activity.id}>
                     <div className="flex items-start justify-between gap-3">
                       <div className="text-sm text-foreground">
                         {activity.description}

@@ -66,7 +66,6 @@ export const LastEncounterSection: React.FC<Props> = ({
 
   return (
     <SectionCard title="Visitas">
-
       {/* last encounter block */}
       {lastEncounter && (
         <>

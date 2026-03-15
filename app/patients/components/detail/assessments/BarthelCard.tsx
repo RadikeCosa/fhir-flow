@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import type {
   BarthelAssessment,
   BarthelFunctionalLevel,
@@ -61,36 +61,40 @@ export function BarthelCard({ assessment }: BarthelCardProps) {
 
   return (
     <div className="border border-border rounded-lg p-3">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="text-xs font-semibold uppercase tracking-wide text-muted">
-            Índice de Barthel
-          </div>
+      <div className="flex items-center gap-3">
+        <div className="text-xs font-semibold uppercase tracking-wide text-muted">
+          Índice de Barthel
         </div>
-        <span
-          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badge.className}`}
-        >
-          {badge.label}
-        </span>
-      </div>
-
-      <div className="mt-3">
-        <div className="text-2xl font-bold text-foreground">
-          {assessment.totalScore} / 100
+        <div className="text-sm font-semibold text-foreground">
+          {assessment.totalScore}
+          <span className="text-xs text-muted"> / 100</span>
         </div>
-        <div className="text-xs text-muted">puntos</div>
-      </div>
-
-      {assessment.items.length > 0 && (
-        <div className="mt-3">
+        <div className="ml-auto flex items-center gap-2">
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badge.className}`}
+          >
+            {badge.label}
+          </span>
           <button
             type="button"
             className="text-xs text-primary hover:underline"
             onClick={() => setExpanded((v) => !v)}
+            aria-expanded={expanded}
+            aria-label={expanded ? "Ocultar detalle" : "Ver detalle"}
           >
-            {expanded ? "Ocultar detalle ▲" : "Ver detalle por actividad ▼"}
+            {expanded ? "Ocultar ▲" : "Ver ▼"}
           </button>
-          {expanded && (
+        </div>
+      </div>
+
+      {expanded && (
+        <div className="mt-3">
+          <div className="text-2xl font-bold text-foreground">
+            {assessment.totalScore}
+          </div>
+          <div className="text-xs text-muted">puntos</div>
+
+          {assessment.items.length > 0 && (
             <div className="mt-2">
               <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
                 {assessment.items.map(
@@ -99,14 +103,14 @@ export function BarthelCard({ assessment }: BarthelCardProps) {
                     score: number;
                     maxScore: number;
                   }) => (
-                    <>
+                    <Fragment key={item.activity}>
                       <dt className="text-muted">
                         {ACTIVITY_LABELS[item.activity]}
                       </dt>
                       <dd className="text-foreground">
                         {item.score} / {item.maxScore}
                       </dd>
-                    </>
+                    </Fragment>
                   ),
                 )}
               </dl>
