@@ -1,5 +1,6 @@
 import { FhirClient, HttpError } from "../../../lib/fhir/fhir-client";
-import { safeGetEntries } from "../../../lib/fhir/bundle-utils";
+import { Logger, defaultLogger } from "../../../lib/logger";
+import { safeGetResources } from "../../../lib/fhir/bundle-utils";
 import type { FhirProcedure } from "../schemas/procedure.schema";
 import { fhirProcedureSchema } from "../schemas/procedure.schema";
 import { mapFhirProcedureToDomain } from "../mappers/procedure.mapper";
@@ -15,7 +16,11 @@ import type { Procedure } from "../../../domain/procedures/procedure";
  * missing data results in empty lists rather than thrown errors.
  */
 export class ProcedureFhirRepository implements ProcedureRepository {
-    constructor(private client: FhirClient = new FhirClient()) { }
+    private readonly logger: Logger;
+
+    constructor(private client: FhirClient, logger: Logger = defaultLogger) {
+        this.logger = logger;
+    }
 
     /**
      * Validate a raw object against the procedure schema. Returns the typed
@@ -23,32 +28,39 @@ export class ProcedureFhirRepository implements ProcedureRepository {
      */
     private parseProcedure(obj: unknown): FhirProcedure | null {
         const parsed = fhirProcedureSchema.safeParse(obj);
-        return parsed.success ? parsed.data : null;
+        if (parsed.success) return parsed.data;
+
+        const record = obj as Record<string, unknown>;
+        this.logger.warn("[ProcedureFhirRepository] Procedure validation failed", {
+            resourceType: record.resourceType,
+            id: record.id,
+            errors: parsed.error.flatten(),
+        });
+        return null;
+    }
+
+    private async searchAndMapProcedures(params: Record<string, string>): Promise<Procedure[]> {
+        const bundle = await this.client.search<unknown>("Procedure", params);
+        const resources = safeGetResources(bundle);
+        const results: Procedure[] = [];
+
+        for (const res of resources) {
+            const proc = this.parseProcedure(res);
+            if (!proc) continue;
+
+            const mapped = mapFhirProcedureToDomain(proc);
+            if (mapped) results.push(mapped);
+        }
+
+        return results;
     }
 
     public async findAllByEncounterId(encounterId: string): Promise<Procedure[]> {
         try {
-            const bundle = await this.client.search<unknown>("Procedure", {
+            return await this.searchAndMapProcedures({
                 encounter: `Encounter/${encounterId}`,
                 _sort: "date",
             });
-
-            const entries = safeGetEntries(bundle);
-            const results: Procedure[] = [];
-
-            for (const e of entries) {
-                if (e.resource) {
-                    const proc = this.parseProcedure(e.resource);
-                    if (proc) {
-                        const mapped = mapFhirProcedureToDomain(proc);
-                        if (mapped) {
-                            results.push(mapped);
-                        }
-                    }
-                }
-            }
-
-            return results;
         } catch (err) {
             if (err instanceof HttpError && err.status === 404) {
                 return [];
@@ -59,27 +71,10 @@ export class ProcedureFhirRepository implements ProcedureRepository {
 
     public async findAllByPatientId(patientId: string): Promise<Procedure[]> {
         try {
-            const bundle = await this.client.search<unknown>("Procedure", {
+            return await this.searchAndMapProcedures({
                 patient: patientId,
                 _sort: "-date",
             });
-
-            const entries = safeGetEntries(bundle);
-            const results: Procedure[] = [];
-
-            for (const e of entries) {
-                if (e.resource) {
-                    const proc = this.parseProcedure(e.resource);
-                    if (proc) {
-                        const mapped = mapFhirProcedureToDomain(proc);
-                        if (mapped) {
-                            results.push(mapped);
-                        }
-                    }
-                }
-            }
-
-            return results;
         } catch (err) {
             if (err instanceof HttpError && err.status === 404) {
                 return [];

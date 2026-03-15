@@ -202,6 +202,72 @@ export class FhirClient {
         return this.request<T>(path, { method: "GET", params: searchParams });
     }
 
+    /**
+     * Fetch a full URL (typically from a Bundle `link` entry) while applying
+     * the same error handling and OperationOutcome detection as `request`.
+     */
+    public async fetchByUrl<T = unknown>(url: string): Promise<T> {
+        // If the URL is relative (starts with '/') or appears to be within the
+        // configured base URL, delegate to `request` so we keep consistent behavior.
+        if (typeof url === "string" && (url.startsWith("/") || url.startsWith(this.baseUrl))) {
+            // If the URL is absolute and within the base URL, strip the base.
+            try {
+                const parsed = new URL(url);
+                const base = new URL(this.baseUrl);
+                if (parsed.origin === base.origin) {
+                    return this.request<T>(parsed.pathname + parsed.search, { method: "GET" });
+                }
+            } catch {
+                // ignore and fall back to direct fetch
+            }
+
+            // Relative URL case
+            if (url.startsWith("/")) {
+                return this.request<T>(url, { method: "GET" });
+            }
+        }
+
+        // Fallback: perform a direct fetch to the absolute URL.
+        const response = await fetch(url, { method: "GET", headers: this.defaultHeaders });
+        const contentType = response.headers.get("content-type") || "";
+
+        let parsedBody: unknown = null;
+        if (contentType.includes("application/json") || contentType.includes("application/fhir+json") || contentType.includes("+json")) {
+            try {
+                parsedBody = await response.json();
+            } catch {
+                parsedBody = null;
+            }
+        } else {
+            try {
+                parsedBody = await response.text();
+            } catch {
+                parsedBody = null;
+            }
+        }
+
+        const isOutcome = (obj: unknown): obj is OperationOutcome => {
+            if (typeof obj !== "object" || obj === null) return false;
+            const maybe = obj as Record<string, unknown>;
+            return maybe.resourceType === "OperationOutcome";
+        };
+
+        if (!response.ok) {
+            if (isOutcome(parsedBody)) {
+                throw new OperationOutcomeError(parsedBody);
+            }
+
+            const message = `HTTP ${response.status} ${response.statusText}`;
+            throw new HttpError(response.status, message, parsedBody);
+        }
+
+        if (isOutcome(parsedBody)) {
+            throw new OperationOutcomeError(parsedBody);
+        }
+
+        return (parsedBody as T) ?? (null as unknown as T);
+    }
+
     /** Create a new resource (POST) */
     public async create<T = unknown>(resourceType: string, body: unknown): Promise<T> {
         const path = `/${encodeURIComponent(resourceType)}`;

@@ -1,5 +1,6 @@
-import { FhirClient } from "../../../lib/fhir/fhir-client";
-import { safeGetResources } from "../../../lib/fhir/bundle-utils";
+import FhirClient, { type FhirResource } from "../../../lib/fhir/fhir-client";
+import { Logger, defaultLogger } from "../../../lib/logger";
+import { fetchAllPages } from "../../../lib/fhir/bundle-utils";
 import { fhirVitalSignObservationSchema, type FhirVitalSignObservation } from "../schemas/vital-sign.schema";
 import { mapFhirObservationsToVitalSignRecords } from "../mappers/vital-sign.mapper";
 
@@ -19,7 +20,24 @@ import type { VitalSignRecord } from "../../../domain/vital-sign-record/vital-si
  * server to reduce client-side iteration.
  */
 export class VitalSignRecordFhirRepository implements VitalSignRecordRepository {
-    constructor(private client: FhirClient = new FhirClient()) { }
+    private readonly logger: Logger;
+
+    constructor(private client: FhirClient, logger: Logger = defaultLogger) {
+        this.logger = logger;
+    }
+
+    private parseObservation(obj: unknown): FhirVitalSignObservation | null {
+        const parsed = fhirVitalSignObservationSchema.safeParse(obj);
+        if (parsed.success) return parsed.data;
+
+        const record = obj as Record<string, unknown>;
+        this.logger.warn("[VitalSignRecordFhirRepository] Observation validation failed", {
+            resourceType: record.resourceType,
+            id: record.id,
+            errors: parsed.error.flatten(),
+        });
+        return null;
+    }
 
     /**
      * Retrieve all vital sign records for a patient, sorted by date
@@ -31,17 +49,17 @@ export class VitalSignRecordFhirRepository implements VitalSignRecordRepository 
             subject: `Patient/${patientId}`,
             category: "vital-signs",
             _sort: "-date",
-            _count: "100",
+            _count: "50",
         });
 
-        const resources = safeGetResources(bundle);
+        const resources = await fetchAllPages<FhirResource>(this.client, bundle);
         // only keep observations that pass schema validation; type explicitly
         const valid: FhirVitalSignObservation[] = [];
 
         for (const res of resources) {
-            const parsed = fhirVitalSignObservationSchema.safeParse(res);
-            if (parsed.success) {
-                valid.push(parsed.data);
+            const parsed = this.parseObservation(res);
+            if (parsed) {
+                valid.push(parsed);
             }
         }
 
@@ -59,16 +77,16 @@ export class VitalSignRecordFhirRepository implements VitalSignRecordRepository 
             encounter: `Encounter/${encounterId}`,
             category: "vital-signs",
             _sort: "-date",
-            _count: "100",
+            _count: "50",
         });
 
-        const resources = safeGetResources(bundle);
+        const resources = await fetchAllPages<FhirResource>(this.client, bundle);
         const valid: FhirVitalSignObservation[] = [];
 
         for (const res of resources) {
-            const parsed = fhirVitalSignObservationSchema.safeParse(res);
-            if (parsed.success) {
-                valid.push(parsed.data);
+            const parsed = this.parseObservation(res);
+            if (parsed) {
+                valid.push(parsed);
             }
         }
 

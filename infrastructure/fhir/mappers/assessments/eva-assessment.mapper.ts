@@ -9,13 +9,13 @@ import { extractId } from "../shared/extract-helpers";
  * most recent record is always at index 0.
  */
 export function mapFhirObservationsToEvaAssessments(
-    observations: FhirEvaObservation[],
-    patientId: string
+    observations: FhirEvaObservation[]
 ): EvaAssessment[] {
     const results: EvaAssessment[] = [];
 
     for (const obs of observations) {
         const id = obs.id;
+        const patientId = extractId(obs.subject?.reference);
 
         // derive date from effectiveDateTime
         const dt = typeof obs.effectiveDateTime === "string" ? obs.effectiveDateTime : "";

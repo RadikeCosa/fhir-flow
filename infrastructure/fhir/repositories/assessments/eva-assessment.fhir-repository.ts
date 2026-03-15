@@ -1,8 +1,8 @@
-import { FhirClient } from "../../../../lib/fhir/fhir-client";
-import { safeGetResources } from "../../../../lib/fhir/bundle-utils";
+import FhirClient, { type FhirResource } from "../../../../lib/fhir/fhir-client";
+import { Logger, defaultLogger } from "../../../../lib/logger";
+import { fetchAllPages } from "../../../../lib/fhir/bundle-utils";
 import { fhirEvaObservationSchema, type FhirEvaObservation } from "../../schemas/assessments/eva-assessment.schema";
 import { mapFhirObservationsToEvaAssessments } from "../../mappers/assessments/eva-assessment.mapper";
-import { extractId } from "../../mappers/shared/extract-helpers";
 
 import type { AssessmentRepository } from "../../../../domain/assessments/assessment.repository";
 import type { EvaAssessment } from "../../../../domain/assessments/eva-assessment";
@@ -18,7 +18,24 @@ import type { EvaAssessment } from "../../../../domain/assessments/eva-assessmen
  * retrieval logic.
  */
 export class EvaAssessmentFhirRepository implements AssessmentRepository {
-    constructor(private client: FhirClient = new FhirClient()) { }
+    private readonly logger: Logger;
+
+    constructor(private client: FhirClient, logger: Logger = defaultLogger) {
+        this.logger = logger;
+    }
+
+    private parseObservation(obj: unknown): FhirEvaObservation | null {
+        const parsed = fhirEvaObservationSchema.safeParse(obj);
+        if (parsed.success) return parsed.data;
+
+        const record = obj as Record<string, unknown>;
+        this.logger.warn("[EvaAssessmentFhirRepository] Observation validation failed", {
+            resourceType: record.resourceType,
+            id: record.id,
+            errors: parsed.error.flatten(),
+        });
+        return null;
+    }
 
     public async findEvaByPatientId(patientId: string): Promise<EvaAssessment[]> {
         const bundle = await this.client.search<unknown>("Observation", {
@@ -26,20 +43,20 @@ export class EvaAssessmentFhirRepository implements AssessmentRepository {
             code: "72514-3",
             category: "survey",
             _sort: "-date",
-            _count: "100",
+            _count: "50",
         });
 
-        const resources = safeGetResources(bundle);
+        const resources = await fetchAllPages<FhirResource>(this.client, bundle);
         const valid: FhirEvaObservation[] = [];
 
         for (const res of resources) {
-            const parsed = fhirEvaObservationSchema.safeParse(res);
-            if (parsed.success) {
-                valid.push(parsed.data);
+            const parsed = this.parseObservation(res);
+            if (parsed) {
+                valid.push(parsed);
             }
         }
 
-        return mapFhirObservationsToEvaAssessments(valid, patientId);
+        return mapFhirObservationsToEvaAssessments(valid);
     }
 
     /**
@@ -53,22 +70,19 @@ export class EvaAssessmentFhirRepository implements AssessmentRepository {
             encounter: `Encounter/${encounterId}`,
             category: "survey",
             _sort: "-date",
-            _count: "100",
+            _count: "50",
         });
 
-        const resources = safeGetResources(bundle);
+        const resources = await fetchAllPages<FhirResource>(this.client, bundle);
         const valid: FhirEvaObservation[] = [];
 
         for (const res of resources) {
-            const parsed = fhirEvaObservationSchema.safeParse(res);
-            if (parsed.success) {
-                valid.push(parsed.data);
+            const parsed = this.parseObservation(res);
+            if (parsed) {
+                valid.push(parsed);
             }
         }
 
-        // patientId not strictly needed by mapper but required by its signature
-        const patientId = extractId(valid[0]?.subject?.reference);
-
-        return mapFhirObservationsToEvaAssessments(valid, patientId);
+        return mapFhirObservationsToEvaAssessments(valid);
     }
 }

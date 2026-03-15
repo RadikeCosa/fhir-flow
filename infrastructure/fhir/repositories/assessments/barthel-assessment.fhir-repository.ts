@@ -1,5 +1,6 @@
 import { FhirClient, HttpError } from "../../../../lib/fhir/fhir-client";
-import { safeGetEntries } from "../../../../lib/fhir/bundle-utils";
+import { Logger, defaultLogger } from "../../../../lib/logger";
+import { safeGetResources } from "../../../../lib/fhir/bundle-utils";
 import {
     fhirBarthelObservationSchema,
     FhirBarthelObservation,
@@ -13,11 +14,23 @@ import type { BarthelAssessment } from "../../../../domain/assessments/barthel-a
  * FHIR-based implementation of the `BarthelAssessmentRepository` contract.
  */
 export class BarthelAssessmentFhirRepository implements BarthelAssessmentRepository {
-    constructor(private client: FhirClient = new FhirClient()) { }
+    private readonly logger: Logger;
+
+    constructor(private client: FhirClient, logger: Logger = defaultLogger) {
+        this.logger = logger;
+    }
 
     private parseObservation(obj: unknown): FhirBarthelObservation | null {
         const parsed = fhirBarthelObservationSchema.safeParse(obj);
-        return parsed.success ? parsed.data : null;
+        if (parsed.success) return parsed.data;
+
+        const record = obj as Record<string, unknown>;
+        this.logger.warn("[BarthelAssessmentFhirRepository] Observation validation failed", {
+            resourceType: record.resourceType,
+            id: record.id,
+            errors: parsed.error.flatten(),
+        });
+        return null;
     }
 
     public async findByEncounterId(encounterId: string): Promise<BarthelAssessment | null> {
@@ -27,10 +40,9 @@ export class BarthelAssessmentFhirRepository implements BarthelAssessmentReposit
                 code: "96761-6",
             });
 
-            const entries = safeGetEntries(bundle);
-            for (const e of entries) {
-                if (!e.resource) continue;
-                const obs = this.parseObservation(e.resource);
+            const resources = safeGetResources(bundle);
+            for (const res of resources) {
+                const obs = this.parseObservation(res);
                 if (!obs) continue;
                 return mapFhirBarthelToDomain(obs);
             }
@@ -53,10 +65,9 @@ export class BarthelAssessmentFhirRepository implements BarthelAssessmentReposit
                 _count: "1",
             });
 
-            const entries = safeGetEntries(bundle);
-            for (const e of entries) {
-                if (!e.resource) continue;
-                const obs = this.parseObservation(e.resource);
+            const resources = safeGetResources(bundle);
+            for (const res of resources) {
+                const obs = this.parseObservation(res);
                 if (!obs) continue;
                 return mapFhirBarthelToDomain(obs);
             }

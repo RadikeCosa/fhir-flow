@@ -1,5 +1,5 @@
 import { FhirClient, HttpError } from "../../../../lib/fhir/fhir-client";
-import { safeGetEntries } from "../../../../lib/fhir/bundle-utils";
+import { safeGetResources } from "../../../../lib/fhir/bundle-utils";
 import {
     fhirNecpalObservationSchema,
     FhirNecpalObservation,
@@ -13,7 +13,7 @@ import type { NecpalAssessment } from "../../../../domain/assessments/necpal-ass
  * FHIR-based implementation of the `NecpalAssessmentRepository` contract.
  */
 export class NecpalAssessmentFhirRepository implements NecpalAssessmentRepository {
-    constructor(private client: FhirClient = new FhirClient()) { }
+    constructor(private client: FhirClient) { }
 
     private parseObservation(obj: unknown): FhirNecpalObservation | null {
         const parsed = fhirNecpalObservationSchema.safeParse(obj);
@@ -29,10 +29,9 @@ export class NecpalAssessmentFhirRepository implements NecpalAssessmentRepositor
                 code: "96779-8",
             });
 
-            const entries = safeGetEntries(bundle);
-            for (const e of entries) {
-                if (!e.resource) continue;
-                const obs = this.parseObservation(e.resource);
+            const resources = safeGetResources(bundle);
+            for (const res of resources) {
+                const obs = this.parseObservation(res);
                 if (!obs) continue;
                 return mapFhirNecpalToDomain(obs);
             }
@@ -57,10 +56,9 @@ export class NecpalAssessmentFhirRepository implements NecpalAssessmentRepositor
                 _count: "1",
             });
 
-            const entries = safeGetEntries(bundle);
-            for (const e of entries) {
-                if (!e.resource) continue;
-                const obs = this.parseObservation(e.resource);
+            const resources = safeGetResources(bundle);
+            for (const res of resources) {
+                const obs = this.parseObservation(res);
                 if (!obs) continue;
                 return mapFhirNecpalToDomain(obs);
             }

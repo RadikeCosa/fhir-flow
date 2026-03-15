@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { FhirResource } from "./fhir-client";
+import type { FhirClient, FhirResource } from "./fhir-client";
 
 // Minimal Zod schemas for FHIR Bundle fragments used by these helpers.
 const resourceSchema = z.object({ resourceType: z.string() }).passthrough();
@@ -96,6 +96,24 @@ export function getPaginationLinks(bundle: unknown): { self?: string; next?: str
  * Filter resources in a Bundle by `resourceType`.
  * Returns a typed array `T[]` (caller may specify `T`) and never throws.
  */
+export async function fetchAllPages<T>(client: FhirClient, initialBundle: unknown): Promise<T[]> {
+    const results: T[] = [];
+    let bundle: unknown = initialBundle;
+
+    while (true) {
+        results.push(...safeGetResources<T>(bundle));
+
+        const nextUrl = getBundleLink(bundle, "next");
+        if (!nextUrl) break;
+
+        // Use client helper to follow pagination links. This keeps all HTTP
+        // traffic within the single FHIR client abstraction.
+        bundle = await client.fetchByUrl<unknown>(nextUrl);
+    }
+
+    return results;
+}
+
 export function filterResourcesByType<T extends FhirResource = FhirResource>(bundle: unknown, resourceType: string): T[] {
     const resources = safeGetResources<FhirResource>(bundle);
     return resources.filter((r): r is T => r.resourceType === resourceType);
@@ -108,6 +126,7 @@ const bundleUtils = {
     getBundleLink,
     getPaginationLinks,
     filterResourcesByType,
+    fetchAllPages,
 };
 
 export default bundleUtils;

@@ -1,4 +1,5 @@
 import { FhirClient } from "../../../lib/fhir/fhir-client";
+import { Logger, defaultLogger } from "../../../lib/logger";
 import {
     safeGetEntries,
 } from "../../../lib/fhir/bundle-utils";
@@ -23,27 +24,63 @@ import type { EpisodeOfCare } from "../../../domain/episode-of-care/episode-of-c
 
 
 export class EpisodeOfCareFhirRepository implements EpisodeOfCareRepository {
-    constructor(private client: FhirClient = new FhirClient()) { }
+    private readonly logger: Logger;
+
+    constructor(private client: FhirClient, logger: Logger = defaultLogger) {
+        this.logger = logger;
+    }
 
     /* helpers for validation/mapping */
     private parseEpisode(obj: unknown): FhirEpisodeOfCare | null {
         const parsed = fhirEpisodeOfCareSchema.safeParse(obj);
-        return parsed.success ? parsed.data : null;
+        if (parsed.success) return parsed.data;
+
+        const record = obj as Record<string, unknown>;
+        this.logger.warn("[EpisodeOfCareFhirRepository] EpisodeOfCare validation failed", {
+            resourceType: record.resourceType,
+            id: record.id,
+            errors: parsed.error.flatten(),
+        });
+        return null;
     }
 
     private parseCondition(obj: unknown): FhirCondition | null {
         const parsed = fhirConditionSchema.safeParse(obj);
-        return parsed.success ? parsed.data : null;
+        if (parsed.success) return parsed.data;
+
+        const record = obj as Record<string, unknown>;
+        this.logger.warn("[EpisodeOfCareFhirRepository] Condition validation failed", {
+            resourceType: record.resourceType,
+            id: record.id,
+            errors: parsed.error.flatten(),
+        });
+        return null;
     }
 
     private parseCoverage(obj: unknown): FhirCoverage | null {
         const parsed = fhirCoverageSchema.safeParse(obj);
-        return parsed.success ? parsed.data : null;
+        if (parsed.success) return parsed.data;
+
+        const record = obj as Record<string, unknown>;
+        this.logger.warn("[EpisodeOfCareFhirRepository] Coverage validation failed", {
+            resourceType: record.resourceType,
+            id: record.id,
+            errors: parsed.error.flatten(),
+        });
+        return null;
     }
 
     private parseServiceRequest(obj: unknown): FhirServiceRequest | null {
         const parsed = fhirServiceRequestSchema.safeParse(obj);
-        return parsed.success ? parsed.data : null;
+        if (parsed.success) return parsed.data;
+
+        const record = obj as Record<string, unknown>;
+        this.logger.warn("[EpisodeOfCareFhirRepository] ServiceRequest validation failed", {
+            resourceType: record.resourceType,
+            id: record.id,
+            errors: parsed.error.flatten(),
+        });
+        return null;
     }
 
     public async findActiveByPatientId(patientId: string): Promise<EpisodeOfCare | null> {
@@ -77,7 +114,7 @@ export class EpisodeOfCareFhirRepository implements EpisodeOfCareRepository {
                 status: "active",
             });
             const covEntries = safeGetEntries(covBundle);
-            const first = covEntries.find((e: any) => e.resource)?.resource;
+            const first = covEntries.find((e) => e.resource)?.resource;
             if (first) {
                 const parsedCov = this.parseCoverage(first);
                 if (parsedCov) cov = parsedCov;
@@ -110,7 +147,7 @@ export class EpisodeOfCareFhirRepository implements EpisodeOfCareRepository {
                 status: "active",
             });
             const covEntries = safeGetEntries(covBundle);
-            const first = covEntries.find((e: any) => e.resource)?.resource;
+            const first = covEntries.find((e) => e.resource)?.resource;
             if (first) {
                 const parsedCov = this.parseCoverage(first);
                 if (parsedCov) cov = parsedCov;

@@ -1,5 +1,6 @@
 import { HttpError, FhirClient } from "../../../lib/fhir/fhir-client";
-import { safeGetEntries } from "../../../lib/fhir/bundle-utils";
+import { Logger, defaultLogger } from "../../../lib/logger";
+import { safeGetResources } from "../../../lib/fhir/bundle-utils";
 import type { FhirEncounter } from "../schemas/encounter.schema";
 import { fhirEncounterSchema } from "../schemas/encounter.schema";
 import { mapFhirEncounterToEncounter } from "../mappers/encounter.mapper";
@@ -15,7 +16,11 @@ import type { Encounter } from "../../../domain/encounters/encounter";
  * and missing resources result in `null`/`[]` rather than thrown errors.
  */
 export class EncounterFhirRepository implements EncounterRepository {
-    constructor(private client: FhirClient = new FhirClient()) { }
+    private readonly logger: Logger;
+
+    constructor(private client: FhirClient, logger: Logger = defaultLogger) {
+        this.logger = logger;
+    }
 
     /**
      * Validate a raw value against the encounter schema, returning the typed
@@ -23,7 +28,15 @@ export class EncounterFhirRepository implements EncounterRepository {
      */
     private parseEncounter(obj: unknown): FhirEncounter | null {
         const parsed = fhirEncounterSchema.safeParse(obj);
-        return parsed.success ? parsed.data : null;
+        if (parsed.success) return parsed.data;
+
+        const record = obj as Record<string, unknown>;
+        this.logger.warn("[EncounterFhirRepository] Encounter validation failed", {
+            resourceType: record.resourceType,
+            id: record.id,
+            errors: parsed.error.flatten(),
+        });
+        return null;
     }
 
     public async findAllByEpisodeOfCareId(episodeOfCareId: string): Promise<Encounter[]> {
@@ -32,15 +45,13 @@ export class EncounterFhirRepository implements EncounterRepository {
             _sort: "-date",
         });
 
-        const entries = safeGetEntries(bundle);
+        const resources = safeGetResources(bundle);
         const results: Encounter[] = [];
 
-        for (const e of entries) {
-            if (e.resource) {
-                const enc = this.parseEncounter(e.resource);
-                if (enc) {
-                    results.push(mapFhirEncounterToEncounter(enc));
-                }
+        for (const res of resources) {
+            const enc = this.parseEncounter(res);
+            if (enc) {
+                results.push(mapFhirEncounterToEncounter(enc));
             }
         }
 
@@ -72,17 +83,14 @@ export class EncounterFhirRepository implements EncounterRepository {
             _count: "1",
         });
 
-        const entries = safeGetEntries(bundle);
-        if (entries.length === 0) {
+        const resources = safeGetResources(bundle);
+        if (resources.length === 0) {
             return null;
         }
 
-        const first = entries[0];
-        if (first.resource) {
-            const enc = this.parseEncounter(first.resource);
-            return enc ? mapFhirEncounterToEncounter(enc) : null;
-        }
-        return null;
+        const first = resources[0];
+        const enc = this.parseEncounter(first);
+        return enc ? mapFhirEncounterToEncounter(enc) : null;
     }
 
     public async findNextPlannedByPatientIdAndPractitionerId(
@@ -97,17 +105,14 @@ export class EncounterFhirRepository implements EncounterRepository {
             _count: "1",
         });
 
-        const entries = safeGetEntries(bundle);
-        if (entries.length === 0) {
+        const resources = safeGetResources(bundle);
+        if (resources.length === 0) {
             return null;
         }
 
-        const first = entries[0];
-        if (first.resource) {
-            const enc = this.parseEncounter(first.resource);
-            return enc ? mapFhirEncounterToEncounter(enc) : null;
-        }
-        return null;
+        const first = resources[0];
+        const enc = this.parseEncounter(first);
+        return enc ? mapFhirEncounterToEncounter(enc) : null;
     }
 
     public async findInitialByEpisodeOfCareId(
@@ -121,10 +126,9 @@ export class EncounterFhirRepository implements EncounterRepository {
                 _count: "1",
             });
 
-            const entries = safeGetEntries(bundle);
-            for (const e of entries) {
-                if (!e.resource) continue;
-                const enc = this.parseEncounter(e.resource);
+            const resources = safeGetResources(bundle);
+            for (const res of resources) {
+                const enc = this.parseEncounter(res);
                 if (!enc) continue;
                 const mapped = mapFhirEncounterToEncounter(enc);
                 if (mapped.visitType === "initial") return mapped;

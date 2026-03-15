@@ -1,4 +1,5 @@
 import { HttpError, FhirClient } from "../../../lib/fhir/fhir-client";
+import { Logger, defaultLogger } from "../../../lib/logger";
 import { safeGetEntries, getBundleTotal, getPaginationLinks } from "../../../lib/fhir/bundle-utils";
 import { fhirPatientSchema, FhirPatientResource } from "../schemas/patient.schema";
 import { mapFhirPatientToPatient } from "../mappers/patient.mapper";
@@ -29,8 +30,12 @@ type FhirSearchParams = {
  * are confined here; callers depend only on the domain interface.
  */
 export class PatientFhirRepository implements PatientRepository {
+    private readonly logger: Logger;
+
     /** HTTP client used to talk to FHIR server; inject for easier testing. */
-    constructor(private client: FhirClient = new FhirClient()) { }
+    constructor(private client: FhirClient, logger: Logger = defaultLogger) {
+        this.logger = logger;
+    }
 
     /**
      * Central helper: validate and map a raw resource into domain model.
@@ -38,8 +43,16 @@ export class PatientFhirRepository implements PatientRepository {
      */
     private parseAndMap(resource: unknown): Patient | null {
         const parsed = fhirPatientSchema.safeParse(resource);
-        if (!parsed.success) return null;
-        return mapFhirPatientToPatient(parsed.data);
+        if (parsed.success) return mapFhirPatientToPatient(parsed.data);
+
+        const record = resource as Record<string, unknown>;
+        this.logger.warn("[PatientFhirRepository] Patient validation failed", {
+            resourceType: record.resourceType,
+            id: record.id,
+            errors: parsed.error.flatten(),
+        });
+
+        return null;
     }
 
     /**

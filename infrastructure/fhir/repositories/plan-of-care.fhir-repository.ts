@@ -1,5 +1,6 @@
 import { FhirClient, HttpError } from "../../../lib/fhir/fhir-client";
-import { safeGetEntries } from "../../../lib/fhir/bundle-utils";
+import { Logger, defaultLogger } from "../../../lib/logger";
+import { safeGetResources } from "../../../lib/fhir/bundle-utils";
 import {
     fhirCarePlanSchema,
     FhirCarePlan,
@@ -15,16 +16,36 @@ import type { PlanOfCare } from "../../../domain/plan-of-care/plan-of-care";
  * FHIR-based implementation of the `PlanOfCareRepository` contract.
  */
 export class PlanOfCareFhirRepository implements PlanOfCareRepository {
-    constructor(private client: FhirClient = new FhirClient()) { }
+    private readonly logger: Logger;
+
+    constructor(private client: FhirClient, logger: Logger = defaultLogger) {
+        this.logger = logger;
+    }
 
     private parseCarePlan(obj: unknown): FhirCarePlan | null {
         const parsed = fhirCarePlanSchema.safeParse(obj);
-        return parsed.success ? parsed.data : null;
+        if (parsed.success) return parsed.data;
+
+        const record = obj as Record<string, unknown>;
+        this.logger.warn("[PlanOfCareFhirRepository] CarePlan validation failed", {
+            resourceType: record.resourceType,
+            id: record.id,
+            errors: parsed.error.flatten(),
+        });
+        return null;
     }
 
     private parseGoal(obj: unknown): FhirGoal | null {
         const parsed = fhirGoalSchema.safeParse(obj);
-        return parsed.success ? parsed.data : null;
+        if (parsed.success) return parsed.data;
+
+        const record = obj as Record<string, unknown>;
+        this.logger.warn("[PlanOfCareFhirRepository] Goal validation failed", {
+            resourceType: record.resourceType,
+            id: record.id,
+            errors: parsed.error.flatten(),
+        });
+        return null;
     }
 
     private async resolveGoals(carePlan: FhirCarePlan): Promise<FhirGoal[]> {
@@ -63,10 +84,9 @@ export class PlanOfCareFhirRepository implements PlanOfCareRepository {
                 _count: "1",
             });
 
-            const entries = safeGetEntries(bundle);
-            for (const e of entries) {
-                if (!e.resource) continue;
-                const cp = this.parseCarePlan(e.resource);
+            const resources = safeGetResources(bundle);
+            for (const res of resources) {
+                const cp = this.parseCarePlan(res);
                 if (!cp) continue;
 
                 const goals = await this.resolveGoals(cp);
@@ -94,10 +114,9 @@ export class PlanOfCareFhirRepository implements PlanOfCareRepository {
                 _count: "1",
             });
 
-            const entries = safeGetEntries(bundle);
-            for (const e of entries) {
-                if (!e.resource) continue;
-                const cp = this.parseCarePlan(e.resource);
+            const resources = safeGetResources(bundle);
+            for (const res of resources) {
+                const cp = this.parseCarePlan(res);
                 if (!cp) continue;
 
                 const goals = await this.resolveGoals(cp);
