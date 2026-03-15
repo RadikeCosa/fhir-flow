@@ -37,14 +37,14 @@ export function formatProcedureCategory(category: ProcedureCategory): string {
 export function getProcedureStatusBadge(status: ProcedureStatus): BadgeInfo {
     switch (status) {
         case "completed":
-            return { label: "Realizado", colorClass: "bg-green-100 text-green-800" };
+            return { label: "Realizado", colorClass: "bg-badge-success-bg text-badge-success-text" };
         case "in-progress":
             return { label: "En curso", colorClass: "bg-primary/10 text-primary" };
         case "not-done":
-            return { label: "No realizado", colorClass: "bg-gray-100 text-gray-800" };
+            return { label: "No realizado", colorClass: "bg-badge-neutral-bg text-badge-neutral-text" };
         default:
             // Exhaustive switch; TS will error if a case is missing.
-            return { label: "Desconocido", colorClass: "bg-gray-100 text-gray-800" };
+            return { label: "Desconocido", colorClass: "bg-badge-neutral-bg text-badge-neutral-text" };
     }
 }
 

@@ -11,19 +11,19 @@ import type {
 export function translateEpisodeStatus(status: string | undefined): BadgeInfo {
     switch (status) {
         case "planned":
-            return { label: "Planificado", colorClass: "bg-blue-100 text-blue-800" };
+            return { label: "Planificado", colorClass: "bg-badge-info-bg text-badge-info-text" };
         case "waitlist":
-            return { label: "En espera", colorClass: "bg-yellow-100 text-yellow-800" };
+            return { label: "En espera", colorClass: "bg-badge-warning-bg text-badge-warning-text" };
         case "active":
-            return { label: "Activo", colorClass: "bg-green-100 text-green-800" };
+            return { label: "Activo", colorClass: "bg-badge-success-bg text-badge-success-text" };
         case "onhold":
-            return { label: "En pausa", colorClass: "bg-orange-100 text-orange-800" };
+            return { label: "En pausa", colorClass: "bg-badge-orange-bg text-badge-orange-text" };
         case "finished":
-            return { label: "Finalizado", colorClass: "bg-gray-100 text-gray-800" };
+            return { label: "Finalizado", colorClass: "bg-badge-neutral-bg text-badge-neutral-text" };
         case "cancelled":
-            return { label: "Cancelado", colorClass: "bg-red-100 text-red-800" };
+            return { label: "Cancelado", colorClass: "bg-badge-error-bg text-badge-error-text" };
         default:
-            return { label: "Desconocido", colorClass: "bg-gray-100 text-gray-800" };
+            return { label: "Desconocido", colorClass: "bg-badge-neutral-bg text-badge-neutral-text" };
     }
 }
 
@@ -34,21 +34,21 @@ export function translateEpisodeStatus(status: string | undefined): BadgeInfo {
  */
 export function getSeverityBadge(sev?: string): BadgeInfo {
     if (!sev || sev.trim() === "") {
-        return { label: "No registrada", colorClass: "bg-gray-100 text-gray-800" };
+        return { label: "No registrada", colorClass: "bg-badge-neutral-bg text-badge-neutral-text" };
     }
 
     const lower = sev.toLowerCase();
     if (lower.includes("moder")) {
-        return { label: "Moderada", colorClass: "bg-yellow-100 text-yellow-800" };
+        return { label: "Moderada", colorClass: "bg-badge-warning-bg text-badge-warning-text" };
     }
     if (lower.includes("alto") || lower.includes("sever")) {
-        return { label: "Severa", colorClass: "bg-red-100 text-red-800" };
+        return { label: "Severa", colorClass: "bg-badge-error-bg text-badge-error-text" };
     }
     if (lower.includes("leve") || lower.includes("mild")) {
-        return { label: "Leve", colorClass: "bg-green-100 text-green-800" };
+        return { label: "Leve", colorClass: "bg-badge-success-bg text-badge-success-text" };
     }
     // fallback
-    return { label: sev, colorClass: "bg-gray-100 text-gray-800" };
+    return { label: sev, colorClass: "bg-badge-neutral-bg text-badge-neutral-text" };
 }
 
 /**

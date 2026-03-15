@@ -13,43 +13,43 @@ export function getVitalSignBadge(type: VitalSignType, value: number): BadgeInfo
     switch (type) {
         case "heart-rate":
             if (value >= 60 && value <= 100) {
-                return { label: "Normal", colorClass: "bg-green-100 text-green-800" };
+                return { label: "Normal", colorClass: "bg-badge-success-bg text-badge-success-text" };
             }
             if ((value >= 50 && value <= 59) || (value >= 101 && value <= 120)) {
-                return { label: "Alerta", colorClass: "bg-yellow-100 text-yellow-800" };
+                return { label: "Alerta", colorClass: "bg-badge-warning-bg text-badge-warning-text" };
             }
-            return { label: "Crítico", colorClass: "bg-red-100 text-red-800" };
+            return { label: "Crítico", colorClass: "bg-badge-error-bg text-badge-error-text" };
         case "respiratory-rate":
             if (value >= 12 && value <= 20) {
-                return { label: "Normal", colorClass: "bg-green-100 text-green-800" };
+                return { label: "Normal", colorClass: "bg-badge-success-bg text-badge-success-text" };
             }
             if ((value >= 10 && value <= 11) || (value >= 21 && value <= 25)) {
-                return { label: "Alerta", colorClass: "bg-yellow-100 text-yellow-800" };
+                return { label: "Alerta", colorClass: "bg-badge-warning-bg text-badge-warning-text" };
             }
-            return { label: "Crítico", colorClass: "bg-red-100 text-red-800" };
+            return { label: "Crítico", colorClass: "bg-badge-error-bg text-badge-error-text" };
         case "oxygen-saturation":
             if (value >= 95) {
-                return { label: "Normal", colorClass: "bg-green-100 text-green-800" };
+                return { label: "Normal", colorClass: "bg-badge-success-bg text-badge-success-text" };
             }
             if (value >= 90 && value <= 94) {
-                return { label: "Alerta", colorClass: "bg-yellow-100 text-yellow-800" };
+                return { label: "Alerta", colorClass: "bg-badge-warning-bg text-badge-warning-text" };
             }
-            return { label: "Crítico", colorClass: "bg-red-100 text-red-800" };
+            return { label: "Crítico", colorClass: "bg-badge-error-bg text-badge-error-text" };
         case "body-temperature":
             if (value >= 36.0 && value <= 37.4) {
-                return { label: "Normal", colorClass: "bg-green-100 text-green-800" };
+                return { label: "Normal", colorClass: "bg-badge-success-bg text-badge-success-text" };
             }
             if ((value >= 37.5 && value <= 38.5) || value < 36.0) {
-                return { label: "Alerta", colorClass: "bg-yellow-100 text-yellow-800" };
+                return { label: "Alerta", colorClass: "bg-badge-warning-bg text-badge-warning-text" };
             }
-            return { label: "Crítico", colorClass: "bg-red-100 text-red-800" };
+            return { label: "Crítico", colorClass: "bg-badge-error-bg text-badge-error-text" };
         case "blood-pressure":
             // for blood pressure we return a neutral badge; the caller is
             // expected to invoke getBloodPressureBadge if more detailed
             // classification is desired.
-            return { label: "Ver detalle", colorClass: "bg-gray-100 text-gray-800" };
+            return { label: "Ver detalle", colorClass: "bg-badge-neutral-bg text-badge-neutral-text" };
         default:
-            return { label: "Desconocido", colorClass: "bg-gray-100 text-gray-800" };
+            return { label: "Desconocido", colorClass: "bg-badge-neutral-bg text-badge-neutral-text" };
     }
 }
 
@@ -166,15 +166,15 @@ export function getBloodPressureBadge(systolic: number, _diastolic: number): Bad
 
     // Normal range
     if (systolic >= 90 && systolic <= 139) {
-        return { label: "Normal", colorClass: "bg-green-100 text-green-800" };
+        return { label: "Normal", colorClass: "bg-badge-success-bg text-badge-success-text" };
     }
 
     // Alert range (pre-hypertension and stage 1 hypertension)
     if (systolic >= 140 && systolic <= 159) {
-        return { label: "Alerta", colorClass: "bg-yellow-100 text-yellow-800" };
+        return { label: "Alerta", colorClass: "bg-badge-warning-bg text-badge-warning-text" };
     }
 
     // Crítico: either dangerously low or dangerously high systolic pressure
     // (systolic < 90 or systolic >= 160)
-    return { label: "Crítico", colorClass: "bg-red-100 text-red-800" };
+    return { label: "Crítico", colorClass: "bg-badge-error-bg text-badge-error-text" };
 }

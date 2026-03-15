@@ -20,15 +20,30 @@ function getPlanStatusBadge(status: PlanOfCareStatus): {
 } {
   switch (status) {
     case "draft":
-      return { label: "Borrador", className: "bg-yellow-100 text-yellow-800" };
+      return {
+        label: "Borrador",
+        className: "bg-badge-warning-bg text-badge-warning-text",
+      };
     case "active":
-      return { label: "Activo", className: "bg-green-100 text-green-800" };
+      return {
+        label: "Activo",
+        className: "bg-badge-success-bg text-badge-success-text",
+      };
     case "completed":
-      return { label: "Completado", className: "bg-blue-100 text-blue-800" };
+      return {
+        label: "Completado",
+        className: "bg-badge-info-bg text-badge-info-text",
+      };
     case "cancelled":
-      return { label: "Revocado", className: "bg-red-100 text-red-800" };
+      return {
+        label: "Revocado",
+        className: "bg-badge-error-bg text-badge-error-text",
+      };
     default:
-      return { label: "Desconocido", className: "bg-gray-100 text-gray-800" };
+      return {
+        label: "Desconocido",
+        className: "bg-badge-neutral-bg text-badge-neutral-text",
+      };
   }
 }
 
@@ -38,17 +53,35 @@ function getGoalStatusBadge(status: CareGoalStatus): {
 } {
   switch (status) {
     case "proposed":
-      return { label: "Propuesto", className: "bg-gray-100 text-gray-600" };
+      return {
+        label: "Propuesto",
+        className: "bg-badge-neutral-bg text-badge-neutral-text",
+      };
     case "accepted":
-      return { label: "Aceptado", className: "bg-blue-100 text-blue-800" };
+      return {
+        label: "Aceptado",
+        className: "bg-badge-info-bg text-badge-info-text",
+      };
     case "active":
-      return { label: "Activo", className: "bg-green-100 text-green-800" };
+      return {
+        label: "Activo",
+        className: "bg-badge-success-bg text-badge-success-text",
+      };
     case "completed":
-      return { label: "Completado", className: "bg-green-100 text-green-800" };
+      return {
+        label: "Completado",
+        className: "bg-badge-success-bg text-badge-success-text",
+      };
     case "cancelled":
-      return { label: "Cancelado", className: "bg-red-100 text-red-800" };
+      return {
+        label: "Cancelado",
+        className: "bg-badge-error-bg text-badge-error-text",
+      };
     default:
-      return { label: "Desconocido", className: "bg-gray-100 text-gray-800" };
+      return {
+        label: "Desconocido",
+        className: "bg-badge-neutral-bg text-badge-neutral-text",
+      };
   }
 }
 
@@ -58,15 +91,30 @@ function getActivityStatusBadge(status: ActivityStatus): {
 } {
   switch (status) {
     case "not-started":
-      return { label: "Sin iniciar", className: "bg-gray-100 text-gray-600" };
+      return {
+        label: "Sin iniciar",
+        className: "bg-badge-neutral-bg text-badge-neutral-text",
+      };
     case "in-progress":
-      return { label: "En curso", className: "bg-blue-100 text-blue-800" };
+      return {
+        label: "En curso",
+        className: "bg-badge-info-bg text-badge-info-text",
+      };
     case "completed":
-      return { label: "Completado", className: "bg-green-100 text-green-800" };
+      return {
+        label: "Completado",
+        className: "bg-badge-success-bg text-badge-success-text",
+      };
     case "cancelled":
-      return { label: "Cancelado", className: "bg-red-100 text-red-800" };
+      return {
+        label: "Cancelado",
+        className: "bg-badge-error-bg text-badge-error-text",
+      };
     default:
-      return { label: "Desconocido", className: "bg-gray-100 text-gray-800" };
+      return {
+        label: "Desconocido",
+        className: "bg-badge-neutral-bg text-badge-neutral-text",
+      };
   }
 }
 

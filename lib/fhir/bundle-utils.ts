@@ -96,7 +96,7 @@ export function getPaginationLinks(bundle: unknown): { self?: string; next?: str
  * Filter resources in a Bundle by `resourceType`.
  * Returns a typed array `T[]` (caller may specify `T`) and never throws.
  */
-export async function fetchAllPages<T>(client: FhirClient, initialBundle: unknown): Promise<T[]> {
+export async function fetchAllPages<T extends FhirResource>(client: FhirClient, initialBundle: unknown): Promise<T[]> {
     const results: T[] = [];
     let bundle: unknown = initialBundle;
 

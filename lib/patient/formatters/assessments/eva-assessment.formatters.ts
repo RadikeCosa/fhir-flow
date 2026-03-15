@@ -13,26 +13,26 @@ import { EVA_RANGES } from "../../../../domain/assessments/eva-assessment";
  */
 export function getEvaBadge(score: number): BadgeInfo {
     if (score === EVA_RANGES.none.min) {
-        return { label: EVA_RANGES.none.label, colorClass: "bg-green-100 text-green-800" };
+        return { label: EVA_RANGES.none.label, colorClass: "bg-badge-success-bg text-badge-success-text" };
     }
 
     if (score >= EVA_RANGES.mild.min && score <= EVA_RANGES.mild.max) {
-        return { label: EVA_RANGES.mild.label, colorClass: "bg-green-100 text-green-800" };
+        return { label: EVA_RANGES.mild.label, colorClass: "bg-badge-success-bg text-badge-success-text" };
     }
 
     if (score >= EVA_RANGES.moderate.min && score <= EVA_RANGES.moderate.max) {
-        return { label: EVA_RANGES.moderate.label, colorClass: "bg-yellow-100 text-yellow-800" };
+        return { label: EVA_RANGES.moderate.label, colorClass: "bg-badge-warning-bg text-badge-warning-text" };
     }
 
     if (score >= EVA_RANGES.severe.min && score <= EVA_RANGES.severe.max) {
-        return { label: EVA_RANGES.severe.label, colorClass: "bg-red-100 text-red-800" };
+        return { label: EVA_RANGES.severe.label, colorClass: "bg-badge-error-bg text-badge-error-text" };
     }
 
     if (score === EVA_RANGES.worst.min && score === EVA_RANGES.worst.max) {
-        return { label: EVA_RANGES.worst.label, colorClass: "bg-red-100 text-red-800" };
+        return { label: EVA_RANGES.worst.label, colorClass: "bg-badge-error-bg text-badge-error-text" };
     }
 
-    return { label: "Desconocido", colorClass: "bg-gray-100 text-gray-800" };
+    return { label: "Desconocido", colorClass: "bg-badge-neutral-bg text-badge-neutral-text" };
 }
 
 /**

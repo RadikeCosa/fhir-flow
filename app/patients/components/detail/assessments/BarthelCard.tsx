@@ -28,27 +28,36 @@ function getBarthelLevelBadge(level: BarthelFunctionalLevel): {
     case "independent":
       return {
         label: "Independiente",
-        className: "bg-green-100 text-green-800",
+        className: "bg-badge-success-bg text-badge-success-text",
       };
     case "mild-dependency":
-      return { label: "Dep. Leve", className: "bg-blue-100 text-blue-800" };
+      return {
+        label: "Dep. Leve",
+        className: "bg-badge-info-bg text-badge-info-text",
+      };
     case "moderate-dependency":
       return {
         label: "Dep. Moderada",
-        className: "bg-yellow-100 text-yellow-800",
+        className: "bg-badge-warning-bg text-badge-warning-text",
       };
     case "severe-dependency":
       return {
         label: "Dep. Severa",
-        className: "bg-orange-100 text-orange-800",
+        className: "bg-badge-orange-bg text-badge-orange-text",
       };
     case "total-dependency":
-      return { label: "Dep. Total", className: "bg-red-100 text-red-800" };
+      return {
+        label: "Dep. Total",
+        className: "bg-badge-error-bg text-badge-error-text",
+      };
   }
   // `level` is a discriminated union; this should never be reached.
   const _exhaustiveCheck: never = level;
   void _exhaustiveCheck;
-  return { label: "Desconocido", className: "bg-gray-100 text-gray-800" };
+  return {
+    label: "Desconocido",
+    className: "bg-badge-neutral-bg text-badge-neutral-text",
+  };
 }
 
 interface BarthelCardProps {

@@ -24,15 +24,15 @@ export function formatEncounterVisitType(visitType: EncounterVisitType): string 
 export function getEncounterStatusBadge(status: EncounterStatus): BadgeInfo {
     switch (status) {
         case "planned":
-            return { label: "Planificada", colorClass: "bg-blue-100 text-blue-800" };
+            return { label: "Planificada", colorClass: "bg-badge-info-bg text-badge-info-text" };
         case "in-progress":
-            return { label: "En curso", colorClass: "bg-yellow-100 text-yellow-800" };
+            return { label: "En curso", colorClass: "bg-badge-warning-bg text-badge-warning-text" };
         case "finished":
-            return { label: "Finalizada", colorClass: "bg-green-100 text-green-800" };
+            return { label: "Finalizada", colorClass: "bg-badge-success-bg text-badge-success-text" };
         case "cancelled":
-            return { label: "Cancelada", colorClass: "bg-gray-100 text-gray-800" };
+            return { label: "Cancelada", colorClass: "bg-badge-neutral-bg text-badge-neutral-text" };
         default:
-            return { label: "Desconocido", colorClass: "bg-gray-100 text-gray-800" };
+            return { label: "Desconocido", colorClass: "bg-badge-neutral-bg text-badge-neutral-text" };
     }
 }
 
