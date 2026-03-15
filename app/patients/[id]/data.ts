@@ -7,6 +7,7 @@ import type { VitalSignRecord } from "@/domain/vital-sign-record/vital-sign-reco
 import type { BarthelAssessment } from "@/domain/assessments/barthel-assessment";
 import type { NecpalAssessment } from "@/domain/assessments/necpal-assessment";
 import type { PlanOfCare } from "@/domain/plan-of-care/plan-of-care";
+import type { ReAssessmentEntry } from "@/app/patients/components/detail/ReAssessmentSection";
 
 import {
     createPatientRepository,
@@ -41,6 +42,7 @@ export interface PatientDetailData {
     barthelAssessment: BarthelAssessment | null;
     necpalAssessment: NecpalAssessment | null;
     planOfCare: PlanOfCare | null;
+    reAssessmentEntries: ReAssessmentEntry[];
 }
 
 export async function getPatientDetailData(
@@ -109,6 +111,28 @@ export async function getPatientDetailData(
             : Promise.resolve<PlanOfCare | null>(null),
     ]);
 
+    const reAssessmentEncounters = activeEpisode
+        ? (
+            await encounterRepo.findAllByEpisodeOfCareId(activeEpisode.id)
+        )
+            .filter((e) => e.visitType === "re-assessment")
+            .sort((a, b) => a.periodStart.localeCompare(b.periodStart))
+        : [];
+
+    const reAssessmentEntries: ReAssessmentEntry[] = await Promise.all(
+        reAssessmentEncounters.map(async (encounter) => {
+            const [barthel, planOfCare] = await Promise.all([
+                barthelRepo.findByEncounterId(encounter.id),
+                planRepo.findByEncounterId(encounter.id),
+            ]);
+            return {
+                encounter,
+                assessments: barthel ? [barthel] : [],
+                planOfCare,
+            };
+        })
+    );
+
     return {
         patient,
         episodes,
@@ -121,5 +145,6 @@ export async function getPatientDetailData(
         barthelAssessment,
         necpalAssessment,
         planOfCare,
+        reAssessmentEntries,
     };
 }

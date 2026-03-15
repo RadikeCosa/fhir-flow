@@ -10,6 +10,8 @@ export function formatEncounterVisitType(visitType: EncounterVisitType): string 
             return "Visita inicial";
         case "follow-up":
             return "Visita de seguimiento";
+        case "re-assessment":
+            return "Re-evaluación";
         case "discharge":
             return "Alta";
         default:

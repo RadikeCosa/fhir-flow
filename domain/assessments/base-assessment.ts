@@ -1,12 +1,15 @@
 /**
  * Closed union of all supported assessment tools.
  *
- * The set of values will grow as new assessment types are
- * implemented. Each value corresponds to a specific clinical
- * assessment tool and is used as a discriminator in the
- * domain model.
+ * The set of values grows as new assessment types are implemented.
+ * Currently supported instruments are:
+ * - "eva" (pain scale)
+ * - "barthel" (Barthel index)
+ * - "necpal" (palliative care screening)
+ *
+ * Add additional values here as new assessment instruments are added.
  */
-export type AssessmentType = "eva";
+export type AssessmentType = "eva" | "barthel" | "necpal";
 
 /**
  * Shared base model for all assessments.

@@ -92,6 +92,7 @@ export function mapFhirBarthelToDomain(
 
     return {
         id: resource.id,
+        type: "barthel" as const,
         encounterId,
         patientId,
         date,

@@ -6,6 +6,8 @@
  * It makes no reference to FHIR types or external representations.
  */
 
+import type { BaseAssessment } from "./base-assessment";
+
 /**
  * Set of indicators used by the NECPAL screening tool.
  */
@@ -40,16 +42,20 @@ export type NecpalResult = "positive" | "negative";
 /**
  * Core domain representation of a NECPAL screening assessment.
  */
-export interface NecpalAssessment {
-    id: string;
+export interface NecpalAssessment extends BaseAssessment {
+    readonly type: "necpal";
+
     encounterId: string;
-    patientId: string;
-    /** ISO date string (YYYY-MM-DD) */
-    date: string;
+
     result: NecpalResult;
     /** true when surpriseQuestion is false ("no me sorprendería") */
     positiveScreen: boolean;
     indicators: NecpalIndicator;
+
+    /**
+     * Not all NECPAL observations include a performer in FHIR, so this is
+     * optional in the domain model.
+     */
     recordedBy?: {
         id: string;
         display: string;

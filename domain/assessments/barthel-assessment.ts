@@ -6,6 +6,8 @@
  * It makes no reference to FHIR types or external representations.
  */
 
+import type { BaseAssessment } from "./base-assessment";
+
 /**
  * Each activity that is scored as part of the Barthel index.
  * Using a union of string literals keeps the set of activities
@@ -45,14 +47,19 @@ export type BarthelFunctionalLevel =
 /**
  * Core domain representation of a Barthel assessment.
  */
-export interface BarthelAssessment {
-    id: string;
+export interface BarthelAssessment extends BaseAssessment {
+    readonly type: "barthel";
+
     encounterId: string;
-    patientId: string;
-    date: string; // ISO date string
+
     totalScore: number;
     functionalLevel: BarthelFunctionalLevel;
     items: BarthelItem[];
+
+    /**
+     * Not all Barthel observations include a performer in FHIR, so this is
+     * optional in the domain model.
+     */
     recordedBy?: {
         id: string;
         display: string;

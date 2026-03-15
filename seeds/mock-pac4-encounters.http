@@ -2359,6 +2359,249 @@ Content-Type: application/fhir+json
         "method": "PUT",
         "url": "Goal/goal-pac4-2"
       }
+    },
+    {
+      "resource": {
+        "resourceType": "Encounter",
+        "id": "enc-pac4-5",
+        "status": "finished",
+        "class": {
+          "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+          "code": "HH",
+          "display": "home health"
+        },
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://fhir-flow.dev/encounter-type",
+                "code": "re-assessment",
+                "display": "Re-evaluación"
+              }
+            ],
+            "text": "Re-evaluación"
+          }
+        ],
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "participant": [
+          {
+            "type": [
+              {
+                "coding": [
+                  {
+                    "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+                    "code": "PPRF",
+                    "display": "primary performer"
+                  }
+                ]
+              }
+            ],
+            "individual": {
+              "reference": "Practitioner/kine-1",
+              "display": "Lic. Marty McFly"
+            }
+          }
+        ],
+        "period": {
+          "start": "2025-02-10T09:00:00-03:00",
+          "end": "2025-02-10T10:00:00-03:00"
+        },
+        "episodeOfCare": [
+          {
+            "reference": "EpisodeOfCare/ep-pac4"
+          }
+        ],
+        "length": {
+          "value": 60,
+          "unit": "min",
+          "system": "http://unitsofmeasure.org",
+          "code": "min"
+        },
+        "reasonCode": [
+          {
+            "text": "Re-evaluación funcional - EPOC estadio III"
+          }
+        ],
+        "extension": [
+          {
+            "url": "http://kinesiologia-domiciliaria.local/StructureDefinition/clinical-note",
+            "valueString": "Re-evaluación al mes de tratamiento. Mejora notable en tolerancia al esfuerzo. Disnea solo ante esfuerzo moderado. Logra deambular en interiores sin asistencia."
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Encounter/enc-pac4-5"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "enc-pac4-5-obs-barthel",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "96761-6",
+              "display": "Barthel index"
+            }
+          ],
+          "text": "Índice de Barthel"
+        },
+        "subject": {
+          "reference": "Patient/pac-4"
+        },
+        "encounter": {
+          "reference": "Encounter/enc-pac4-5"
+        },
+        "performer": [
+          {
+            "reference": "Practitioner/kine-1",
+            "display": "Lic. Marty McFly"
+          }
+        ],
+        "effectiveDateTime": "2025-02-10T09:20:00-03:00",
+        "valueInteger": 65,
+        "component": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "feeding",
+                  "display": "Alimentación"
+                }
+              ],
+              "text": "Alimentación"
+            },
+            "valueInteger": 5
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "bathing",
+                  "display": "Baño"
+                }
+              ],
+              "text": "Baño"
+            },
+            "valueInteger": 0
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "grooming",
+                  "display": "Higiene personal"
+                }
+              ],
+              "text": "Higiene personal"
+            },
+            "valueInteger": 0
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "dressing",
+                  "display": "Vestido"
+                }
+              ],
+              "text": "Vestido"
+            },
+            "valueInteger": 5
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "bowel",
+                  "display": "Control intestinal"
+                }
+              ],
+              "text": "Control intestinal"
+            },
+            "valueInteger": 5
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "bladder",
+                  "display": "Control vesical"
+                }
+              ],
+              "text": "Control vesical"
+            },
+            "valueInteger": 5
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "toilet",
+                  "display": "Uso del baño"
+                }
+              ],
+              "text": "Uso del baño"
+            },
+            "valueInteger": 5
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "transfer",
+                  "display": "Transferencias"
+                }
+              ],
+              "text": "Transferencias"
+            },
+            "valueInteger": 10
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "mobility",
+                  "display": "Deambulación"
+                }
+              ],
+              "text": "Deambulación"
+            },
+            "valueInteger": 15
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "stairs",
+                  "display": "Escaleras"
+                }
+              ],
+              "text": "Escaleras"
+            },
+            "valueInteger": 5
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Observation/enc-pac4-5-obs-barthel"
+      }
     }
   ]
 }

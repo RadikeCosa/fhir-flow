@@ -1,177 +1,275 @@
 ---
-description: Project architecture, healthcare domain constraints, and coding rules for the FHIR Flow learning lab. Load for any code generation, review, or questions related to the project.
+description: Architecture and coding rules for the FHIR Flow healthcare learning lab.
 applyTo: "**"
 ---
 
-# FHIR Flow — Project Context & Coding Guidelines
+# FHIR Flow — Architecture & Coding Guidelines
 
-Provide project context and coding guidelines that AI should follow when generating code, answering questions, or reviewing changes.
+FHIR Flow is a learning laboratory focused on building a healthcare application using the **FHIR R4 standard** with **clean / hexagonal architecture**.
 
-This project is a learning lab focused on building a healthcare application using the FHIR R4 standard with clean / hexagonal architecture principles.
+The project models a **home hospitalization workflow** where healthcare professionals (primarily kinesiologists) perform patient visits at home.
 
-The goal is to learn how real healthcare systems are structured — not to build quick demos.
+The goal is to learn how **real healthcare systems structure software around clinical data and FHIR interoperability**.
+
+The project prioritizes:
+
+- architecture correctness
+- data integrity
+- explicit system boundaries
+- maintainable code
+
+Avoid demo-style shortcuts.
 
 ---
 
-# Project Context
-
-## Stack
+# Technology Stack
 
 - Next.js (App Router)
-- TypeScript (strict mode)
+- TypeScript (strict)
 - Server Components first
-- Tailwind
-- FHIR R4 server (HAPI FHIR)
-- Zod for runtime validation
+- Tailwind CSS
+- Recharts (charts)
+- Zod (runtime validation)
+- HAPI FHIR R4 server
 - Node runtime
 
-## Architecture Goals
+---
 
-- Strong separation of concerns
-- Domain-driven design principles
-- Anti-corruption layer between FHIR and UI
-- Runtime validation of external data
-- Production-grade error handling
-- Testable and maintainable code
-- Explicit system boundaries
+# Clinical Workflow Model
+
+The system models a hierarchical clinical structure.
+
+Patient  
+→ EpisodeOfCare  
+→ Encounter (home visit)  
+→ Clinical records created during the visit:
+
+- Vital signs
+- Assessments (EVA pain scale)
+- Procedures
+
+Encounters are the **central clinical event** where observations and procedures occur.
+
+---
+
+# Architecture Overview
+
+The project uses **Hexagonal Architecture (Ports and Adapters)**.
+
+Layer flow:
+
+config  
+→ http client  
+→ FHIR utilities  
+→ repositories  
+→ domain  
+→ UI
+
+FHIR is treated as an **external system**.
+
+FHIR resource structures must **never cross the domain boundary**.
 
 ---
 
 # Core Architecture Rules (MANDATORY)
 
-## 1. Layered / Hexagonal Architecture
+## 1. Strict Layer Boundaries
 
-Respect strict boundaries between layers.
-
-
-config → http client → FHIR utilities → repositories → domain → UI
-
+Layers must not be bypassed.
 
 Rules:
 
-- Never bypass layers.
-- UI must not call fetch directly.
-- UI must not consume raw FHIR JSON.
-- Domain must not depend on FHIR structures.
-- Infrastructure logic must not exist in UI.
+- UI must not call `fetch`
+- UI must not consume raw FHIR JSON
+- Domain must not depend on FHIR structures
+- Infrastructure logic must not exist in UI
+- External data must be validated before mapping
 
 ---
 
-## 2. FHIR Is External — Never Domain
+## 2. FHIR Is External
 
-FHIR resources are external models.
+FHIR resources are **external models**, not domain models.
 
-Always map:
+Required transformation flow:
 
+FHIR Resource  
+→ Zod validation  
+→ Mapper  
+→ Domain model  
+→ UI
 
-FHIR resource → domain model → UI
+Forbidden:
 
+FHIR → mapper → domain
 
-Domain models must be:
+Mapping must always occur **after validation**.
 
-- simple
+Domain models must remain:
+
 - stable
 - predictable
-- UI-friendly
-- independent from FHIR structure
-
-Never expose FHIR resource shapes outside infrastructure.
+- UI-oriented
+- independent from FHIR
 
 ---
 
 ## 3. Single HTTP Boundary
 
-All HTTP communication with the FHIR server must go through:
+All communication with the FHIR server must go through:
 
 
 lib/fhir/fhir-client.ts
 
 
-Never use fetch outside this module.
+No other module may use `fetch`.
 
 The client must:
 
-- use configuration from config layer
+- apply configuration
 - normalize responses
-- handle HTTP errors
-- detect and handle OperationOutcome
-- throw explicit typed errors
+- detect `OperationOutcome`
+- throw typed errors
+- handle HTTP failures
 
 ---
 
-## 4. Runtime Validation Required
+## 4. Runtime Validation
 
-All FHIR responses must be validated using Zod before mapping.
+All FHIR responses must be validated using **Zod** before mapping.
 
-Flow:
+Required flow:
 
+HTTP response  
+→ Zod schema validation  
+→ Mapper  
+→ Domain model
 
-HTTP → validate → map → domain
+Mapping unvalidated data is forbidden.
 
-
-Never map unvalidated data.
+Invalid resources may be safely ignored if validation fails.
 
 ---
 
-## 5. Repository Pattern
+# Repository Pattern
 
-Domain defines repository interfaces.
+The **domain defines repository interfaces**.
 
-Infrastructure implements them.
+Infrastructure implements them using FHIR.
 
-Example:
+Example structure:
 
 
-domain/patient.repository.ts → interface
-infrastructure/patient.fhir-repository.ts → implementation
+domain/patient.repository.ts
+infrastructure/patient.fhir-repository.ts
 
+
+Repositories orchestrate:
+
+1. HTTP request
+2. Zod validation
+3. mapping to domain
+4. return domain models
+
+Repositories **never return FHIR resources**.
 
 UI depends only on repository contracts.
 
 ---
 
-## 6. Server Components First
+# Domain Model Summary
 
-- Prefer server-side data fetching.
-- Avoid client state unless necessary.
-- Avoid global mutable state.
+Core domain entities:
+
+### Patient
+
+Represents a person receiving care.
+
+Key attributes:
+
+- id
+- identifier
+- name
+- birthDate
+- gender
+- contact information
 
 ---
 
-# Code Style Rules
+### EpisodeOfCare
 
-## TypeScript
+Represents a treatment episode grouping multiple visits.
 
-- Strict typing required.
-- No `any`.
-- Prefer explicit types.
-- Use generics when appropriate.
-- Avoid unsafe casting.
-- Environment variables must be typed.
+Examples:
 
-## Functions
+- motor rehabilitation
+- respiratory therapy
+- palliative care
 
-- Single responsibility.
-- Small and composable.
-- Pure when possible.
+---
 
-## Error Handling
+### Encounter
 
-- Never silently fail.
-- Throw explicit errors.
-- Normalize FHIR errors.
-- Do not rely on console logging.
+Represents a **home visit performed by a professional**.
 
-## Naming
+Encounters are the **central clinical unit**.
 
-Use healthcare-accurate terminology:
+Attributes include:
 
-- resourceType
-- identifier
-- reference
-- bundle
+- visit type (initial, follow-up, discharge)
+- practitioner participant
+- visit start / end
+- duration
+- visit reason
+
+---
+
+### VitalSignRecord
+
+Represents grouped vital signs recorded during a visit.
+
+FHIR stores vital signs as **separate Observation resources**.
+
+Infrastructure mappers aggregate them into a single domain record grouped by:
+
+- date
+- performer
+
+Examples:
+
+- heart rate
+- respiratory rate
+- oxygen saturation
+- temperature
+- blood pressure
+
+---
+
+### Assessment
+
+Clinical evaluations performed during encounters.
+
+Currently supported instrument:
+
+EVA pain scale (LOINC 72514-3).
+
+---
+
+### Procedure
+
+Represents therapeutic procedures performed during a visit.
+
+Examples:
+
+- therapeutic exercise
+- respiratory drainage
+- mobilization
+
+Procedures are linked to:
+
+- patient
 - encounter
-- observation
+- practitioner
 
 ---
 
@@ -179,100 +277,196 @@ Use healthcare-accurate terminology:
 
 ## Bundle Handling
 
-FHIR search responses return a Bundle.
+FHIR search responses return a **Bundle**.
 
 Never assume:
 
 - `entry` exists
-- order of entries
-- resource completeness
+- entries are ordered
+- resources are complete
 
-Always handle safely.
+Always validate safely.
 
-## Identifiers
-
-FHIR identifiers must include:
-
-
-system + value
-
-
-Never treat identifiers as plain strings.
+---
 
 ## References
 
 FHIR references are not foreign keys.
 
-They must be resolved or mapped explicitly.
+Examples:
+
+
+Observation.subject → Patient
+Observation.encounter → Encounter
+Observation.performer → Practitioner
+
+
+These references must be **resolved or mapped explicitly**.
+
+---
+
+## Identifiers
+
+FHIR identifiers contain two components:
+
+
+system
+value
+
+
+Never treat identifiers as plain strings.
+
+---
+
+## LOINC Codes Used
+
+Important clinical codes:
+
+| Code | Meaning |
+|-----|------|
+8867-4 | Heart rate
+9279-1 | Respiratory rate
+59408-5 | Oxygen saturation
+8310-5 | Body temperature
+55284-4 | Blood pressure
+72514-3 | EVA pain scale
+
+---
+
+# UI Architecture
+
+UI is implemented with **Next.js App Router** using **Server Components by default**.
+
+Guidelines:
+
+- prefer server-side data fetching
+- minimal client state
+- no business logic in UI
+- UI only consumes domain models
+
+Only one client component currently exists:
+
+
+VitalSignsChart
+
+
+This component uses **Recharts** and requires the browser DOM.
+
+---
+
+# Data Fetching Pattern
+
+Pages fetch data using repositories.
+
+When multiple independent queries are required, use parallel fetching.
+
+Example pattern:
+
+
+const [patient, episodes, vitalSigns, assessments] = await Promise.all([
+patientRepo.findById(id),
+episodeRepo.findAllByPatientId(id),
+vitalRepo.findAllByPatientId(id),
+assessmentRepo.findEvaByPatientId(id),
+])
+
 
 ---
 
 # Configuration Rules
 
-- All configuration must come from config layer.
-- No hardcoded URLs.
-- All environment variables must be validated.
+Configuration must exist only in the **config layer**.
 
-Required variable:
+Environment variables must be validated and typed.
+
+Required variables:
 
 
 FHIR_BASE_URL
+CURRENT_PRACTITIONER_ID
 
+
+No other module may read environment variables directly.
 
 ---
 
-# Testing Expectations
+# Code Style Rules
 
-Generated code should be testable.
+## TypeScript
 
-Prefer:
+- strict mode required
+- no `any`
+- explicit types preferred
+- avoid unsafe casts
+- use generics when appropriate
 
-- pure functions
-- dependency injection
-- minimal side effects
-- low framework coupling
+---
+
+## Functions
+
+Functions should be:
+
+- small
+- composable
+- single responsibility
+- pure when possible
+
+Mappers must always be pure functions.
+
+---
+
+## Error Handling
+
+Rules:
+
+- never fail silently
+- throw explicit errors
+- normalize FHIR errors
+- do not rely on console logging
 
 ---
 
 # Performance Expectations
 
-- Avoid unnecessary data fetching.
-- Avoid over-fetching FHIR resources.
-- Support pagination.
-- Use summary or elements parameters when possible.
+Generated code should:
+
+- avoid unnecessary HTTP requests
+- avoid over-fetching FHIR resources
+- support pagination
+- use `summary` or `elements` parameters when appropriate
 
 ---
 
-# What AI Should Optimize For
+# AI Behavior Guidelines
 
 When generating code:
 
-- prioritize architecture correctness over brevity
-- avoid demo-style shortcuts
+- prioritize architecture correctness
 - respect layer boundaries strictly
-- produce maintainable code
-- explain important design decisions
+- avoid demo-style shortcuts
+- generate maintainable code
 - prefer explicit logic over implicit behavior
 
 ---
 
-# What AI Must Avoid
+# Forbidden Patterns
 
-- direct UI → fetch calls
-- leaking FHIR types into UI
+The following are not allowed:
+
+- UI calling `fetch`
+- exposing FHIR structures outside infrastructure
+- mapping unvalidated data
 - mixing validation and mapping
-- untyped responses
-- business logic inside infrastructure
-- overly complex abstractions
+- business logic inside UI
+- infrastructure logic inside domain
 
 ---
 
 # If Requirements Are Unclear
 
-Ask for clarification and explain tradeoffs instead of assuming behavior.
+Do not assume behavior.
 
----
+Instead:
 
-# Project Goal
-
-Learn how real healthcare systems structure software around FHIR interoperability and clinical data architecture.
+- ask for clarification
+- explain architectural tradeoffs

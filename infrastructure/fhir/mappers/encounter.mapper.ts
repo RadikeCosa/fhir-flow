@@ -33,6 +33,8 @@ function mapVisitType(code?: string): EncounterVisitType {
             return "initial";
         case "follow-up":
             return "follow-up";
+        case "re-assessment":
+            return "re-assessment";
         case "discharge":
             return "discharge";
         default:

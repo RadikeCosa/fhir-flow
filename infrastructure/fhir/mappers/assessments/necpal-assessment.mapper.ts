@@ -78,6 +78,7 @@ export function mapFhirNecpalToDomain(
 
     return {
         id: resource.id,
+        type: "necpal" as const,
         encounterId,
         patientId,
         date,

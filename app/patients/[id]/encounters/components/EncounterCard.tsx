@@ -49,6 +49,11 @@ function getVisitTypeBadge(visitType: EncounterVisitType): BadgeInfo {
         label: "Seguimiento",
         colorClass: "bg-badge-warning-bg text-badge-warning-text",
       };
+    case "re-assessment":
+      return {
+        label: "Re-evaluación",
+        colorClass: "bg-purple-100 text-purple-800",
+      };
     case "discharge":
       return {
         label: "Alta",
@@ -77,16 +82,15 @@ export default function EncounterCard({
   const visitBadge = getVisitTypeBadge(encounter.visitType);
   const statusBadge = getEncounterStatusBadge(encounter.status);
 
-  const hasInitialAssessments =
-    encounter.visitType === "initial" &&
+  const hasAssessments =
+    (encounter.visitType === "initial" ||
+      encounter.visitType === "re-assessment") &&
     (barthelAssessment !== null || necpalAssessment !== null);
 
   // planned encounters should not be expandable regardless of details
   const hasDetails =
     !isPlanned &&
-    (!!encounter.clinicalNote ||
-      procedures.length > 0 ||
-      hasInitialAssessments);
+    (!!encounter.clinicalNote || procedures.length > 0 || hasAssessments);
 
   const formattedDate = formatDateTime(encounter.periodStart) ?? "";
   const visitLabel = formatEncounterVisitType(encounter.visitType);
@@ -159,7 +163,8 @@ export default function EncounterCard({
         {expanded && (
           <div className="space-y-4 pt-1 border-t border-border">
             {/* Assessments — only shown for initial encounters */}
-            {encounter.visitType === "initial" && (
+            {(encounter.visitType === "initial" ||
+              encounter.visitType === "re-assessment") && (
               <EncounterAssessmentsSection
                 barthelAssessment={barthelAssessment}
                 necpalAssessment={necpalAssessment}

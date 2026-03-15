@@ -8,6 +8,7 @@ import { PatientContactSection } from "../components/detail/PatientContactSectio
 import { EpisodeOfCareSection } from "../components/detail/EpisodeOfCareSection";
 import { InitialEvaluationSection } from "../components/detail/InitialEvaluationSection";
 import { LastEncounterSection } from "../components/detail/LastEncounterSection";
+import ReAssessmentSection from "../components/detail/ReAssessmentSection";
 import { formatPatientName } from "@/lib/patient/formatters";
 
 type Props = {
@@ -77,6 +78,12 @@ export default async function Page({ params }: Props) {
           planOfCare={data.planOfCare}
           barthelAssessment={data.barthelAssessment}
           necpalAssessment={data.necpalAssessment}
+        />
+        <ReAssessmentSection
+          entries={data.reAssessmentEntries}
+          initialAssessments={
+            data.barthelAssessment ? [data.barthelAssessment] : []
+          }
         />
         <LastEncounterSection
           lastEncounter={data.lastEncounter}

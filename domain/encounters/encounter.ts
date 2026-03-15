@@ -19,10 +19,16 @@ export type EncounterStatus =
  * Broad visit type classification.  These values are chosen to mirror the
  * clinical scenarios we care about and may be matched from FHIR display
  * values in the infra mapper.
+ *
+ * - "initial" - first home visit in an episode of care
+ * - "follow-up" - routine ongoing visit for monitoring and progress
+ * - "re-assessment" - periodic functional evaluation within an active episode (distinct from routine follow-up and discharge)
+ * - "discharge" - final visit closing the episode of care
  */
 export type EncounterVisitType =
     | "initial"
     | "follow-up"
+    | "re-assessment"
     | "discharge";
 
 /**
