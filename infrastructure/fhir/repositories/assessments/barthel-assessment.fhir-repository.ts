@@ -1,4 +1,4 @@
-import { FhirClient } from "../../../../lib/fhir/fhir-client";
+import { FhirClient, HttpError } from "../../../../lib/fhir/fhir-client";
 import { safeGetEntries } from "../../../../lib/fhir/bundle-utils";
 import {
     fhirBarthelObservationSchema,
@@ -36,10 +36,11 @@ export class BarthelAssessmentFhirRepository implements BarthelAssessmentReposit
             }
 
             return null;
-        } catch {
-            throw new Error(
-                `Failed to fetch Barthel assessment for encounter: ${encounterId}`
-            );
+        } catch (err) {
+            if (err instanceof HttpError && err.status === 404) {
+                return null;
+            }
+            throw err;
         }
     }
 
@@ -61,10 +62,11 @@ export class BarthelAssessmentFhirRepository implements BarthelAssessmentReposit
             }
 
             return null;
-        } catch {
-            throw new Error(
-                `Failed to fetch latest Barthel assessment for patient: ${patientId}`
-            );
+        } catch (err) {
+            if (err instanceof HttpError && err.status === 404) {
+                return null;
+            }
+            throw err;
         }
     }
 }

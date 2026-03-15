@@ -2,6 +2,7 @@ import { FhirClient } from "../../../../lib/fhir/fhir-client";
 import { safeGetResources } from "../../../../lib/fhir/bundle-utils";
 import { fhirEvaObservationSchema, type FhirEvaObservation } from "../../schemas/assessments/eva-assessment.schema";
 import { mapFhirObservationsToEvaAssessments } from "../../mappers/assessments/eva-assessment.mapper";
+import { extractId } from "../../mappers/shared/extract-helpers";
 
 import type { AssessmentRepository } from "../../../../domain/assessments/assessment.repository";
 import type { EvaAssessment } from "../../../../domain/assessments/eva-assessment";
@@ -66,11 +67,7 @@ export class EvaAssessmentFhirRepository implements AssessmentRepository {
         }
 
         // patientId not strictly needed by mapper but required by its signature
-        let patientId = "";
-        if (valid.length > 0 && valid[0].subject?.reference) {
-            const parts = valid[0].subject.reference.split("/");
-            patientId = parts[parts.length - 1] || "";
-        }
+        const patientId = extractId(valid[0]?.subject?.reference);
 
         return mapFhirObservationsToEvaAssessments(valid, patientId);
     }

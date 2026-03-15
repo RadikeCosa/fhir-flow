@@ -1,4 +1,4 @@
-import { FhirClient } from "../../../lib/fhir/fhir-client";
+import { FhirClient, HttpError } from "../../../lib/fhir/fhir-client";
 import { safeGetEntries } from "../../../lib/fhir/bundle-utils";
 import type { FhirProcedure } from "../schemas/procedure.schema";
 import { fhirProcedureSchema } from "../schemas/procedure.schema";
@@ -27,50 +27,64 @@ export class ProcedureFhirRepository implements ProcedureRepository {
     }
 
     public async findAllByEncounterId(encounterId: string): Promise<Procedure[]> {
-        const bundle = await this.client.search<unknown>("Procedure", {
-            encounter: `Encounter/${encounterId}`,
-            _sort: "date",
-        });
+        try {
+            const bundle = await this.client.search<unknown>("Procedure", {
+                encounter: `Encounter/${encounterId}`,
+                _sort: "date",
+            });
 
-        const entries = safeGetEntries(bundle);
-        const results: Procedure[] = [];
+            const entries = safeGetEntries(bundle);
+            const results: Procedure[] = [];
 
-        for (const e of entries) {
-            if (e.resource) {
-                const proc = this.parseProcedure(e.resource);
-                if (proc) {
-                    const mapped = mapFhirProcedureToDomain(proc);
-                    if (mapped) {
-                        results.push(mapped);
+            for (const e of entries) {
+                if (e.resource) {
+                    const proc = this.parseProcedure(e.resource);
+                    if (proc) {
+                        const mapped = mapFhirProcedureToDomain(proc);
+                        if (mapped) {
+                            results.push(mapped);
+                        }
                     }
                 }
             }
-        }
 
-        return results;
+            return results;
+        } catch (err) {
+            if (err instanceof HttpError && err.status === 404) {
+                return [];
+            }
+            throw err;
+        }
     }
 
     public async findAllByPatientId(patientId: string): Promise<Procedure[]> {
-        const bundle = await this.client.search<unknown>("Procedure", {
-            patient: patientId,
-            _sort: "-date",
-        });
+        try {
+            const bundle = await this.client.search<unknown>("Procedure", {
+                patient: patientId,
+                _sort: "-date",
+            });
 
-        const entries = safeGetEntries(bundle);
-        const results: Procedure[] = [];
+            const entries = safeGetEntries(bundle);
+            const results: Procedure[] = [];
 
-        for (const e of entries) {
-            if (e.resource) {
-                const proc = this.parseProcedure(e.resource);
-                if (proc) {
-                    const mapped = mapFhirProcedureToDomain(proc);
-                    if (mapped) {
-                        results.push(mapped);
+            for (const e of entries) {
+                if (e.resource) {
+                    const proc = this.parseProcedure(e.resource);
+                    if (proc) {
+                        const mapped = mapFhirProcedureToDomain(proc);
+                        if (mapped) {
+                            results.push(mapped);
+                        }
                     }
                 }
             }
-        }
 
-        return results;
+            return results;
+        } catch (err) {
+            if (err instanceof HttpError && err.status === 404) {
+                return [];
+            }
+            throw err;
+        }
     }
 }

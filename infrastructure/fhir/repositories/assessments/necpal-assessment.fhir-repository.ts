@@ -1,4 +1,4 @@
-import { FhirClient } from "../../../../lib/fhir/fhir-client";
+import { FhirClient, HttpError } from "../../../../lib/fhir/fhir-client";
 import { safeGetEntries } from "../../../../lib/fhir/bundle-utils";
 import {
     fhirNecpalObservationSchema,
@@ -38,10 +38,11 @@ export class NecpalAssessmentFhirRepository implements NecpalAssessmentRepositor
             }
 
             return null;
-        } catch {
-            throw new Error(
-                `Failed to fetch NECPAL assessment for encounter: ${encounterId}`
-            );
+        } catch (err) {
+            if (err instanceof HttpError && err.status === 404) {
+                return null;
+            }
+            throw err;
         }
     }
 
@@ -65,10 +66,11 @@ export class NecpalAssessmentFhirRepository implements NecpalAssessmentRepositor
             }
 
             return null;
-        } catch {
-            throw new Error(
-                `Failed to fetch latest NECPAL assessment for patient: ${patientId}`
-            );
+        } catch (err) {
+            if (err instanceof HttpError && err.status === 404) {
+                return null;
+            }
+            throw err;
         }
     }
 }

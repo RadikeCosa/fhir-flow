@@ -1,4 +1,4 @@
-import { FhirClient } from "../../../lib/fhir/fhir-client";
+import { FhirClient, HttpError } from "../../../lib/fhir/fhir-client";
 import { safeGetEntries } from "../../../lib/fhir/bundle-utils";
 import {
     fhirCarePlanSchema,
@@ -74,8 +74,11 @@ export class PlanOfCareFhirRepository implements PlanOfCareRepository {
             }
 
             return null;
-        } catch {
-            throw new Error(`Failed to fetch plan of care for encounter: ${encounterId}`);
+        } catch (err) {
+            if (err instanceof HttpError && err.status === 404) {
+                return null;
+            }
+            throw err;
         }
     }
 

@@ -131,9 +131,10 @@ export class EncounterFhirRepository implements EncounterRepository {
             }
             return null;
         } catch (err: unknown) {
-            throw new Error(
-                `Failed to fetch initial encounter for episode: ${episodeOfCareId}`
-            );
+            if (err instanceof HttpError && err.status === 404) {
+                return null;
+            }
+            throw err;
         }
     }
 }
