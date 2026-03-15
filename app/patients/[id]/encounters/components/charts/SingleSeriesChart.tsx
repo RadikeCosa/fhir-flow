@@ -66,52 +66,96 @@ export default function SingleSeriesChart({
     );
   }
 
+  if (data.length === 1) {
+    const point = data[0];
+    const formattedValue = tooltipValueFormatter
+      ? tooltipValueFormatter(point.value)
+      : `${point.value} ${unit}`;
+
+    return (
+      <div
+        role="status"
+        className="flex flex-col items-center justify-center py-16 px-8 text-center"
+      >
+        <div className="text-sm font-semibold">{label}</div>
+        <div className="text-3xl font-bold" style={{ color }}>
+          {formattedValue}
+        </div>
+        <div className="text-sm text-muted">{formatChartDate(point.date)}</div>
+        <div className="text-sm text-muted mt-2">
+          Solo hay un registro disponible
+        </div>
+      </div>
+    );
+  }
+
+  const lastIndex = data.length - 1;
+
   return (
-    <ResponsiveContainer width="100%" height={180}>
-      <LineChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="date" tickFormatter={formatChartDate} />
-        {ticks ? (
-          <YAxis domain={domain} ticks={ticks} />
-        ) : (
-          <YAxis domain={domain} />
-        )}
-        {normalRange ? (
-          <ReferenceArea
-            y1={normalRange.y1}
-            y2={normalRange.y2}
-            fill="#16a34a"
-            fillOpacity={0.08}
-          />
-        ) : null}
-        {referenceZones?.map((zone, index) => (
-          <ReferenceArea
-            key={index}
-            y1={zone.y1}
-            y2={zone.y2}
-            fill={zone.fill}
-            fillOpacity={0.08}
-          />
-        ))}
-        <Tooltip
-          content={
-            <ChartTooltip
-              labelFormatter={formatChartDate}
-              unit={unit}
-              valueFormatter={tooltipValueFormatter}
+    <div
+      role="img"
+      aria-label={`Gráfico de ${label} — ${data.length} registros`}
+      className="h-[140px] md:h-[180px] lg:h-[220px]"
+    >
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="date" tickFormatter={formatChartDate} />
+          {ticks ? (
+            <YAxis domain={domain} ticks={ticks} />
+          ) : (
+            <YAxis domain={domain} />
+          )}
+          {normalRange ? (
+            <ReferenceArea
+              y1={normalRange.y1}
+              y2={normalRange.y2}
+              fill="#16a34a"
+              fillOpacity={0.08}
             />
-          }
-        />
-        <Legend />
-        <Line
-          type="monotone"
-          dataKey="value"
-          name={label}
-          stroke={color}
-          dot={false}
-        />
-      </LineChart>
-    </ResponsiveContainer>
+          ) : null}
+          {referenceZones?.map((zone, index) => (
+            <ReferenceArea
+              key={index}
+              y1={zone.y1}
+              y2={zone.y2}
+              fill={zone.fill}
+              fillOpacity={0.08}
+            />
+          ))}
+          <Tooltip
+            cursor={{ strokeDasharray: "3 3" }}
+            content={
+              <ChartTooltip
+                labelFormatter={formatChartDate}
+                unit={unit}
+                valueFormatter={tooltipValueFormatter}
+              />
+            }
+          />
+          <Legend />
+          <Line
+            type="monotone"
+            dataKey="value"
+            name={label}
+            stroke={color}
+            dot={({ cx, cy, index }) =>
+              index === lastIndex ? (
+                <circle
+                  key={`dot-${index}`}
+                  cx={cx}
+                  cy={cy}
+                  r={4}
+                  fill={color}
+                  stroke="white"
+                  strokeWidth={2}
+                />
+              ) : null
+            }
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
 
