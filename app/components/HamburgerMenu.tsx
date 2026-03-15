@@ -4,10 +4,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import type React from "react";
+import type { NavLink } from "@/config/navigation";
 
-const LINKS = [{ href: "/patients", label: "Pacientes" }];
+type HamburgerMenuProps = {
+  links: NavLink[];
+};
 
-export default function HamburgerMenu(): React.JSX.Element {
+export default function HamburgerMenu({
+  links,
+}: HamburgerMenuProps): React.JSX.Element {
   const pathname = usePathname() || "/";
   const [open, setOpen] = useState(false);
 
@@ -34,7 +39,7 @@ export default function HamburgerMenu(): React.JSX.Element {
           aria-label="Menú móvil"
           className="absolute top-full right-0 min-w-40 bg-surface border border-border shadow-md rounded-md py-2 z-50"
         >
-          {LINKS.map((l) => {
+          {links.map((l) => {
             const isActive = pathname === l.href;
             return (
               <Link

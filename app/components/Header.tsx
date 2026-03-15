@@ -1,11 +1,10 @@
 import Link from "next/link";
 import NavLinks from "./NavLinks";
 import HamburgerMenu from "./HamburgerMenu";
+import { NAV_LINKS } from "@/config/navigation";
 import type React from "react";
 
 export default function Header(): React.JSX.Element {
-  const links = [{ href: "/patients", label: "Pacientes" }];
-
   return (
     <header
       role="banner"
@@ -27,8 +26,8 @@ export default function Header(): React.JSX.Element {
         </Link>
 
         <div className="flex items-center gap-4">
-          <NavLinks links={links} />
-          <HamburgerMenu />
+          <NavLinks links={NAV_LINKS} />
+          <HamburgerMenu links={NAV_LINKS} />
         </div>
       </div>
     </header>
