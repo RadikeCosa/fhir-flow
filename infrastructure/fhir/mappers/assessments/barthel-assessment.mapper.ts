@@ -1,10 +1,10 @@
-import type { FhirBarthelObservation } from "../schemas/barthel-assessment.schema";
+import type { FhirBarthelObservation } from "../../schemas/assessments/barthel-assessment.schema";
 import type {
     BarthelAssessment,
     BarthelActivityKey,
     BarthelItem,
-} from "../../../domain/assessments/barthel-assessment";
-import { computeBarthelFunctionalLevel } from "../../../domain/assessments/barthel-assessment";
+} from "../../../../domain/assessments/barthel-assessment";
+import { computeBarthelFunctionalLevel } from "../../../../domain/assessments/barthel-assessment";
 
 /**
  * Map the first part of a reference like `Encounter/123` to the id portion.

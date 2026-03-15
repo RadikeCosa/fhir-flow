@@ -4,6 +4,8 @@ import { createEncounterRepository } from "../../../../infrastructure/fhir/facto
 import { createVitalSignRecordRepository } from "../../../../infrastructure/fhir/factories/vital-sign-record.factory";
 import { createAssessmentRepository } from "../../../../infrastructure/fhir/factories/assessment.factory";
 import { createProcedureRepository } from "../../../../infrastructure/fhir/factories/procedure.factory";
+import { createBarthelAssessmentRepository } from "../../../../infrastructure/fhir/factories/barthel-assessment.factory";
+import { createNecpalAssessmentRepository } from "../../../../infrastructure/fhir/factories/necpal-assessment.factory";
 import EmptyState from "../../components/EmptyState";
 import EncounterList from "./components/EncounterList";
 import EpisodeChartsPanel from "./components/EpisodeChartsPanel";
@@ -11,6 +13,8 @@ import type { EpisodeOfCare } from "../../../../domain/episode-of-care/episode-o
 import type { Procedure } from "../../../../domain/procedures/procedure";
 import type { VitalSignRecord } from "../../../../domain/vital-sign-record/vital-sign-record";
 import type { EvaAssessment } from "../../../../domain/assessments/eva-assessment";
+import type { BarthelAssessment } from "../../../../domain/assessments/barthel-assessment";
+import type { NecpalAssessment } from "../../../../domain/assessments/necpal-assessment";
 
 type Props = {
   params: Promise<{
@@ -26,6 +30,8 @@ export default async function Page({ params }: Props) {
   const vitalRepo = createVitalSignRecordRepository();
   const assessmentRepo = createAssessmentRepository();
   const procedureRepo = createProcedureRepository();
+  const barthelRepo = createBarthelAssessmentRepository();
+  const necpalRepo = createNecpalAssessmentRepository();
 
   // fetch episode list to find the active one
   const episodes: EpisodeOfCare[] =
@@ -49,16 +55,19 @@ export default async function Page({ params }: Props) {
     a.periodStart < b.periodStart ? 1 : a.periodStart > b.periodStart ? -1 : 0,
   );
 
-  // fetch vital signs, EVA assessments and procedures per encounter in parallel
-  const [vitalArrays, evaArrays, procedureArrays] = await Promise.all([
-    Promise.all(encounters.map((e) => vitalRepo.findAllByEncounterId(e.id))),
-    Promise.all(
-      encounters.map((e) => assessmentRepo.findEvaByEncounterId(e.id)),
-    ),
-    Promise.all(
-      encounters.map((e) => procedureRepo.findAllByEncounterId(e.id)),
-    ),
-  ]);
+  // fetch vital signs, EVA, Barthel, NECPAL assessments and procedures per encounter in parallel
+  const [vitalArrays, evaArrays, procedureArrays, barthelArrays, necpalArrays] =
+    await Promise.all([
+      Promise.all(encounters.map((e) => vitalRepo.findAllByEncounterId(e.id))),
+      Promise.all(
+        encounters.map((e) => assessmentRepo.findEvaByEncounterId(e.id)),
+      ),
+      Promise.all(
+        encounters.map((e) => procedureRepo.findAllByEncounterId(e.id)),
+      ),
+      Promise.all(encounters.map((e) => barthelRepo.findByEncounterId(e.id))),
+      Promise.all(encounters.map((e) => necpalRepo.findByEncounterId(e.id))),
+    ]);
 
   // Longitudinal series for the episode charts panel
   const vitalSigns = vitalArrays.flat();
@@ -66,14 +75,18 @@ export default async function Page({ params }: Props) {
 
   // Per-encounter procedures map
   const proceduresByEncounterId: Record<string, Procedure[]> = {};
-  // also build maps for vitals and EVA assessments
+  // also build maps for vitals and assessments
   const vitalsByEncounterId: Record<string, VitalSignRecord[]> = {};
   const evaByEncounterId: Record<string, EvaAssessment[]> = {};
+  const barthelByEncounterId: Record<string, BarthelAssessment | null> = {};
+  const necpalByEncounterId: Record<string, NecpalAssessment | null> = {};
 
   encounters.forEach((enc, i) => {
     proceduresByEncounterId[enc.id] = procedureArrays[i];
     vitalsByEncounterId[enc.id] = vitalArrays[i];
     evaByEncounterId[enc.id] = evaArrays[i];
+    barthelByEncounterId[enc.id] = barthelArrays[i];
+    necpalByEncounterId[enc.id] = necpalArrays[i];
   });
 
   return (
@@ -95,6 +108,8 @@ export default async function Page({ params }: Props) {
         proceduresByEncounterId={proceduresByEncounterId}
         vitalsByEncounterId={vitalsByEncounterId}
         evaByEncounterId={evaByEncounterId}
+        barthelByEncounterId={barthelByEncounterId}
+        necpalByEncounterId={necpalByEncounterId}
       />
     </>
   );

@@ -1,5 +1,5 @@
 import { FhirClient } from "../../../lib/fhir/fhir-client";
-import { BarthelAssessmentFhirRepository } from "../repositories/barthel-assessment.fhir-repository";
+import { BarthelAssessmentFhirRepository } from "../repositories/assessments/barthel-assessment.fhir-repository";
 import type { BarthelAssessmentRepository } from "../../../domain/assessments/barthel-assessment.repository";
 
 /**

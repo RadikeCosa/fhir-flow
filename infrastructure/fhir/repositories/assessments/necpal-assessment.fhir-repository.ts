@@ -1,13 +1,13 @@
-import { FhirClient } from "../../../lib/fhir/fhir-client";
-import { safeGetEntries } from "../../../lib/fhir/bundle-utils";
+import { FhirClient } from "../../../../lib/fhir/fhir-client";
+import { safeGetEntries } from "../../../../lib/fhir/bundle-utils";
 import {
     fhirNecpalObservationSchema,
     FhirNecpalObservation,
-} from "../schemas/necpal-assessment.schema";
-import { mapFhirNecpalToDomain } from "../mappers/necpal-assessment.mapper";
+} from "../../schemas/assessments/necpal-assessment.schema";
+import { mapFhirNecpalToDomain } from "../../mappers/assessments/necpal-assessment.mapper";
 
-import type { NecpalAssessmentRepository } from "../../../domain/assessments/necpal-assessment.repository";
-import type { NecpalAssessment } from "../../../domain/assessments/necpal-assessment";
+import type { NecpalAssessmentRepository } from "../../../../domain/assessments/necpal-assessment.repository";
+import type { NecpalAssessment } from "../../../../domain/assessments/necpal-assessment";
 
 /**
  * FHIR-based implementation of the `NecpalAssessmentRepository` contract.

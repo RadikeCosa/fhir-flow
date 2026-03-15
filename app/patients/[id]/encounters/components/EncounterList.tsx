@@ -2,6 +2,8 @@ import type { Encounter } from "../../../../../domain/encounters/encounter";
 import type { Procedure } from "../../../../../domain/procedures/procedure";
 import type { VitalSignRecord } from "../../../../../domain/vital-sign-record/vital-sign-record";
 import type { EvaAssessment } from "../../../../../domain/assessments/eva-assessment";
+import type { BarthelAssessment } from "../../../../../domain/assessments/barthel-assessment";
+import type { NecpalAssessment } from "../../../../../domain/assessments/necpal-assessment";
 import EncounterCard from "./EncounterCard";
 
 interface Props {
@@ -9,6 +11,8 @@ interface Props {
   proceduresByEncounterId: Record<string, Procedure[]>;
   vitalsByEncounterId: Record<string, VitalSignRecord[]>;
   evaByEncounterId: Record<string, EvaAssessment[]>;
+  barthelByEncounterId: Record<string, BarthelAssessment | null>;
+  necpalByEncounterId: Record<string, NecpalAssessment | null>;
 }
 
 export default function EncounterList({
@@ -16,6 +20,8 @@ export default function EncounterList({
   proceduresByEncounterId,
   vitalsByEncounterId,
   evaByEncounterId,
+  barthelByEncounterId,
+  necpalByEncounterId,
 }: Props) {
   if (!encounters || encounters.length === 0) {
     return <p className="text-xs text-muted">No hay encuentros registrados</p>;
@@ -25,16 +31,13 @@ export default function EncounterList({
   const planned = encounters.filter((e) => e.status === "planned");
   const others = encounters.filter((e) => e.status !== "planned");
 
-  const renderGroup = (
-    title: string,
-    list: Encounter[],
-  ) => {
+  const renderGroup = (title: string, list: Encounter[]) => {
     if (list.length === 0) return null;
 
     return (
       <>
         <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-        <div className="space-y-4">
+        <div className="space-y-3">
           {list.map((enc) => (
             <EncounterCard
               key={enc.id}
@@ -42,6 +45,8 @@ export default function EncounterList({
               procedures={proceduresByEncounterId[enc.id] ?? []}
               vitalSigns={vitalsByEncounterId[enc.id] ?? []}
               evaRecords={evaByEncounterId[enc.id] ?? []}
+              barthelAssessment={barthelByEncounterId[enc.id] ?? null}
+              necpalAssessment={necpalByEncounterId[enc.id] ?? null}
             />
           ))}
         </div>

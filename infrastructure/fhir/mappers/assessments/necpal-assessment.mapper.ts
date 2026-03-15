@@ -1,10 +1,10 @@
-import type { FhirNecpalObservation } from "../schemas/necpal-assessment.schema";
+import type { FhirNecpalObservation } from "../../schemas/assessments/necpal-assessment.schema";
 import type {
     NecpalAssessment,
     NecpalIndicator,
     NecpalResult,
-} from "../../../domain/assessments/necpal-assessment";
-import { computeNecpalResult } from "../../../domain/assessments/necpal-assessment";
+} from "../../../../domain/assessments/necpal-assessment";
+import { computeNecpalResult } from "../../../../domain/assessments/necpal-assessment";
 
 // TODO: These helper functions are duplicated in other mappers (e.g., barthel-assessment.mapper.ts).
 // Consider extracting shared mapper helpers into a common utility file.

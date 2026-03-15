@@ -1,5 +1,5 @@
 import { FhirClient } from "../../../lib/fhir/fhir-client";
-import { NecpalAssessmentFhirRepository } from "../repositories/necpal-assessment.fhir-repository";
+import { NecpalAssessmentFhirRepository } from "../repositories/assessments/necpal-assessment.fhir-repository";
 import type { NecpalAssessmentRepository } from "../../../domain/assessments/necpal-assessment.repository";
 
 /**

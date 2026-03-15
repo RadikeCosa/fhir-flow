@@ -16,14 +16,19 @@ import type {
 import type { Procedure } from "../../../../../domain/procedures/procedure";
 import type { VitalSignRecord } from "../../../../../domain/vital-sign-record/vital-sign-record";
 import type { EvaAssessment } from "../../../../../domain/assessments/eva-assessment";
+import type { BarthelAssessment } from "../../../../../domain/assessments/barthel-assessment";
+import type { NecpalAssessment } from "../../../../../domain/assessments/necpal-assessment";
 import EncounterVitalSignsSection from "./EncounterVitalSignsSection";
 import EncounterEvaSection from "./EncounterEvaSection";
+import EncounterAssessmentsSection from "./EncounterAssessmentsSection";
 
 interface Props {
   encounter: Encounter;
   procedures: Procedure[];
   vitalSigns: VitalSignRecord[];
   evaRecords: EvaAssessment[];
+  barthelAssessment: BarthelAssessment | null;
+  necpalAssessment: NecpalAssessment | null;
 }
 
 interface BadgeInfo {
@@ -52,6 +57,8 @@ export default function EncounterCard({
   procedures,
   vitalSigns,
   evaRecords,
+  barthelAssessment,
+  necpalAssessment,
 }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [noteExpanded, setNoteExpanded] = useState(false);
@@ -60,9 +67,16 @@ export default function EncounterCard({
   const visitBadge = getVisitTypeBadge(encounter.visitType);
   const statusBadge = getEncounterStatusBadge(encounter.status);
 
+  const hasInitialAssessments =
+    encounter.visitType === "initial" &&
+    (barthelAssessment !== null || necpalAssessment !== null);
+
   // planned encounters should not be expandable regardless of details
   const hasDetails =
-    !isPlanned && (!!encounter.clinicalNote || procedures.length > 0);
+    !isPlanned &&
+    (!!encounter.clinicalNote ||
+      procedures.length > 0 ||
+      hasInitialAssessments);
 
   const formattedDate = formatDateTime(encounter.periodStart) ?? "";
   const visitLabel = formatEncounterVisitType(encounter.visitType);
@@ -73,26 +87,35 @@ export default function EncounterCard({
   return (
     <div className={isPlanned ? "border-l-4 border-blue-400" : ""}>
       <SectionCard title={title}>
-        {/* Header row: badges */}
-        <div className="flex items-center justify-end mb-1 gap-2">
-          {isPlanned && (
+        {/* Compact summary row */}
+        <div className="flex items-center gap-2">
+          <p className="text-xs text-muted truncate min-w-0 flex-1">
+            {encounter.reasonDisplay || "Sin motivo registrado"}
+          </p>
+          <div className="flex items-center gap-2 shrink-0">
+            {isPlanned && (
+              <span
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusBadge.colorClass}`}
+              >
+                {statusBadge.label}
+              </span>
+            )}
             <span
-              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusBadge.colorClass}`}
+              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${visitBadge.colorClass}`}
             >
-              {statusBadge.label}
+              {visitBadge.label}
             </span>
-          )}
-          <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${visitBadge.colorClass}`}
-          >
-            {visitBadge.label}
-          </span>
+            {hasDetails && (
+              <button
+                type="button"
+                className="text-xs text-primary hover:underline"
+                onClick={() => setExpanded((v) => !v)}
+              >
+                {expanded ? "Ocultar detalles ▲" : "Ver detalles ▼"}
+              </button>
+            )}
+          </div>
         </div>
-
-        {/* Reason */}
-        <p className="text-xs text-muted mb-2">
-          {encounter.reasonDisplay || "Sin motivo registrado"}
-        </p>
 
         {/* Planned session note block */}
         {isPlanned && (
@@ -112,20 +135,17 @@ export default function EncounterCard({
           </div>
         )}
 
-        {/* Expand / collapse toggle */}
-        {hasDetails && (
-          <button
-            type="button"
-            className="text-xs text-primary hover:underline mb-3"
-            onClick={() => setExpanded((v) => !v)}
-          >
-            {expanded ? "Ocultar detalles ▲" : "Ver detalles ▼"}
-          </button>
-        )}
-
         {/* Expandable detail section */}
         {expanded && (
           <div className="space-y-4 pt-1 border-t border-border">
+            {/* Assessments — only shown for initial encounters */}
+            {encounter.visitType === "initial" && (
+              <EncounterAssessmentsSection
+                barthelAssessment={barthelAssessment}
+                necpalAssessment={necpalAssessment}
+              />
+            )}
+
             {/* Clinical note */}
             {encounter.clinicalNote && (
               <div>

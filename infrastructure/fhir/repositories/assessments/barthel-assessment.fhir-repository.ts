@@ -1,13 +1,13 @@
-import { FhirClient } from "../../../lib/fhir/fhir-client";
-import { safeGetEntries } from "../../../lib/fhir/bundle-utils";
+import { FhirClient } from "../../../../lib/fhir/fhir-client";
+import { safeGetEntries } from "../../../../lib/fhir/bundle-utils";
 import {
     fhirBarthelObservationSchema,
     FhirBarthelObservation,
-} from "../schemas/barthel-assessment.schema";
-import { mapFhirBarthelToDomain } from "../mappers/barthel-assessment.mapper";
+} from "../../schemas/assessments/barthel-assessment.schema";
+import { mapFhirBarthelToDomain } from "../../mappers/assessments/barthel-assessment.mapper";
 
-import type { BarthelAssessmentRepository } from "../../../domain/assessments/barthel-assessment.repository";
-import type { BarthelAssessment } from "../../../domain/assessments/barthel-assessment";
+import type { BarthelAssessmentRepository } from "../../../../domain/assessments/barthel-assessment.repository";
+import type { BarthelAssessment } from "../../../../domain/assessments/barthel-assessment";
 
 /**
  * FHIR-based implementation of the `BarthelAssessmentRepository` contract.
