@@ -128,9 +128,6 @@ export function EcogCard({ assessment }: EcogCardProps) {
           >
             {badge.label}
           </span>
-          <div className="text-sm font-medium text-foreground">
-            {levelInfo.label}
-          </div>
           <div className="text-xs text-muted">{levelInfo.description}</div>
         </div>
       )}

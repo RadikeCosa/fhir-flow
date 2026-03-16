@@ -1,13 +1,13 @@
-import { FhirClient, HttpError } from "../../../lib/fhir/fhir-client";
-import { safeGetResources } from "../../../lib/fhir/bundle-utils";
+import { FhirClient, HttpError } from "../../../../lib/fhir/fhir-client";
+import { safeGetResources } from "../../../../lib/fhir/bundle-utils";
 import {
     fhirEcogObservationSchema,
     FhirEcogObservation,
 } from "../../schemas/assessments/ecog-assessment.schema";
 import { mapFhirEcogToDomain } from "../../mappers/assessments/ecog-assessment.mapper";
 
-import type { EcogAssessmentRepository } from "../../../domain/assessments/ecog-assessment.repository";
-import type { EcogAssessment } from "../../../domain/assessments/ecog-assessment";
+import type { EcogAssessmentRepository } from "../../../../domain/assessments/ecog-assessment.repository";
+import type { EcogAssessment } from "../../../../domain/assessments/ecog-assessment";
 
 /**
  * FHIR-backed repository for ECOG assessments.

@@ -1,6 +1,6 @@
 import type { FhirEcogObservation } from "../../schemas/assessments/ecog-assessment.schema";
-import type { EcogAssessment } from "../../../domain/assessments/ecog-assessment";
-import { computeEcogPerformanceLevel } from "../../../domain/assessments/ecog-assessment";
+import type { EcogAssessment } from "../../../../domain/assessments/ecog-assessment";
+import { computeEcogPerformanceLevel } from "../../../../domain/assessments/ecog-assessment";
 import {
     extractEncounterId,
     extractPatientId,
