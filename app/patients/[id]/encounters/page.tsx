@@ -7,6 +7,7 @@ import { createAssessmentRepository } from "../../../../infrastructure/fhir/fact
 import { createProcedureRepository } from "../../../../infrastructure/fhir/factories/procedure.factory";
 import { createBarthelAssessmentRepository } from "../../../../infrastructure/fhir/factories/barthel-assessment.factory";
 import { createNecpalAssessmentRepository } from "../../../../infrastructure/fhir/factories/necpal-assessment.factory";
+import { createEcogAssessmentRepository } from "../../../../infrastructure/fhir/factories/ecog-assessment.factory";
 import { formatPatientName } from "@/lib/patient/formatters";
 import EmptyState from "../../components/EmptyState";
 import EncounterList from "./components/EncounterList";
@@ -17,6 +18,7 @@ import type { VitalSignRecord } from "../../../../domain/vital-sign-record/vital
 import type { EvaAssessment } from "../../../../domain/assessments/eva-assessment";
 import type { BarthelAssessment } from "../../../../domain/assessments/barthel-assessment";
 import type { NecpalAssessment } from "../../../../domain/assessments/necpal-assessment";
+import type { EcogAssessment } from "../../../../domain/assessments/ecog-assessment";
 
 type Props = {
   params: Promise<{
@@ -35,6 +37,7 @@ export default async function Page({ params }: Props) {
   const procedureRepo = createProcedureRepository();
   const barthelRepo = createBarthelAssessmentRepository();
   const necpalRepo = createNecpalAssessmentRepository();
+  const ecogRepo = createEcogAssessmentRepository();
 
   const patient = await patientRepo.findById(patientId);
 
@@ -79,18 +82,25 @@ export default async function Page({ params }: Props) {
   );
 
   // fetch vital signs, EVA, Barthel, NECPAL assessments and procedures per encounter in parallel
-  const [vitalArrays, evaArrays, procedureArrays, barthelArrays, necpalArrays] =
-    await Promise.all([
-      Promise.all(encounters.map((e) => vitalRepo.findAllByEncounterId(e.id))),
-      Promise.all(
-        encounters.map((e) => assessmentRepo.findEvaByEncounterId(e.id)),
-      ),
-      Promise.all(
-        encounters.map((e) => procedureRepo.findAllByEncounterId(e.id)),
-      ),
-      Promise.all(encounters.map((e) => barthelRepo.findByEncounterId(e.id))),
-      Promise.all(encounters.map((e) => necpalRepo.findByEncounterId(e.id))),
-    ]);
+  const [
+    vitalArrays,
+    evaArrays,
+    procedureArrays,
+    barthelArrays,
+    necpalArrays,
+    ecogArrays,
+  ] = await Promise.all([
+    Promise.all(encounters.map((e) => vitalRepo.findAllByEncounterId(e.id))),
+    Promise.all(
+      encounters.map((e) => assessmentRepo.findEvaByEncounterId(e.id)),
+    ),
+    Promise.all(
+      encounters.map((e) => procedureRepo.findAllByEncounterId(e.id)),
+    ),
+    Promise.all(encounters.map((e) => barthelRepo.findByEncounterId(e.id))),
+    Promise.all(encounters.map((e) => necpalRepo.findByEncounterId(e.id))),
+    Promise.all(encounters.map((e) => ecogRepo.findByEncounterId(e.id))),
+  ]);
 
   // Longitudinal series for the episode charts panel
   const vitalSigns = vitalArrays.flat();
@@ -103,6 +113,7 @@ export default async function Page({ params }: Props) {
   const evaByEncounterId: Record<string, EvaAssessment[]> = {};
   const barthelByEncounterId: Record<string, BarthelAssessment | null> = {};
   const necpalByEncounterId: Record<string, NecpalAssessment | null> = {};
+  const ecogByEncounterId: Record<string, EcogAssessment | null> = {};
 
   encounters.forEach((enc, i) => {
     proceduresByEncounterId[enc.id] = procedureArrays[i];
@@ -110,6 +121,7 @@ export default async function Page({ params }: Props) {
     evaByEncounterId[enc.id] = evaArrays[i];
     barthelByEncounterId[enc.id] = barthelArrays[i];
     necpalByEncounterId[enc.id] = necpalArrays[i];
+    ecogByEncounterId[enc.id] = ecogArrays[i];
   });
 
   const fullName = patient ? formatPatientName(patient.name) : undefined;
@@ -131,6 +143,7 @@ export default async function Page({ params }: Props) {
         evaByEncounterId={evaByEncounterId}
         barthelByEncounterId={barthelByEncounterId}
         necpalByEncounterId={necpalByEncounterId}
+        ecogByEncounterId={ecogByEncounterId}
       />
     </>
   );

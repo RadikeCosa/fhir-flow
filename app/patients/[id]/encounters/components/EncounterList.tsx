@@ -4,6 +4,7 @@ import type { VitalSignRecord } from "../../../../../domain/vital-sign-record/vi
 import type { EvaAssessment } from "../../../../../domain/assessments/eva-assessment";
 import type { BarthelAssessment } from "../../../../../domain/assessments/barthel-assessment";
 import type { NecpalAssessment } from "../../../../../domain/assessments/necpal-assessment";
+import type { EcogAssessment } from "../../../../../domain/assessments/ecog-assessment";
 import EncounterCard from "./EncounterCard";
 
 interface Props {
@@ -13,6 +14,7 @@ interface Props {
   evaByEncounterId: Record<string, EvaAssessment[]>;
   barthelByEncounterId: Record<string, BarthelAssessment | null>;
   necpalByEncounterId: Record<string, NecpalAssessment | null>;
+  ecogByEncounterId: Record<string, EcogAssessment | null>;
 }
 
 export default function EncounterList({
@@ -22,6 +24,7 @@ export default function EncounterList({
   evaByEncounterId,
   barthelByEncounterId,
   necpalByEncounterId,
+  ecogByEncounterId,
 }: Props) {
   if (!encounters || encounters.length === 0) {
     return <p className="text-xs text-muted">No hay encuentros registrados</p>;
@@ -47,6 +50,7 @@ export default function EncounterList({
               evaRecords={evaByEncounterId[enc.id] ?? []}
               barthelAssessment={barthelByEncounterId[enc.id] ?? null}
               necpalAssessment={necpalByEncounterId[enc.id] ?? null}
+              ecogAssessment={ecogByEncounterId[enc.id] ?? null}
             />
           ))}
         </div>

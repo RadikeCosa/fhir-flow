@@ -19,6 +19,7 @@ import type { VitalSignRecord } from "../../../../../domain/vital-sign-record/vi
 import type { EvaAssessment } from "../../../../../domain/assessments/eva-assessment";
 import type { BarthelAssessment } from "../../../../../domain/assessments/barthel-assessment";
 import type { NecpalAssessment } from "../../../../../domain/assessments/necpal-assessment";
+import type { EcogAssessment } from "../../../../../domain/assessments/ecog-assessment";
 import EncounterVitalSignsSection from "./EncounterVitalSignsSection";
 import EncounterEvaSection from "./EncounterEvaSection";
 import EncounterAssessmentsSection from "./EncounterAssessmentsSection";
@@ -30,6 +31,7 @@ interface Props {
   evaRecords: EvaAssessment[];
   barthelAssessment: BarthelAssessment | null;
   necpalAssessment: NecpalAssessment | null;
+  ecogAssessment: EcogAssessment | null;
 }
 
 interface BadgeInfo {
@@ -74,6 +76,7 @@ export default function EncounterCard({
   evaRecords,
   barthelAssessment,
   necpalAssessment,
+  ecogAssessment,
 }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [noteExpanded, setNoteExpanded] = useState(false);
@@ -85,7 +88,9 @@ export default function EncounterCard({
   const hasAssessments =
     (encounter.visitType === "initial" ||
       encounter.visitType === "re-assessment") &&
-    (barthelAssessment !== null || necpalAssessment !== null);
+    (barthelAssessment !== null ||
+      necpalAssessment !== null ||
+      ecogAssessment !== null);
 
   // planned encounters should not be expandable regardless of details
   const hasDetails =
@@ -168,6 +173,7 @@ export default function EncounterCard({
               <EncounterAssessmentsSection
                 barthelAssessment={barthelAssessment}
                 necpalAssessment={necpalAssessment}
+                ecogAssessment={ecogAssessment}
               />
             )}
 
