@@ -6,6 +6,7 @@ import type { EvaAssessment } from "@/domain/assessments/eva-assessment";
 import type { VitalSignRecord } from "@/domain/vital-sign-record/vital-sign-record";
 import type { BarthelAssessment } from "@/domain/assessments/barthel-assessment";
 import type { NecpalAssessment } from "@/domain/assessments/necpal-assessment";
+import type { EcogAssessment } from "@/domain/assessments/ecog-assessment";
 import type { PlanOfCare } from "@/domain/plan-of-care/plan-of-care";
 import type { ReAssessmentEntry } from "@/app/patients/components/detail/ReAssessmentSection";
 
@@ -20,6 +21,7 @@ import {
     createNecpalAssessmentRepository,
     createPlanOfCareRepository,
 } from "@/infrastructure/fhir/factories";
+import { createEcogAssessmentRepository } from "@/infrastructure/fhir/factories/ecog-assessment.factory";
 
 import { currentPractitionerId } from "@/config/fhir.config";
 
@@ -41,6 +43,7 @@ export interface PatientDetailData {
     lastEncounterVitalSigns: VitalSignRecord[];
     barthelAssessment: BarthelAssessment | null;
     necpalAssessment: NecpalAssessment | null;
+    ecogAssessment: EcogAssessment | null;
     planOfCare: PlanOfCare | null;
     reAssessmentEntries: ReAssessmentEntry[];
 }
@@ -56,6 +59,7 @@ export async function getPatientDetailData(
     const procedureRepo = createProcedureRepository();
     const barthelRepo = createBarthelAssessmentRepository();
     const necpalRepo = createNecpalAssessmentRepository();
+    const ecogRepo = createEcogAssessmentRepository();
     const planRepo = createPlanOfCareRepository();
 
     const [patient, episodes] = await Promise.all([
@@ -99,13 +103,16 @@ export async function getPatientDetailData(
             : Promise.resolve<VitalSignRecord[]>([]),
     ]);
 
-    const [barthelAssessment, necpalAssessment, planOfCare] = await Promise.all([
+    const [barthelAssessment, necpalAssessment, ecogAssessment, planOfCare] = await Promise.all([
         initialEncounter
             ? barthelRepo.findByEncounterId(initialEncounter.id)
             : Promise.resolve<BarthelAssessment | null>(null),
         initialEncounter
             ? necpalRepo.findByEncounterId(initialEncounter.id)
             : Promise.resolve<NecpalAssessment | null>(null),
+        initialEncounter
+            ? ecogRepo.findByEncounterId(initialEncounter.id)
+            : Promise.resolve<EcogAssessment | null>(null),
         initialEncounter
             ? planRepo.findByEncounterId(initialEncounter.id)
             : Promise.resolve<PlanOfCare | null>(null),
@@ -144,6 +151,7 @@ export async function getPatientDetailData(
         lastEncounterVitalSigns,
         barthelAssessment,
         necpalAssessment,
+        ecogAssessment,
         planOfCare,
         reAssessmentEntries,
     };

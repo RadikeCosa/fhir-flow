@@ -78,6 +78,7 @@ export default async function Page({ params }: Props) {
           planOfCare={data.planOfCare}
           barthelAssessment={data.barthelAssessment}
           necpalAssessment={data.necpalAssessment}
+          ecogAssessment={data.ecogAssessment}
         />
         <ReAssessmentSection
           entries={data.reAssessmentEntries}

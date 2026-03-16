@@ -1,11 +1,13 @@
 import React from "react";
 import { SectionCard } from "./SectionCard";
 import { BarthelCard } from "./assessments/BarthelCard";
+import { EcogCard } from "./assessments/EcogCard";
 import { NecpalCard } from "./assessments/NecpalCard";
 import { PlanOfCareView } from "./plan-of-care/PlanOfCareView";
 import { formatDate } from "../../../../lib/patient/formatters";
 import type { PlanOfCare } from "../../../../domain/plan-of-care/plan-of-care";
 import type { BarthelAssessment } from "../../../../domain/assessments/barthel-assessment";
+import type { EcogAssessment } from "../../../../domain/assessments/ecog-assessment";
 import type { NecpalAssessment } from "../../../../domain/assessments/necpal-assessment";
 
 interface InitialEvaluationSectionProps {
@@ -14,6 +16,7 @@ interface InitialEvaluationSectionProps {
   planOfCare: PlanOfCare | null;
   barthelAssessment: BarthelAssessment | null;
   necpalAssessment: NecpalAssessment | null;
+  ecogAssessment: EcogAssessment | null;
 }
 
 export function InitialEvaluationSection({
@@ -22,6 +25,7 @@ export function InitialEvaluationSection({
   planOfCare,
   barthelAssessment,
   necpalAssessment,
+  ecogAssessment,
 }: InitialEvaluationSectionProps) {
   return (
     <SectionCard title="Evaluación Inicial">
@@ -31,7 +35,7 @@ export function InitialEvaluationSection({
             {encounterDate ? (formatDate(encounterDate) ?? "") : ""}
           </div>
 
-          <div className="grid grid-cols-2 gap-3 mt-2 mb-3">
+          <div className="grid grid-cols-3 gap-3 mt-2 mb-3">
             <div className="min-w-0">
               {barthelAssessment ? (
                 <BarthelCard assessment={barthelAssessment} />
@@ -49,6 +53,14 @@ export function InitialEvaluationSection({
                 <p className="text-xs text-muted italic">
                   Cribado NECPAL no registrado
                 </p>
+              )}
+            </div>
+
+            <div className="min-w-0">
+              {ecogAssessment ? (
+                <EcogCard assessment={ecogAssessment} />
+              ) : (
+                <p className="text-xs text-muted italic">ECOG no registrado</p>
               )}
             </div>
           </div>

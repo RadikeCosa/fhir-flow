@@ -16,28 +16,27 @@ const PERFORMANCE_LEVEL_LABELS: Record<
   { label: string; description: string }
 > = {
   "fully-active": {
-    label: "Totalmente activo",
-    description: "Sin limitaciones funcionales; mantiene actividad habitual.",
+    label: "Actividad normal",
+    description: "Totalmente activo, sin restricciones en actividades habituales.",
   },
   restricted: {
-    label: "Restringido",
+    label: "Síntomas leves",
     description:
-      "Limitado para actividades extenuantes, pero conserva actividad ligera.",
+      "Puede realizar actividades livianas pero tiene alguna limitación para esfuerzos intensos.",
   },
   ambulatory: {
-    label: "Ambulatorio",
+    label: "Ambulatorio, no puede trabajar",
     description:
-      "Deambula y realiza autocuidado; incapaz de trabajar de forma activa.",
+      "Puede levantarse y cuidarse solo, pero no puede realizar trabajo activo.",
   },
   "limited-self-care": {
-    label: "Autocuidado limitado",
+    label: "Limitado, pasa mucho tiempo en cama/sillón",
     description:
-      "Capaz de autocuidado parcial y permanece en cama/sillon gran parte del dia.",
+      "Solo puede cuidarse parcialmente. Permanece en cama más del 50% del día.",
   },
   disabled: {
-    label: "Discapacitado",
-    description:
-      "Incapaz de autocuidado; dependiente para actividades basicas y en cama/sillon.",
+    label: "Totalmente dependiente",
+    description: "Incapaz de cuidarse. Permanece completamente en cama.",
   },
 };
 
@@ -91,16 +90,8 @@ export function EcogCard({ assessment }: EcogCardProps) {
         <div className="text-xs font-semibold uppercase tracking-wide text-muted">
           ECOG
         </div>
-        <div className="text-sm font-semibold text-foreground">
-          {assessment.score}
-          <span className="text-xs text-muted"> / 4</span>
-        </div>
+        <div className="text-sm font-semibold text-foreground">{assessment.score}</div>
         <div className="ml-auto flex items-center gap-2">
-          <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badge.className}`}
-          >
-            {badge.label}
-          </span>
           <button
             type="button"
             className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
@@ -129,6 +120,11 @@ export function EcogCard({ assessment }: EcogCardProps) {
             {assessment.score}
             <span className="text-base font-medium text-muted"> / 4</span>
           </div>
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badge.className}`}
+          >
+            {badge.label}
+          </span>
           <div className="text-sm font-medium text-foreground">
             {levelInfo.label}
           </div>
