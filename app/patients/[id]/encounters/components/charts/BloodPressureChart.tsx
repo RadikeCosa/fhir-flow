@@ -73,7 +73,7 @@ export default function BloodPressureChart({ data }: BloodPressureChartProps) {
     <div
       role="img"
       aria-label={`Gráfico de Tensión arterial (mmHg) — ${data.length} registros`}
-      className="h-[140px] md:h-[180px] lg:h-[220px]"
+      className="h-35 md:h-45 lg:h-55"
     >
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data}>
