@@ -29,7 +29,7 @@ export default function EncounterAssessmentsSection({
       <p className="text-xs font-semibold uppercase tracking-wide text-muted mb-2">
         Evaluaciones
       </p>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="min-w-0">
           {barthelAssessment ? (
             <BarthelCard assessment={barthelAssessment} />

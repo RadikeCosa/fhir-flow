@@ -87,14 +87,14 @@ export function EcogCard({ assessment }: EcogCardProps) {
 
   return (
     <div className="border border-border rounded-lg p-3">
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <div className="text-xs font-semibold uppercase tracking-wide text-muted">
           ECOG
         </div>
         <div className="text-sm font-semibold text-foreground">
           {assessment.score}
         </div>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="flex flex-1 justify-end items-center gap-2">
           <button
             type="button"
             className="inline-flex items-center gap-1 text-xs text-primary hover:underline"

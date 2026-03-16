@@ -35,7 +35,7 @@ export function InitialEvaluationSection({
             {encounterDate ? (formatDate(encounterDate) ?? "") : ""}
           </div>
 
-          <div className="grid grid-cols-3 gap-3 mt-2 mb-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mt-2 mb-3">
             <div className="min-w-0">
               {barthelAssessment ? (
                 <BarthelCard assessment={barthelAssessment} />

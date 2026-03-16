@@ -71,7 +71,7 @@ export function BarthelCard({ assessment }: BarthelCardProps) {
 
   return (
     <div className="border border-border rounded-lg p-3">
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <div className="text-xs font-semibold uppercase tracking-wide text-muted">
           Índice de Barthel
         </div>
@@ -79,7 +79,7 @@ export function BarthelCard({ assessment }: BarthelCardProps) {
           {assessment.totalScore}
           <span className="text-xs text-muted"> / 100</span>
         </div>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="flex-1 justify-end flex items-center gap-2">
           <span
             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badge.className}`}
           >

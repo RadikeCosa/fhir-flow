@@ -50,11 +50,11 @@ export function NecpalCard({ assessment }: NecpalCardProps) {
 
   return (
     <div className="border border-border rounded-lg p-3">
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <div className="text-xs font-semibold uppercase tracking-wide text-muted">
           Cribado NECPAL
         </div>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="flex flex-1 justify-end items-center gap-2">
           <span
             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badge.className}`}
           >
