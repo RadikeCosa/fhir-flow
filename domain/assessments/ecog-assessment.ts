@@ -6,6 +6,8 @@
  * It makes no reference to FHIR types or external representations.
  */
 
+import type { BaseAssessment } from "./base-assessment";
+
 /**
  * Interpretation of the ECOG score used by the application.
  */
@@ -19,12 +21,10 @@ export type EcogPerformanceLevel =
 /**
  * Core domain representation of an ECOG assessment.
  */
-export interface EcogAssessment {
-    id: string;
+export interface EcogAssessment extends BaseAssessment {
+    readonly type: "ecog";
+
     encounterId: string;
-    patientId: string;
-    /** ISO date string in YYYY-MM-DD format */
-    date: string;
 
     /** ECOG score from 0 (best) to 4 (worst). */
     score: number;

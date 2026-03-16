@@ -1,5 +1,5 @@
 import { FhirClient } from "../../../lib/fhir/fhir-client";
-import { EcogAssessmentFhirRepository } from "../repositories/ecog-assessment.fhir-repository";
+import { EcogAssessmentFhirRepository } from "../repositories/assessments/ecog-assessment.fhir-repository";
 import type { EcogAssessmentRepository } from "../../../domain/assessments/ecog-assessment.repository";
 
 /**

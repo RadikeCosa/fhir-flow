@@ -17,7 +17,8 @@ const PERFORMANCE_LEVEL_LABELS: Record<
 > = {
   "fully-active": {
     label: "Actividad normal",
-    description: "Totalmente activo, sin restricciones en actividades habituales.",
+    description:
+      "Totalmente activo, sin restricciones en actividades habituales.",
   },
   restricted: {
     label: "Síntomas leves",
@@ -30,7 +31,7 @@ const PERFORMANCE_LEVEL_LABELS: Record<
       "Puede levantarse y cuidarse solo, pero no puede realizar trabajo activo.",
   },
   "limited-self-care": {
-    label: "Limitado, pasa mucho tiempo en cama/sillón",
+    label: "Limitado, pasa mucho tiempo en cama",
     description:
       "Solo puede cuidarse parcialmente. Permanece en cama más del 50% del día.",
   },
@@ -90,7 +91,9 @@ export function EcogCard({ assessment }: EcogCardProps) {
         <div className="text-xs font-semibold uppercase tracking-wide text-muted">
           ECOG
         </div>
-        <div className="text-sm font-semibold text-foreground">{assessment.score}</div>
+        <div className="text-sm font-semibold text-foreground">
+          {assessment.score}
+        </div>
         <div className="ml-auto flex items-center gap-2">
           <button
             type="button"

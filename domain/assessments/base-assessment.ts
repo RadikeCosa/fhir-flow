@@ -9,7 +9,7 @@
  *
  * Add additional values here as new assessment instruments are added.
  */
-export type AssessmentType = "eva" | "barthel" | "necpal";
+export type AssessmentType = "eva" | "barthel" | "necpal" | "ecog";
 
 /**
  * Shared base model for all assessments.
@@ -25,7 +25,7 @@ export interface BaseAssessment {
     /** ISO date string in YYYY-MM-DD format */
     date: string;
     type: AssessmentType;
-    recordedBy: {
+    recordedBy?: {
         id: string;
         display: string;
     };

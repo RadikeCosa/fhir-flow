@@ -3,8 +3,8 @@ import { safeGetResources } from "../../../lib/fhir/bundle-utils";
 import {
     fhirEcogObservationSchema,
     FhirEcogObservation,
-} from "../schemas/ecog-assessment.schema";
-import { mapFhirEcogToDomain } from "../mappers/ecog-assessment.mapper";
+} from "../../schemas/assessments/ecog-assessment.schema";
+import { mapFhirEcogToDomain } from "../../mappers/assessments/ecog-assessment.mapper";
 
 import type { EcogAssessmentRepository } from "../../../domain/assessments/ecog-assessment.repository";
 import type { EcogAssessment } from "../../../domain/assessments/ecog-assessment";

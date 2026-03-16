@@ -13,4 +13,5 @@ export { createAssessmentRepository } from "./assessment.factory";
 export { createProcedureRepository } from "./procedure.factory";
 export { createPlanOfCareRepository } from "./plan-of-care.factory";
 export { createBarthelAssessmentRepository } from "./barthel-assessment.factory";
+export { createEcogAssessmentRepository } from "./ecog-assessment.factory";
 export { createNecpalAssessmentRepository } from "./necpal-assessment.factory";
