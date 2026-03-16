@@ -1,32 +1,15 @@
 import { z } from "zod";
+import {
+    codingSchema,
+    codeableConceptSchema,
+    referenceSchema,
+} from "../shared.schema";
 
 /**
  * ECOG Performance Status assessment represented as a FHIR Observation.
  */
 
 // small reusable fragments --------------------------------------------------
-
-const codingSchema = z
-    .object({
-        system: z.string().optional(),
-        code: z.string().optional(),
-        display: z.string().optional(),
-    })
-    .passthrough();
-
-const codeableConceptSchema = z
-    .object({
-        coding: z.array(codingSchema).optional(),
-        text: z.string().optional(),
-    })
-    .passthrough();
-
-const referenceSchema = z
-    .object({
-        reference: z.string().optional(),
-        display: z.string().optional(),
-    })
-    .passthrough();
 
 const performerSchema = z
     .object({

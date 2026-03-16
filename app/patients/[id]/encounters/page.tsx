@@ -1,13 +1,15 @@
 import Breadcrumbs from "../../../components/Breadcrumbs";
-import { createPatientRepository } from "../../../../infrastructure/fhir/factories/patient.factory";
-import { createEpisodeOfCareRepository } from "../../../../infrastructure/fhir/factories/episode-of-care.factory";
-import { createEncounterRepository } from "../../../../infrastructure/fhir/factories/encounter.factory";
-import { createVitalSignRecordRepository } from "../../../../infrastructure/fhir/factories/vital-sign-record.factory";
-import { createAssessmentRepository } from "../../../../infrastructure/fhir/factories/assessment.factory";
-import { createProcedureRepository } from "../../../../infrastructure/fhir/factories/procedure.factory";
-import { createBarthelAssessmentRepository } from "../../../../infrastructure/fhir/factories/barthel-assessment.factory";
-import { createNecpalAssessmentRepository } from "../../../../infrastructure/fhir/factories/necpal-assessment.factory";
-import { createEcogAssessmentRepository } from "../../../../infrastructure/fhir/factories/ecog-assessment.factory";
+import {
+  createPatientRepository,
+  createEpisodeOfCareRepository,
+  createEncounterRepository,
+  createVitalSignRecordRepository,
+  createAssessmentRepository,
+  createProcedureRepository,
+  createBarthelAssessmentRepository,
+  createNecpalAssessmentRepository,
+  createEcogAssessmentRepository,
+} from "../../../../infrastructure/fhir/factories";
 import { formatPatientName } from "@/lib/patient/formatters";
 import EmptyState from "../../components/EmptyState";
 import EncounterList from "./components/EncounterList";
