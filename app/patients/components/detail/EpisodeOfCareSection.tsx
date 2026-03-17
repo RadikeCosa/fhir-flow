@@ -4,7 +4,6 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { SectionCard } from "./SectionCard";
 import {
-  formatDate,
   translateEpisodeStatus,
   formatEpisodeType,
   getSeverityBadge,
@@ -119,6 +118,18 @@ export const EpisodeOfCareSection: React.FC<Props> = ({
                 <div className="border-l-2 border-primary pl-3 mt-1 text-sm text-muted italic">
                   {episode.referral.requestNote}
                 </div>
+              </div>
+            )}
+
+            {/* Block D — Plan visit button (active status only) */}
+            {episode.status === "active" && (
+              <div className="mt-4">
+                <Link
+                  href={`/patients/${patientId}/encounters/new`}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+                >
+                  Planificar Visita
+                </Link>
               </div>
             )}
           </div>

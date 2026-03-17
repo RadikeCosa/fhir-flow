@@ -4,7 +4,9 @@ import { safeGetResources } from "../../../lib/fhir/bundle-utils";
 import type { FhirEncounter } from "../schemas/encounter.schema";
 import { fhirEncounterSchema } from "../schemas/encounter.schema";
 import { mapFhirEncounterToEncounter } from "../mappers/encounter.mapper";
+import { mapToFhirEncounter } from "../mappers/encounter.write.mapper";
 
+import type { CreateEncounterInput } from "../../../domain/encounters/encounter.write-input";
 import type { EncounterRepository } from "../../../domain/encounters/encounter.repository";
 import type { Encounter } from "../../../domain/encounters/encounter";
 
@@ -140,5 +142,26 @@ export class EncounterFhirRepository implements EncounterRepository {
             }
             throw err;
         }
+    }
+
+    /**
+     * Create a new planned encounter.
+     *
+     * @param input - CreateEncounterInput (already validated by domain rules)
+     * @returns Promise<{ id: string }> - the ID of the created Encounter
+     *
+     * Throws:
+     * - FhirMapperError if required references are missing or invalid
+     * - FhirWriteError if the FHIR server rejects the write
+     *
+     * Note: Errors are NOT caught here — they propagate to the Server Action.
+     */
+    public async create(input: CreateEncounterInput): Promise<{ id: string }> {
+        // Map domain input to FHIR resource (may throw FhirMapperError)
+        const fhirEncounter = mapToFhirEncounter(input);
+
+        // Send to FHIR server (may throw FhirWriteError)
+        const result = await this.client.post("Encounter", fhirEncounter);
+        return result;
     }
 }

@@ -16,6 +16,7 @@
 */
 
 import { fhirConfig } from "../../config/fhir.config";
+import { FhirWriteError } from "../../domain/shared/error-types";
 
 // Minimal, flexible FHIR resource type. Projects may replace with stronger types.
 export type FhirResource = { resourceType: string } & Record<string, unknown>;
@@ -278,6 +279,103 @@ export class FhirClient {
     public async update<T = unknown>(resourceType: string, id: string, body: unknown): Promise<T> {
         const path = `/${encodeURIComponent(resourceType)}/${encodeURIComponent(id)}`;
         return this.request<T>(path, { method: "PUT", body });
+    }
+
+    /**
+     * Create a single FHIR resource via HTTP POST.
+     *
+     * Extracts the created resource's ID from the response body or Location header.
+     * Detects and rejects OperationOutcome in 2xx responses.
+     *
+     * @param resourceType - FHIR resource type (e.g., "Encounter", "Observation")
+     * @param body - Raw resource body (should be validated by caller)
+     * @returns Promise<{ id: string }> - the created resource's ID
+     *
+     * Throws FhirWriteError if:
+     * - HTTP response is non-2xx
+     * - Response contains OperationOutcome (even in 200)
+     * - Cannot extract ID from body or Location header
+     */
+    public async post(resourceType: string, body: unknown): Promise<{ id: string }> {
+        const path = `/${encodeURIComponent(resourceType)}`;
+        const response = await fetch(this.buildUrl(path), {
+            method: "POST",
+            headers: { ...this.defaultHeaders, "Content-Type": "application/fhir+json" },
+            body: JSON.stringify(body),
+        });
+
+        // Parse response body
+        let parsedBody: unknown = null;
+        const contentType = response.headers.get("content-type") || "";
+        if (contentType.includes("application/json") || contentType.includes("application/fhir+json")) {
+            try {
+                parsedBody = await response.json();
+            } catch {
+                parsedBody = null;
+            }
+        }
+
+        // Detect OperationOutcome in any 2xx response
+        const isOutcome = (obj: unknown): obj is OperationOutcome => {
+            if (typeof obj !== "object" || obj === null) return false;
+            const maybe = obj as Record<string, unknown>;
+            return maybe.resourceType === "OperationOutcome";
+        };
+
+        // If not OK, throw FhirWriteError
+        if (!response.ok) {
+            const message = `HTTP ${response.status} creating ${resourceType}`;
+            throw new FhirWriteError(
+                message,
+                response.status,
+                isOutcome(parsedBody) ? parsedBody : undefined,
+                "HTTP_ERROR"
+            );
+        }
+
+        // If OK but contains OperationOutcome, treat as error.
+        if (isOutcome(parsedBody)) {
+            throw new FhirWriteError(
+                `OperationOutcome in response when creating ${resourceType}`,
+                200,
+                parsedBody,
+                "OPERATION_OUTCOME"
+            );
+        }
+
+        // Extract ID from response body or Location header
+        let id: string | undefined;
+
+        if (typeof parsedBody === "object" && parsedBody !== null) {
+            const resource = parsedBody as Record<string, unknown>;
+            if (typeof resource.id === "string") {
+                id = resource.id;
+            }
+        }
+
+        if (!id) {
+            const location = response.headers.get("location") || "";
+            if (location) {
+                const parts = location.split("/");
+                for (let i = 0; i < parts.length - 1; i++) {
+                    if (parts[i] === resourceType && i + 1 < parts.length) {
+                        id = parts[i + 1];
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!id) {
+            throw new FhirWriteError(
+                `Cannot extract ID from response when creating ${resourceType}`,
+                response.status,
+                undefined,
+                "MISSING_ID"
+            );
+        }
+
+        return { id };
     }
 }
 

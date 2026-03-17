@@ -6,6 +6,7 @@
  * dependencies are referenced here.
  */
 
+import type { CreateEncounterInput } from "./encounter.write-input";
 import type { Encounter } from "./encounter";
 
 export interface EncounterRepository {
@@ -50,4 +51,18 @@ export interface EncounterRepository {
      * "initial". This is used for rendering initial evaluation details.
      */
     findInitialByEpisodeOfCareId(episodeOfCareId: string): Promise<Encounter | null>;
+
+    /**
+     * Create a new planned encounter.
+     *
+     * @param input - CreateEncounterInput with patientId, episodeOfCareId, plannedAt, note
+     * @returns Promise<{ id: string }> - the ID of the created Encounter
+     *
+     * Throws:
+     * - FhirMapperError if required references are missing or invalid
+     * - FhirWriteError if the FHIR server rejects the write
+     *
+     * The method returns only the ID. The caller uses this to redirect or fetch full details.
+     */
+    create(input: CreateEncounterInput): Promise<{ id: string }>;
 }

@@ -1,4 +1,4 @@
-import type { BarthelAssessment } from "../../../../domain/assessments/barthel-assessment";
+import type { BarthelAssessment } from "../../../../../domain/assessments/barthel-assessment";
 import { BarthelCard } from "../assessments/BarthelCard";
 import BarthelDeltaDisplay from "./BarthelDeltaDisplay";
 
