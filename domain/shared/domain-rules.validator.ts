@@ -1,6 +1,7 @@
 export { DomainRuleError } from "./error-types";
 import { DomainRuleError } from "./error-types";
 import type { CreateEncounterInput } from "../encounters/encounter.write-input";
+import type { EncounterVisitType } from "../encounters/encounter";
 
 /**
  * Validates domain-level rules for creating an Encounter.
@@ -48,5 +49,16 @@ export function validateEncounterRules(input: CreateEncounterInput): void {
     // Optional note must not be only whitespace.
     if (input.note != null && input.note.trim() === "") {
         throw new DomainRuleError("Clinical note cannot be empty if provided", "EMPTY_NOTE");
+    }
+
+    // Visit type must be one of the allowed values.
+    const validVisitTypes: EncounterVisitType[] = [
+        "initial",
+        "follow-up",
+        "re-assessment",
+        "discharge",
+    ];
+    if (!validVisitTypes.includes(input.visitType)) {
+        throw new DomainRuleError("Visit type is invalid", "INVALID_VISIT_TYPE");
     }
 }

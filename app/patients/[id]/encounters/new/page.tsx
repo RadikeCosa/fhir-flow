@@ -2,6 +2,12 @@ import type { Metadata } from "next";
 import { CreateEncounterForm } from "./components/CreateEncounterForm";
 import { createEpisodeOfCareRepository } from "../../../../../infrastructure/fhir/factories/episode-of-care.factory";
 import type { EpisodeOfCare } from "../../../../../domain/episode-of-care/episode-of-care";
+import {
+  FhirClient,
+  type FhirResource,
+} from "../../../../../lib/fhir/fhir-client";
+import { currentPractitionerId } from "../../../../../config/fhir.config";
+import { formatPatientName } from "../../../../../lib/patient/formatters";
 
 export const metadata: Metadata = {
   title: "Planificar Visita | FHIR Flow",
@@ -66,6 +72,35 @@ export default async function CreateEncounterPage({ params }: PageProps) {
   // Exactly one active episode: extract it
   const activeEpisode = activeEpisodes[0];
 
+  // Fetch practitioner name for display (read-only). If anything goes wrong,
+  // fall back to a generic label.
+  let practitionerName = "Kinesiólogo";
+  if (currentPractitionerId && currentPractitionerId.trim() !== "") {
+    try {
+      const client = new FhirClient();
+      type Practitioner = FhirResource & { name?: unknown };
+      const resource = await client.read<Practitioner>(
+        "Practitioner",
+        currentPractitionerId,
+      );
+
+      if (
+        resource &&
+        typeof resource === "object" &&
+        Array.isArray(resource.name)
+      ) {
+        practitionerName = formatPatientName(
+          resource.name as unknown as {
+            given: string | string[];
+            family: string;
+          },
+        );
+      }
+    } catch {
+      // ignore and keep fallback
+    }
+  }
+
   // Render the create encounter form with patient and episode context
   return (
     <div className="max-w-2xl mx-auto py-8 px-4">
@@ -90,6 +125,7 @@ export default async function CreateEncounterPage({ params }: PageProps) {
           <CreateEncounterForm
             patientId={patientId}
             episodeOfCareId={activeEpisode.id}
+            practitionerName={practitionerName}
           />
         </div>
       </div>

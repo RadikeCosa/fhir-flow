@@ -8,6 +8,8 @@
  * The write repository / mapper is responsible for adding required clinical
  * references and static fields (status, class, performer, etc.).
  */
+import type { EncounterVisitType } from "./encounter";
+
 export interface CreateEncounterInput {
     /**
      * Simple Patient resource id (without the `Patient/` prefix).
@@ -26,9 +28,20 @@ export interface CreateEncounterInput {
     plannedAt: string;
 
     /**
+     * Visit type, used for the `Encounter.type` coding.
+     */
+    visitType: EncounterVisitType;
+
+    /**
      * Optional clinical note describing the reason for the visit.
      * Stored in `Encounter.note[]` in FHIR.
      * `null` is treated the same as `undefined` (no note).
      */
     note?: string | null;
+
+    /**
+     * Optional human-readable reason/motive for the visit.
+     * Stored in `Encounter.reasonCode[0].text` in FHIR.
+     */
+    reasonDisplay?: string | null;
 }

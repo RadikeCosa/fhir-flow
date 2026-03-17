@@ -49,6 +49,10 @@ export const createEncounterFormSchema = z.object({
             }
         }),
 
+    visitType: z
+        .enum(["initial", "follow-up", "re-assessment", "discharge"])
+        .default("follow-up"),
+
     /**
      * Optional clinical note describing the reason for the visit.
      *
@@ -68,6 +72,14 @@ export const createEncounterFormSchema = z.object({
         .refine(
             (value) => !value || value.trim() !== "",
             { message: "La nota no puede ser solo espacios en blanco" }
+        ),
+
+    reasonDisplay: z
+        .string()
+        .optional()
+        .refine(
+            (value) => !value || value.trim() !== "",
+            { message: "El motivo no puede ser solo espacios en blanco" }
         ),
 });
 
@@ -92,5 +104,9 @@ export const createEncounterFormSchema = z.object({
  * ```
  */
 export type CreateEncounterFormValues = z.infer<
+    typeof createEncounterFormSchema
+>;
+
+export type CreateEncounterFormInput = z.input<
     typeof createEncounterFormSchema
 >;

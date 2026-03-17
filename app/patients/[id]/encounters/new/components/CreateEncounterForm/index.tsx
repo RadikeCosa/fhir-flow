@@ -3,10 +3,11 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import type { CreateEncounterFormValues } from "./create-encounter-form.schema";
+import type { CreateEncounterFormInput } from "./create-encounter-form.schema";
 import { createEncounterFormSchema } from "./create-encounter-form.schema";
 import { createEncounterAction } from "../../actions/create-encounter.action";
 import type { ActionResult } from "../../../../../../../domain/shared/action-result.types";
+import { formatEncounterVisitType } from "../../../../../../../lib/patient/formatters/encounter.formatters";
 
 /**
  * Props for the CreateEncounterForm component.
@@ -17,6 +18,7 @@ import type { ActionResult } from "../../../../../../../domain/shared/action-res
 interface CreateEncounterFormProps {
   patientId: string;
   episodeOfCareId: string;
+  practitionerName: string;
 }
 
 /**
@@ -37,6 +39,7 @@ interface CreateEncounterFormProps {
 export function CreateEncounterForm({
   patientId,
   episodeOfCareId,
+  practitionerName,
 }: CreateEncounterFormProps) {
   /**
    * Server action result (Layer 2 domain rules or Layer 3 FHIR errors).
@@ -62,10 +65,12 @@ export function CreateEncounterForm({
    * - plannedAt: Today's date (Date object, not string)
    * - note: Empty string (optional field)
    */
-  const form = useForm<CreateEncounterFormValues>({
+  const form = useForm<CreateEncounterFormInput>({
     resolver: zodResolver(createEncounterFormSchema),
     defaultValues: {
       plannedAt: new Date(),
+      visitType: "follow-up",
+      reasonDisplay: "",
       note: "",
     },
   });
@@ -86,15 +91,14 @@ export function CreateEncounterForm({
    * internally, so this setState never completes. But if there's any error
    * (validation, domain rule, or FHIR), the result is saved and displayed.
    */
-  const onSubmit = async (values: CreateEncounterFormValues) => {
+  const onSubmit = async (values: CreateEncounterFormInput) => {
     setIsSubmitting(true);
     setActionResult(null);
 
-    const result = await createEncounterAction(
-      patientId,
-      episodeOfCareId,
-      values,
-    );
+    const result = await createEncounterAction(patientId, episodeOfCareId, {
+      ...values,
+      visitType: values.visitType ?? "follow-up",
+    });
 
     setActionResult(result);
     setIsSubmitting(false);
@@ -146,6 +150,70 @@ export function CreateEncounterForm({
         {form.formState.errors.plannedAt && (
           <p className="mt-1 text-sm text-red-600">
             {form.formState.errors.plannedAt.message}
+          </p>
+        )}
+      </div>
+
+      {/* Practitioner (read-only) */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700">
+          Profesional
+        </label>
+        <p className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-700 sm:text-sm">
+          {practitionerName}
+        </p>
+      </div>
+
+      {/* Visit type field */}
+      <div>
+        <label
+          htmlFor="visitType"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Tipo de visita
+        </label>
+        <select
+          id="visitType"
+          {...form.register("visitType")}
+          className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 sm:text-sm"
+          disabled={isSubmitting}
+        >
+          <option value="initial">{formatEncounterVisitType("initial")}</option>
+          <option value="follow-up">
+            {formatEncounterVisitType("follow-up")}
+          </option>
+          <option value="re-assessment">
+            {formatEncounterVisitType("re-assessment")}
+          </option>
+          <option value="discharge">
+            {formatEncounterVisitType("discharge")}
+          </option>
+        </select>
+        {form.formState.errors.visitType && (
+          <p className="mt-1 text-sm text-red-600">
+            {form.formState.errors.visitType.message}
+          </p>
+        )}
+      </div>
+
+      {/* Reason/motivo field */}
+      <div>
+        <label
+          htmlFor="reasonDisplay"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Motivo de la visita (opcional)
+        </label>
+        <input
+          type="text"
+          id="reasonDisplay"
+          {...form.register("reasonDisplay")}
+          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 sm:text-sm"
+          disabled={isSubmitting}
+        />
+        {form.formState.errors.reasonDisplay && (
+          <p className="mt-1 text-sm text-red-600">
+            {form.formState.errors.reasonDisplay.message}
           </p>
         )}
       </div>

@@ -54,6 +54,8 @@ export async function createEncounterAction(
         patientId,
         episodeOfCareId,
         plannedAt: parseResult.data.plannedAt.toISOString(),
+        visitType: parseResult.data.visitType,
+        reasonDisplay: parseResult.data.reasonDisplay || null,
         note: parseResult.data.note || null,
     };
 

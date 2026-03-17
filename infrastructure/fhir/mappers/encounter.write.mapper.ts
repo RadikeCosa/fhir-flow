@@ -11,6 +11,8 @@ import type { CreateEncounterInput } from "../../../domain/encounters/encounter.
 import type { FhirEncounter } from "../schemas/encounter.schema";
 import { FhirMapperError } from "../../../domain/shared/error-types";
 import { currentPractitionerId } from "../../../config/fhir.config";
+import { CLINICAL_NOTE_EXTENSION_URL } from "../../../lib/fhir/systems";
+import { formatEncounterVisitType } from "../../../lib/patient/formatters/encounter.formatters";
 
 export function mapToFhirEncounter(input: CreateEncounterInput): FhirEncounter {
     // Required references: patient, episode of care, and performer (from config)
@@ -35,6 +37,16 @@ export function mapToFhirEncounter(input: CreateEncounterInput): FhirEncounter {
             code: "HH",
             display: "Home health",
         },
+        type: [
+            {
+                coding: [
+                    {
+                        code: input.visitType,
+                        display: formatEncounterVisitType(input.visitType),
+                    },
+                ],
+            },
+        ],
         subject: {
             reference: `Patient/${input.patientId}`,
         },
@@ -55,7 +67,22 @@ export function mapToFhirEncounter(input: CreateEncounterInput): FhirEncounter {
         },
     } as unknown as FhirEncounter;
 
+    if (input.reasonDisplay && input.reasonDisplay.trim() !== "") {
+        fhirEncounter.reasonCode = [
+            {
+                text: input.reasonDisplay,
+            },
+        ];
+    }
+
     if (input.note && input.note.trim() !== "") {
+        fhirEncounter.extension = [
+            {
+                url: CLINICAL_NOTE_EXTENSION_URL,
+                valueString: input.note,
+            },
+        ];
+
         fhirEncounter.note = [
             {
                 text: input.note,

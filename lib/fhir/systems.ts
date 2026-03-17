@@ -6,3 +6,5 @@
  */
 
 export const PROCEDURE_SYSTEM = "http://kinesiologia-domiciliaria.local/procedimientos";
+
+export const CLINICAL_NOTE_EXTENSION_URL = "http://kinesiologia-domiciliaria.local/clinical-note";
