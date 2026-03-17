@@ -3,7 +3,7 @@ import { fhirExplanationContent } from "@/content/home-content";
 
 export default function FhirExplanationSection(): React.JSX.Element {
   return (
-    <section className="w-full py-20">
+    <section className="w-full py-12 md:py-20 bg-surface">
       <div className="max-w-5xl mx-auto px-4">
         <header className="text-center">
           <h2 className="text-3xl font-semibold tracking-tight">
@@ -11,7 +11,7 @@ export default function FhirExplanationSection(): React.JSX.Element {
           </h2>
         </header>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
+        <div className="mt-8 md:mt-12 grid gap-6 md:grid-cols-3">
           {fhirExplanationContent.sections.map((section) => (
             <article
               key={section.title}

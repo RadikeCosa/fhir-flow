@@ -5,468 +5,155 @@ applyTo: "**"
 
 # FHIR Flow — Architecture & Coding Guidelines
 
-FHIR Flow is a learning laboratory focused on building a healthcare application using the **FHIR R4 standard** with **clean / hexagonal architecture**.
+Home hospitalization app where kinesiologists manage patient visits. Built on **FHIR R4** with **hexagonal architecture**.
 
-The project models a **home hospitalization workflow** where healthcare professionals (primarily kinesiologists) perform patient visits at home.
-
-The goal is to learn how **real healthcare systems structure software around clinical data and FHIR interoperability**.
-
-The project prioritizes:
-
-- architecture correctness
-- data integrity
-- explicit system boundaries
-- maintainable code
-
-Avoid demo-style shortcuts.
+Stack: Next.js App Router · TypeScript strict · Tailwind CSS v4 · Zod · HAPI FHIR R4 · Recharts
 
 ---
 
-# Technology Stack
+# Layer Flow
 
-- Next.js (App Router)
-- TypeScript (strict)
-- Server Components first
-- Tailwind CSS
-- Recharts (charts)
-- Zod (runtime validation)
-- HAPI FHIR R4 server
-- Node runtime
+```
+config → fhir-client → infrastructure (schemas · mappers · repositories) → domain → UI
+```
+
+FHIR is an external system. Its structures never cross the domain boundary.
 
 ---
 
-# Clinical Workflow Model
+# Non-Negotiable Rules
 
-The system models a hierarchical clinical structure.
-
-Patient  
-→ EpisodeOfCare  
-→ Encounter (home visit)  
-→ Clinical records created during the visit:
-
-- Vital signs
-- Assessments (EVA pain scale)
-- Procedures
-
-Encounters are the **central clinical event** where observations and procedures occur.
+- UI never calls `fetch`
+- UI never consumes raw FHIR JSON
+- Domain has no FHIR dependencies
+- All FHIR data is validated with **Zod before mapping** — never after, never without
+- All HTTP goes through `lib/fhir/fhir-client.ts` exclusively
+- Repositories return domain models only — never FHIR resources
+- Never fail silently — throw explicit typed errors
+- No `any`
 
 ---
 
-# Architecture Overview
+# Validation Architecture
 
-The project uses **Hexagonal Architecture (Ports and Adapters)**.
+Write operations require **multi-layer validation**. Each layer validates a different aspect.
 
-Layer flow:
+## Validation Layers (in order)
 
-config  
-→ http client  
-→ FHIR utilities  
-→ repositories  
-→ domain  
-→ UI
+1. **Form Schema (Zod)** — shape, format, required fields
+   - Location: `app/.../components/{Form}/{form}.schema.ts`
+   - Scope: User input syntax (is it a valid ISO datetime? is the field filled?)
+   - Can use `refine()` / `superRefine()` for **local field coherence** (e.g., if pressure systolic exists, diastolic must also exist)
+   - **Cannot** import from `infrastructure/` — form is UI-only
 
-FHIR is treated as an **external system**.
+2. **Domain Rules Validator** — clinical coherence, business constraints
+   - Location: `domain/shared/domain-rules.validator.ts`
+   - Scope: Clinical and business logic (e.g., "diastolic cannot be higher than systolic", "discharge encounter must include a discharge note")
+   - Called by Server Action **after** Zod validation, **before** repository
+   - Pure function. No HTTP calls. No side effects.
+   - Throws `DomainRuleError` if rules are violated
 
-FHIR resource structures must **never cross the domain boundary**.
+3. **Inverse Mapper** — reference validity, status initialization
+   - Location: `infrastructure/fhir/mappers/{resource}.write.mapper.ts`
+   - Scope: Attach mandatory clinical references, verify they are non-empty, set resource status
+   - Throws `FhirMapperError` if required references are missing
+   - **Does not validate form data** — assumes input is already validated by layers 1–2
+
+4. **FHIR Client** — HTTP response validation
+   - Location: `lib/fhir/fhir-client.ts`
+   - Scope: Validate FHIR server response with Zod, detect `OperationOutcome` errors
+   - Throws `FhirWriteError` if server rejects the write
+
+## Validation Flow Diagram
+
+```
+Client Component (form data)
+        ↓
+Server Action receives form data
+        ↓
+Layer 1: Zod Form Schema validation
+   ✓ If valid → continue
+   ✗ If invalid → return ActionResult { success: false, error: { layer: "validation", ... } }
+        ↓
+Layer 2: Domain Rules Validator
+   ✓ If rules pass → continue
+   ✗ If rules fail → return ActionResult { success: false, error: { layer: "domain", ... } }
+        ↓
+Write Repository.create(validatedInput)
+        ↓
+Inverse Mapper (pure function, no validation)
+        ↓
+FHIR Client.post() / .postBundle()
+        ↓
+Layer 3: FHIR response validation (built into fhir-client)
+   ✓ If 201/200 → return ActionResult { success: true, data: { id } }
+   ✗ If OperationOutcome → return ActionResult { success: false, error: { layer: "fhir", ... } }
+```
+
+## Example: VitalSignRecord validation
+
+**Form Schema** (Zod refine):
+```typescript
+.refine(
+  (data) => {
+    // If systolic exists, diastolic must also exist
+    if (data.bloodPressureSystolic && !data.bloodPressureDiastolic) {
+      return false;
+    }
+    return true;
+  },
+  { message: "Blood pressure must include both systolic and diastolic" }
+)
+```
+
+**Domain Rules** (separate validator):
+```typescript
+// domain-rules.validator.ts
+validateVitalSignRules(input: VitalSignRecordInput): void {
+  if (input.bloodPressureDiastolic > input.bloodPressureSystolic) {
+    throw new DomainRuleError("Diastolic cannot exceed systolic");
+  }
+  if (!hasAtLeastOneVital(input)) {
+    throw new DomainRuleError("At least one vital sign is required");
+  }
+}
+```
 
 ---
 
-# Core Architecture Rules (MANDATORY)
+# Write Phase
 
-## 1. Strict Layer Boundaries
+> Full reference: `docs/write-phase-architecture.md`
 
-Layers must not be bypassed.
+Write flow:
+
+```
+Client Component → Server Action → Zod → Domain Rules Validator → Write Repository → Inverse Mapper → FHIR Client → FHIR Server
+```
+
+Planned phases — in implementation order:
+
+1. Create planned encounter with clinical note — single `Encounter` POST
+2. Register vital signs — multiple `Observation` via Transaction Bundle
+3. Register procedures — multiple `Procedure` via Transaction Bundle
+4. Register assessments — single `Observation` POST
+5. Close visit — `Encounter` status update
 
 Rules:
 
-- UI must not call `fetch`
-- UI must not consume raw FHIR JSON
-- Domain must not depend on FHIR structures
-- Infrastructure logic must not exist in UI
-- External data must be validated before mapping
+- Server Actions are the only write entry point from the UI
+- Server Actions always return `ActionResult` — never throw toward the client
+- Every resource written must carry its required clinical references
+- Multi-resource writes use a **FHIR Transaction Bundle** — individual POSTs are forbidden
+- Write input types are separate from read models and have no `id`
+- Inverse mapper is separate from the read mapper and is always a pure function
+- Form Zod schema and FHIR Zod schema never cross-import
+- Domain rules validation is **mandatory** between Zod and the repository — never skip
+- Resource status is always set in the inverse mapper — never in the form or Server Action
+- "Plan visit" button only renders when EpisodeOfCare status is active — enforced in the Server Component
+
+Implementation order (per phase): `ActionResult` → `ActionError` → write input type → domain rules validator → repository interface → fhir-client → inverse mapper → repository impl → Server Action → form schema → Client Component → wire into page
 
 ---
 
-## 2. FHIR Is External
-
-FHIR resources are **external models**, not domain models.
-
-Required transformation flow:
-
-FHIR Resource  
-→ Zod validation  
-→ Mapper  
-→ Domain model  
-→ UI
-
-Forbidden:
-
-FHIR → mapper → domain
-
-Mapping must always occur **after validation**.
-
-Domain models must remain:
-
-- stable
-- predictable
-- UI-oriented
-- independent from FHIR
-
----
-
-## 3. Single HTTP Boundary
-
-All communication with the FHIR server must go through:
-
-
-lib/fhir/fhir-client.ts
-
-
-No other module may use `fetch`.
-
-The client must:
-
-- apply configuration
-- normalize responses
-- detect `OperationOutcome`
-- throw typed errors
-- handle HTTP failures
-
----
-
-## 4. Runtime Validation
-
-All FHIR responses must be validated using **Zod** before mapping.
-
-Required flow:
-
-HTTP response  
-→ Zod schema validation  
-→ Mapper  
-→ Domain model
-
-Mapping unvalidated data is forbidden.
-
-Invalid resources may be safely ignored if validation fails.
-
----
-
-# Repository Pattern
-
-The **domain defines repository interfaces**.
-
-Infrastructure implements them using FHIR.
-
-Example structure:
-
-
-domain/patient.repository.ts
-infrastructure/patient.fhir-repository.ts
-
-
-Repositories orchestrate:
-
-1. HTTP request
-2. Zod validation
-3. mapping to domain
-4. return domain models
-
-Repositories **never return FHIR resources**.
-
-UI depends only on repository contracts.
-
----
-
-# Domain Model Summary
-
-Core domain entities:
-
-### Patient
-
-Represents a person receiving care.
-
-Key attributes:
-
-- id
-- identifier
-- name
-- birthDate
-- gender
-- contact information
-
----
-
-### EpisodeOfCare
-
-Represents a treatment episode grouping multiple visits.
-
-Examples:
-
-- motor rehabilitation
-- respiratory therapy
-- palliative care
-
----
-
-### Encounter
-
-Represents a **home visit performed by a professional**.
-
-Encounters are the **central clinical unit**.
-
-Attributes include:
-
-- visit type (initial, follow-up, discharge)
-- practitioner participant
-- visit start / end
-- duration
-- visit reason
-
----
-
-### VitalSignRecord
-
-Represents grouped vital signs recorded during a visit.
-
-FHIR stores vital signs as **separate Observation resources**.
-
-Infrastructure mappers aggregate them into a single domain record grouped by:
-
-- date
-- performer
-
-Examples:
-
-- heart rate
-- respiratory rate
-- oxygen saturation
-- temperature
-- blood pressure
-
----
-
-### Assessment
-
-Clinical evaluations performed during encounters.
-
-Currently supported instrument:
-
-EVA pain scale (LOINC 72514-3).
-
----
-
-### Procedure
-
-Represents therapeutic procedures performed during a visit.
-
-Examples:
-
-- therapeutic exercise
-- respiratory drainage
-- mobilization
-
-Procedures are linked to:
-
-- patient
-- encounter
-- practitioner
-
----
-
-# FHIR-Specific Rules
-
-## Bundle Handling
-
-FHIR search responses return a **Bundle**.
-
-Never assume:
-
-- `entry` exists
-- entries are ordered
-- resources are complete
-
-Always validate safely.
-
----
-
-## References
-
-FHIR references are not foreign keys.
-
-Examples:
-
-
-Observation.subject → Patient
-Observation.encounter → Encounter
-Observation.performer → Practitioner
-
-
-These references must be **resolved or mapped explicitly**.
-
----
-
-## Identifiers
-
-FHIR identifiers contain two components:
-
-
-system
-value
-
-
-Never treat identifiers as plain strings.
-
----
-
-## LOINC Codes Used
-
-Important clinical codes:
-
-| Code | Meaning |
-|-----|------|
-8867-4 | Heart rate
-9279-1 | Respiratory rate
-59408-5 | Oxygen saturation
-8310-5 | Body temperature
-55284-4 | Blood pressure
-72514-3 | EVA pain scale
-
----
-
-# UI Architecture
-
-UI is implemented with **Next.js App Router** using **Server Components by default**.
-
-Guidelines:
-
-- prefer server-side data fetching
-- minimal client state
-- no business logic in UI
-- UI only consumes domain models
-
-Only one client component currently exists:
-
-
-VitalSignsChart
-
-
-This component uses **Recharts** and requires the browser DOM.
-
----
-
-# Data Fetching Pattern
-
-Pages fetch data using repositories.
-
-When multiple independent queries are required, use parallel fetching.
-
-Example pattern:
-
-
-const [patient, episodes, vitalSigns, assessments] = await Promise.all([
-patientRepo.findById(id),
-episodeRepo.findAllByPatientId(id),
-vitalRepo.findAllByPatientId(id),
-assessmentRepo.findEvaByPatientId(id),
-])
-
-
----
-
-# Configuration Rules
-
-Configuration must exist only in the **config layer**.
-
-Environment variables must be validated and typed.
-
-Required variables:
-
-
-FHIR_BASE_URL
-CURRENT_PRACTITIONER_ID
-
-
-No other module may read environment variables directly.
-
----
-
-# Code Style Rules
-
-## TypeScript
-
-- strict mode required
-- no `any`
-- explicit types preferred
-- avoid unsafe casts
-- use generics when appropriate
-
----
-
-## Functions
-
-Functions should be:
-
-- small
-- composable
-- single responsibility
-- pure when possible
-
-Mappers must always be pure functions.
-
----
-
-## Error Handling
-
-Rules:
-
-- never fail silently
-- throw explicit errors
-- normalize FHIR errors
-- do not rely on console logging
-
----
-
-# Performance Expectations
-
-Generated code should:
-
-- avoid unnecessary HTTP requests
-- avoid over-fetching FHIR resources
-- support pagination
-- use `summary` or `elements` parameters when appropriate
-
----
-
-# AI Behavior Guidelines
-
-When generating code:
-
-- prioritize architecture correctness
-- respect layer boundaries strictly
-- avoid demo-style shortcuts
-- generate maintainable code
-- prefer explicit logic over implicit behavior
-
----
-
-# Forbidden Patterns
-
-The following are not allowed:
-
-- UI calling `fetch`
-- exposing FHIR structures outside infrastructure
-- mapping unvalidated data
-- mixing validation and mapping
-- business logic inside UI
-- infrastructure logic inside domain
-
----
-
-# If Requirements Are Unclear
-
-Do not assume behavior.
-
-Instead:
-
-- ask for clarification
-- explain architectural tradeoffs
+*FHIR Flow · Coding Guidelines · v1.3*
