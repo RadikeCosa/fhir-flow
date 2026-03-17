@@ -10,14 +10,19 @@ import { extractId } from "./shared/extract-helpers";
 /**
  * Translate a raw FHIR status string into the domain union.  Unrecognised
  * values fall back to `planned` which is a safe, non-error default.
+ *
+ * Normalizes input by trimming and lowercasing so values like "Planned" or
+ * " planned " are accepted.
  */
 function mapStatus(s?: string): EncounterStatus {
-    switch (s) {
+    if (!s) return "planned";
+    const clean = s.trim().toLowerCase();
+    switch (clean) {
         case "planned":
         case "in-progress":
         case "finished":
         case "cancelled":
-            return s;
+            return clean as EncounterStatus;
         default:
             return "planned";
     }
@@ -131,6 +136,15 @@ export function mapFhirEncounterToEncounter(resource: FhirEncounter): Encounter 
             clinicalExt.valueString.trim() !== ""
         ) {
             clinicalNote = clinicalExt.valueString;
+        }
+    }
+
+    // Also support standard FHIR `note[]` — use first note.text when the
+    // extension was absent or empty (backward-compatible fallback).
+    if (!clinicalNote && Array.isArray(resource.note) && resource.note.length > 0) {
+        const firstNote = resource.note[0];
+        if (firstNote && typeof firstNote.text === "string" && firstNote.text.trim() !== "") {
+            clinicalNote = firstNote.text;
         }
     }
 

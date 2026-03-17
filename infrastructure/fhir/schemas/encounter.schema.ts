@@ -65,6 +65,15 @@ export const fhirEncounterSchema = z
                     .passthrough()
             )
             .optional(),
+        note: z
+            .array(
+                z
+                    .object({
+                        text: z.string().optional(),
+                    })
+                    .passthrough()
+            )
+            .optional(),
     })
     .passthrough();
 
