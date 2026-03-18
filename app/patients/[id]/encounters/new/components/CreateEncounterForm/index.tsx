@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
+import { CalendarPlus, User } from "lucide-react";
 import type { CreateEncounterFormInput } from "./create-encounter-form.schema";
 import { createEncounterFormSchema } from "./create-encounter-form.schema";
 import { createEncounterAction } from "../../actions/create-encounter.action";
@@ -75,6 +76,24 @@ export function CreateEncounterForm({
     },
   });
 
+  // Date/time restrictions for the datetime-local input.
+  // `datetime-local` expects a value in the format `YYYY-MM-DDTHH:mm`.
+  const pad2 = (value: number) => String(value).padStart(2, "0");
+  const formatLocalDateTime = (date: Date) => {
+    const year = date.getFullYear();
+    const month = pad2(date.getMonth() + 1);
+    const day = pad2(date.getDate());
+    const hours = pad2(date.getHours());
+    const minutes = pad2(date.getMinutes());
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  const now = new Date();
+  const minDateTime = formatLocalDateTime(now);
+  const maxDate = new Date(now);
+  maxDate.setDate(maxDate.getDate() + 10);
+  const maxDateTime = formatLocalDateTime(maxDate);
+
   /**
    * Form submission handler.
    *
@@ -134,21 +153,23 @@ export function CreateEncounterForm({
       <div>
         <label
           htmlFor="plannedAt"
-          className="block text-sm font-medium text-gray-700"
+          className="block text-sm font-medium text-foreground"
         >
           Fecha y hora planificada
         </label>
         <input
           type="datetime-local"
           id="plannedAt"
+          min={minDateTime}
+          max={maxDateTime}
           {...form.register("plannedAt", {
             valueAsDate: true,
           })}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 sm:text-sm"
+          className="mt-1 block w-full rounded-md border border-border px-3 py-2 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm"
           disabled={isSubmitting}
         />
         {form.formState.errors.plannedAt && (
-          <p className="mt-1 text-sm text-red-600">
+          <p className="mt-1 text-sm text-error">
             {form.formState.errors.plannedAt.message}
           </p>
         )}
@@ -156,26 +177,27 @@ export function CreateEncounterForm({
 
       {/* Practitioner (read-only) */}
       <div>
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-foreground">
           Profesional
         </label>
-        <p className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-700 sm:text-sm">
-          {practitionerName}
-        </p>
+        <div className="mt-1 flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-sm text-foreground">
+          <User size={14} aria-hidden="true" />
+          <span>{practitionerName || "Profesional asignado"}</span>
+        </div>
       </div>
 
       {/* Visit type field */}
       <div>
         <label
           htmlFor="visitType"
-          className="block text-sm font-medium text-gray-700"
+          className="block text-sm font-medium text-foreground"
         >
           Tipo de visita
         </label>
         <select
           id="visitType"
           {...form.register("visitType")}
-          className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 sm:text-sm"
+          className="mt-1 block w-full rounded-md border border-border bg-surface px-3 py-2 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm"
           disabled={isSubmitting}
         >
           <option value="initial">{formatEncounterVisitType("initial")}</option>
@@ -190,7 +212,7 @@ export function CreateEncounterForm({
           </option>
         </select>
         {form.formState.errors.visitType && (
-          <p className="mt-1 text-sm text-red-600">
+          <p className="mt-1 text-sm text-error">
             {form.formState.errors.visitType.message}
           </p>
         )}
@@ -200,7 +222,7 @@ export function CreateEncounterForm({
       <div>
         <label
           htmlFor="reasonDisplay"
-          className="block text-sm font-medium text-gray-700"
+          className="block text-sm font-medium text-foreground"
         >
           Motivo de la visita (opcional)
         </label>
@@ -208,11 +230,11 @@ export function CreateEncounterForm({
           type="text"
           id="reasonDisplay"
           {...form.register("reasonDisplay")}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 sm:text-sm"
+          className="mt-1 block w-full rounded-md border border-border px-3 py-2 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm"
           disabled={isSubmitting}
         />
         {form.formState.errors.reasonDisplay && (
-          <p className="mt-1 text-sm text-red-600">
+          <p className="mt-1 text-sm text-error">
             {form.formState.errors.reasonDisplay.message}
           </p>
         )}
@@ -222,7 +244,7 @@ export function CreateEncounterForm({
       <div>
         <label
           htmlFor="note"
-          className="block text-sm font-medium text-gray-700"
+          className="block text-sm font-medium text-foreground"
         >
           Nota clínica (opcional)
         </label>
@@ -231,11 +253,11 @@ export function CreateEncounterForm({
           {...form.register("note")}
           rows={4}
           placeholder="Motivo de la visita, observaciones previas, etc."
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 sm:text-sm"
+          className="mt-1 block w-full rounded-md border border-border px-3 py-2 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm"
           disabled={isSubmitting}
         />
         {form.formState.errors.note && (
-          <p className="mt-1 text-sm text-red-600">
+          <p className="mt-1 text-sm text-error">
             {form.formState.errors.note.message}
           </p>
         )}
@@ -246,8 +268,9 @@ export function CreateEncounterForm({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
         >
+          <CalendarPlus size={16} aria-hidden="true" />
           {isSubmitting ? "Guardando..." : "Planificar Visita"}
         </button>
       </div>

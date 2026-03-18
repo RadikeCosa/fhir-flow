@@ -47,6 +47,29 @@ export const createEncounterFormSchema = z.object({
                     message: "Debe ser una fecha válida",
                 });
             }
+
+            const now = new Date();
+            const startOfToday = new Date(
+                now.getFullYear(),
+                now.getMonth(),
+                now.getDate(),
+            );
+            const maxDate = new Date(startOfToday);
+            maxDate.setDate(maxDate.getDate() + 10);
+
+            if (value < startOfToday) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: "No se pueden planificar visitas en fechas pasadas",
+                });
+            }
+
+            if (value > maxDate) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: "La visita no puede planificarse con más de 10 días de anticipación",
+                });
+            }
         }),
 
     visitType: z

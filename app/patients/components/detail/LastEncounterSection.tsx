@@ -108,7 +108,27 @@ export const LastEncounterSection: React.FC<Props> = ({
                 </dd>
               </>
             )}
+
+            {lastEncounter.reasonDisplay?.trim() && (
+              <>
+                <dt className="text-xs text-muted font-medium">Motivo:</dt>
+                <dd className="text-sm text-foreground">
+                  {lastEncounter.reasonDisplay}
+                </dd>
+              </>
+            )}
           </dl>
+
+          {lastEncounter.clinicalNote?.trim() && (
+            <div className="mt-4">
+              <div className="text-xs font-semibold text-muted uppercase tracking-wide">
+                Nota clínica
+              </div>
+              <div className="mt-1 bg-surface border border-border rounded-md p-3 text-sm text-foreground">
+                {lastEncounter.clinicalNote}
+              </div>
+            </div>
+          )}
 
           {vitalSigns.length > 0 && (
             <>

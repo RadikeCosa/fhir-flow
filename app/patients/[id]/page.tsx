@@ -50,10 +50,25 @@ export default async function Page({ params }: Props) {
   }
 
   const patientFullName = formatPatientName(data.patient.name);
+  const hasActiveEpisode = data.episodes.some(
+    (episode) => episode.status === "active",
+  );
 
   return (
     <>
-      <Breadcrumbs patientName={patientFullName} />
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <Breadcrumbs patientName={patientFullName} />
+        </div>
+        {hasActiveEpisode && (
+          <Link
+            href={`/patients/${id}/encounters/new`}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-hover transition-colors duration-150"
+          >
+            Planificar Visita
+          </Link>
+        )}
+      </div>
       <div className="mb-4">
         <Link href="/patients" className="text-sm text-primary">
           ← Volver
@@ -72,6 +87,14 @@ export default async function Page({ params }: Props) {
           />
         </div>
         <EpisodeOfCareSection episodes={data.episodes} patientId={id} />
+        <LastEncounterSection
+          lastEncounter={data.lastEncounter}
+          nextPlannedEncounter={data.nextPlannedEncounter}
+          patientId={id}
+          procedures={data.lastEncounterProcedures}
+          evaRecords={data.lastEncounterEvaRecords}
+          vitalSigns={data.lastEncounterVitalSigns}
+        />
         <InitialEvaluationSection
           encounterId={data.initialEncounter?.id ?? null}
           encounterDate={data.initialEncounter?.periodStart ?? null}
@@ -85,14 +108,6 @@ export default async function Page({ params }: Props) {
           initialAssessments={
             data.barthelAssessment ? [data.barthelAssessment] : []
           }
-        />
-        <LastEncounterSection
-          lastEncounter={data.lastEncounter}
-          nextPlannedEncounter={data.nextPlannedEncounter}
-          patientId={id}
-          procedures={data.lastEncounterProcedures}
-          evaRecords={data.lastEncounterEvaRecords}
-          vitalSigns={data.lastEncounterVitalSigns}
         />
       </div>
     </>
