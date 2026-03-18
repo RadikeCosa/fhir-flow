@@ -38,6 +38,21 @@ export function getEncounterStatusBadge(status: EncounterStatus): BadgeInfo {
     }
 }
 
+export function getVisitTypeBadge(visitType: EncounterVisitType): BadgeInfo {
+    switch (visitType) {
+        case "initial":
+            return { label: "Inicial", colorClass: "bg-badge-info-bg text-badge-info-text" };
+        case "follow-up":
+            return { label: "Seguimiento", colorClass: "bg-badge-warning-bg text-badge-warning-text" };
+        case "re-assessment":
+            return { label: "Re-evaluación", colorClass: "bg-badge-neutral-bg text-badge-neutral-text" };
+        case "discharge":
+            return { label: "Alta", colorClass: "bg-badge-success-bg text-badge-success-text" };
+        default:
+            return { label: visitType, colorClass: "bg-badge-neutral-bg text-badge-neutral-text" };
+    }
+}
+
 /**
  * Format an encounter duration (minutes) for display.
  * Returns null when duration is undefined.

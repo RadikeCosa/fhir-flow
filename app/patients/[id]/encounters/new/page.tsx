@@ -5,11 +5,7 @@ import {
   createPatientRepository,
 } from "../../../../../infrastructure/fhir/factories";
 import type { EpisodeOfCare } from "../../../../../domain/episode-of-care/episode-of-care";
-import {
-  FhirClient,
-  type FhirResource,
-} from "../../../../../lib/fhir/fhir-client";
-import { currentPractitionerId } from "../../../../../config/fhir.config";
+import { currentPractitionerName } from "../../../../../config/fhir.config";
 import { formatPatientName } from "../../../../../lib/patient/formatters";
 
 export const metadata: Metadata = {
@@ -60,51 +56,11 @@ export default async function CreateEncounterPage({ params }: PageProps) {
     }
   })();
 
-  const practitionerNamePromise = (async () => {
-    let name = "Kinesiólogo";
-
-    if (currentPractitionerId && currentPractitionerId.trim() !== "") {
-      try {
-        const client = new FhirClient();
-        type Practitioner = FhirResource & { name?: unknown };
-        const resource = await client.read<Practitioner>(
-          "Practitioner",
-          currentPractitionerId,
-        );
-
-        if (
-          resource &&
-          typeof resource === "object" &&
-          Array.isArray(resource.name)
-        ) {
-          name = formatPatientName(
-            resource.name as unknown as {
-              given: string | string[];
-              family: string;
-            },
-          );
-        }
-      } catch {
-        // ignore and keep fallback
-      }
-    }
-
-    if (name.trim() === "") {
-      return "Profesional asignado";
-    }
-
-    return name;
-  })();
-
-  const [patientName, rawPractitionerName] = await Promise.all([
-    patientNamePromise,
-    practitionerNamePromise,
-  ]);
-
+  const patientName = await patientNamePromise;
   const practitionerName =
-    rawPractitionerName.trim() === ""
-      ? "Profesional asignado"
-      : rawPractitionerName;
+    currentPractitionerName.trim() !== ""
+      ? currentPractitionerName
+      : "Profesional asignado";
 
   // Fetch all episodes of care for this patient
   const episodeRepo = createEpisodeOfCareRepository();
