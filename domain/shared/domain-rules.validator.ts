@@ -1,7 +1,8 @@
 export { DomainRuleError } from "./error-types";
 import { DomainRuleError } from "./error-types";
-import type { CreateEncounterInput } from "../encounters/encounter.write-input";
+import type { CreateEncounterInput, FinalizeEncounterInput } from "../encounters/encounter.write-input";
 import type { EncounterVisitType } from "../encounters/encounter";
+import { PROCEDURE_CODES_BY_CATEGORY } from "../procedures/procedure-code-category.map";
 
 /**
  * Validates domain-level rules for creating an Encounter.
@@ -70,3 +71,62 @@ export function validateEncounterRules(input: CreateEncounterInput): void {
         throw new DomainRuleError("Visit type is invalid", "INVALID_VISIT_TYPE");
     }
 }
+
+export function validateFinalizeEncounterRules(input: FinalizeEncounterInput): void {
+    if (!input.encounterId || input.encounterId.trim() === "") {
+        throw new DomainRuleError("El ID de encuentro es requerido", "MISSING_ENCOUNTER_ID");
+    }
+
+    if (!input.patientId || input.patientId.trim() === "") {
+        throw new DomainRuleError("El ID de paciente es requerido", "MISSING_PATIENT_ID");
+    }
+
+    if (!input.periodEnd || typeof input.periodEnd !== "string" || !input.periodEnd.includes("T")) {
+        throw new DomainRuleError("periodEnd debe ser un datetime ISO con componente de tiempo", "INVALID_PERIOD_END");
+    }
+    const periodEndDate = new Date(input.periodEnd);
+    if (isNaN(periodEndDate.getTime())) {
+        throw new DomainRuleError("periodEnd debe ser un datetime ISO válido", "INVALID_PERIOD_END");
+    }
+
+    if (!input.periodStart || typeof input.periodStart !== "string" || !input.periodStart.includes("T")) {
+        throw new DomainRuleError("periodStart debe ser un datetime ISO con componente de tiempo", "INVALID_PERIOD_START");
+    }
+    const periodStartDate = new Date(input.periodStart);
+    if (isNaN(periodStartDate.getTime())) {
+        throw new DomainRuleError("periodStart debe ser un datetime ISO válido", "INVALID_PERIOD_START");
+    }
+
+    if (periodEndDate.getTime() <= periodStartDate.getTime()) {
+        throw new DomainRuleError("periodEnd debe ser posterior a periodStart", "PERIOD_END_BEFORE_START");
+    }
+
+    if (input.clinicalNote == null || input.clinicalNote.trim() === "") {
+        throw new DomainRuleError("La nota clínica es obligatoria", "CLINICAL_NOTE_REQUIRED");
+    }
+
+    const hasSystolic = input.bloodPressureSystolic !== undefined;
+    const hasDiastolic = input.bloodPressureDiastolic !== undefined;
+
+    if ((hasSystolic && !hasDiastolic) || (!hasSystolic && hasDiastolic)) {
+        throw new DomainRuleError("Si se registra presión arterial, debe incluir sistólica y diastólica", "PRESSURE_INCOMPLETE");
+    }
+
+    if (hasSystolic && hasDiastolic && input.bloodPressureDiastolic! > input.bloodPressureSystolic!) {
+        throw new DomainRuleError("La presión diastólica no puede exceder la sistólica", "PRESSURE_INVALID");
+    }
+
+    if (input.evaScore !== undefined) {
+        if (!Number.isInteger(input.evaScore) || input.evaScore < 0 || input.evaScore > 10) {
+            throw new DomainRuleError("El EVA debe ser un entero entre 0 y 10", "EVA_OUT_OF_RANGE");
+        }
+    }
+
+    for (const procedure of input.procedures) {
+        const allowed = PROCEDURE_CODES_BY_CATEGORY[procedure.category];
+        if (!allowed || !allowed.includes(procedure.code)) {
+            throw new DomainRuleError("El código del procedimiento no coincide con la categoría", "PROCEDURE_CODE_CATEGORY_MISMATCH");
+        }
+    }
+}
+

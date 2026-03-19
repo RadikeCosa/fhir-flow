@@ -22,6 +22,15 @@ export type AssessmentType = "eva" | "barthel" | "necpal" | "ecog";
 export interface BaseAssessment {
     id: string;
     patientId: string;
+
+    /**
+     * Optional linked encounter id.
+     *
+     * This field may be absent for assessment records created before
+     * encounter linking was introduced in the write phase.
+     */
+    encounterId?: string;
+
     /** ISO date string in YYYY-MM-DD format */
     date: string;
     type: AssessmentType;

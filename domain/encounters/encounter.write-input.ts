@@ -9,6 +9,7 @@
  * references and static fields (status, class, performer, etc.).
  */
 import type { EncounterVisitType } from "./encounter";
+import type { ProcedureCategory, ProcedureCode } from "../procedures/procedure";
 
 export interface CreateEncounterInput {
     /**
@@ -49,4 +50,40 @@ export interface CreateEncounterInput {
      * Stored in `Encounter.reasonCode[0].text` in FHIR.
      */
     reasonDisplay?: string | null;
+}
+
+/**
+ * Input for finalizing an encounter with clinical observations, procedures and
+ * optional summary notes.
+ *
+ * Note: `patientId`, `episodeOfCareId`, `performerId`, `practitionerName`, and
+ * `periodStart` are resolved by the Server Action from existing server-side
+ * state and not supplied by the client form.
+ *
+ * `procedures` must always be an array; when no procedures apply it should be
+ * an empty array.
+ */
+export interface FinalizeEncounterInput {
+    encounterId: string;
+    patientId: string;
+    episodeOfCareId: string;
+    performerId: string;
+    practitionerName: string;
+    periodStart: string;
+    periodEnd: string;
+    clinicalNote?: string | null;
+    reasonDisplay?: string | null;
+    heartRate?: number;
+    respiratoryRate?: number;
+    oxygenSaturation?: number;
+    bodyTemperature?: number;
+    bloodPressureSystolic?: number;
+    bloodPressureDiastolic?: number;
+    evaScore?: number;
+    procedures: Array<{
+        category: ProcedureCategory;
+        code: ProcedureCode;
+        bodySite?: string;
+        note?: string;
+    }>;
 }

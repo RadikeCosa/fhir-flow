@@ -359,6 +359,94 @@ export class FhirClient {
 
         return { id };
     }
+
+    /**
+     * Send a FHIR transaction bundle via POST to the base URL (not /Bundle).
+     *
+     * Errors are not swallowed; they propagate as FhirWriteError for server
+     * status or FHIR OperationOutcome conditions.
+     */
+    public async postBundle(bundle: unknown): Promise<void> {
+        const url = this.baseUrl;
+
+        const { response, parsedBody } = await this.doFetch(url, {
+            method: "POST",
+            headers: { ...this.defaultHeaders, "Content-Type": "application/fhir+json" },
+            body: JSON.stringify(bundle),
+        });
+
+        const isOutcome = (obj: unknown): obj is OperationOutcome => {
+            if (typeof obj !== "object" || obj === null) return false;
+            const maybe = obj as Record<string, unknown>;
+            return maybe.resourceType === "OperationOutcome";
+        };
+
+        const isBundle = (obj: unknown): obj is { resourceType: "Bundle"; entry?: Array<{ resource?: unknown; response?: { status?: string } }> } => {
+            if (typeof obj !== "object" || obj === null) return false;
+            const maybe = obj as Record<string, unknown>;
+            return maybe.resourceType === "Bundle";
+        };
+
+        if (!response.ok) {
+            if (isOutcome(parsedBody)) {
+                throw new FhirWriteError(
+                    "Bundle HTTP request failed with OperationOutcome",
+                    response.status,
+                    parsedBody,
+                    "BUNDLE_HTTP_ERROR"
+                );
+            }
+
+            throw new FhirWriteError(
+                `Bundle HTTP request failed with status ${response.status}`,
+                response.status,
+                undefined,
+                "BUNDLE_HTTP_ERROR"
+            );
+        }
+
+        if (isOutcome(parsedBody)) {
+            throw new FhirWriteError(
+                "Bundle response is OperationOutcome",
+                response.status,
+                parsedBody,
+                "BUNDLE_OPERATION_OUTCOME"
+            );
+        }
+
+        if (isBundle(parsedBody)) {
+            const bundleData = parsedBody;
+
+            const outcomeEntry = (bundleData.entry ?? [])
+                .map((entry) => entry.resource)
+                .find(isOutcome);
+
+            if (outcomeEntry) {
+                throw new FhirWriteError(
+                    "Bundle response contains OperationOutcome entry",
+                    response.status,
+                    outcomeEntry,
+                    "BUNDLE_OPERATION_OUTCOME"
+                );
+            }
+
+            const failedEntries = (bundleData.entry ?? []).filter((entry) => {
+                const status = entry.response?.status;
+                return typeof status === "string" && !status.startsWith("2");
+            });
+
+            if (failedEntries.length > 0) {
+                throw new FhirWriteError(
+                    "Bundle response contains failed entries",
+                    response.status,
+                    undefined,
+                    "BUNDLE_ENTRY_FAILED"
+                );
+            }
+        }
+
+        return;
+    }
 }
 
 export default FhirClient;

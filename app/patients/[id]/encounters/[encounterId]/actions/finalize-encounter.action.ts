@@ -1,0 +1,144 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import type {
+    ActionError,
+    ActionResult,
+} from "../../../../../../domain/shared/action-result.types";
+import type { FinalizeEncounterInput } from "../../../../../../domain/encounters/encounter.write-input";
+import { validateFinalizeEncounterRules, DomainRuleError } from "../../../../../../domain/shared/domain-rules.validator";
+import { FhirMapperError, FhirWriteError } from "../../../../../../domain/shared/error-types";
+import { createEncounterRepository } from "../../../../../../infrastructure/fhir/factories/encounter.factory";
+import { getCurrentPractitioner } from "../../../../../../lib/server/current-practitioner";
+import { finalizeEncounterFormSchema } from "../components/FinalizeEncounterForm/finalize-encounter-form.schema";
+
+export async function finalizeEncounterAction(
+    patientId: string,
+    encounterId: string,
+    formData: unknown
+): Promise<ActionResult<void>> {
+    const parseResult = finalizeEncounterFormSchema.safeParse(formData);
+    if (!parseResult.success) {
+        return {
+            success: false,
+            error: {
+                layer: "validation",
+                message: "Invalid form data",
+                code: "FORM_VALIDATION_FAILED",
+                details: parseResult.error.flatten(),
+            } satisfies ActionError,
+        };
+    }
+
+    const repo = createEncounterRepository();
+
+    const encounter = await repo.findById(encounterId);
+    if (!encounter) {
+        return {
+            success: false,
+            error: {
+                layer: "fhir",
+                message: "Encounter not found",
+                code: "ENCOUNTER_NOT_FOUND",
+            } satisfies ActionError,
+        };
+    }
+
+    if (encounter.status === "finished" || encounter.status === "cancelled") {
+        return {
+            success: false,
+            error: {
+                layer: "domain",
+                message: "No es posible finalizar un encuentro finalizado o cancelado",
+                code: "ENCOUNTER_NOT_EDITABLE",
+            } satisfies ActionError,
+        };
+    }
+
+    let practitioner;
+    try {
+        practitioner = await getCurrentPractitioner();
+    } catch (error: unknown) {
+        if (error instanceof FhirMapperError) {
+            return {
+                success: false,
+                error: {
+                    layer: "fhir",
+                    message: error.message,
+                    code: error.code,
+                } satisfies ActionError,
+            };
+        }
+        throw error;
+    }
+
+    const input: FinalizeEncounterInput = {
+        encounterId,
+        patientId: encounter.patientId,
+        episodeOfCareId: encounter.episodeOfCareId,
+        performerId: practitioner.id,
+        practitionerName: practitioner.displayName,
+        periodStart: encounter.periodStart,
+        periodEnd: parseResult.data.periodEnd.toISOString(),
+        clinicalNote: parseResult.data.clinicalNote ?? null,
+        reasonDisplay: parseResult.data.reasonDisplay ?? null,
+        heartRate: parseResult.data.heartRate,
+        respiratoryRate: parseResult.data.respiratoryRate,
+        oxygenSaturation: parseResult.data.oxygenSaturation,
+        bodyTemperature: parseResult.data.bodyTemperature,
+        bloodPressureSystolic: parseResult.data.bloodPressureSystolic,
+        bloodPressureDiastolic: parseResult.data.bloodPressureDiastolic,
+        evaScore: parseResult.data.evaScore,
+        procedures: parseResult.data.procedures,
+    };
+
+    try {
+        validateFinalizeEncounterRules(input);
+    } catch (error: unknown) {
+        if (error instanceof DomainRuleError) {
+            return {
+                success: false,
+                error: {
+                    layer: "domain",
+                    message: error.message,
+                    code: error.code,
+                } satisfies ActionError,
+            };
+        }
+        throw error;
+    }
+
+    try {
+        await repo.finalize(input);
+
+        revalidatePath(`/patients/${patientId}`);
+        revalidatePath(`/patients/${patientId}/encounters/${encounterId}`);
+        redirect(`/patients/${patientId}/encounters/${encounterId}`);
+
+        return { success: true };
+    } catch (error: unknown) {
+        if (error instanceof FhirMapperError) {
+            return {
+                success: false,
+                error: {
+                    layer: "fhir",
+                    message: error.message,
+                    code: error.code,
+                } satisfies ActionError,
+            };
+        }
+        if (error instanceof FhirWriteError) {
+            return {
+                success: false,
+                error: {
+                    layer: "fhir",
+                    message: error.message,
+                    code: error.code,
+                    details: error.operationOutcome,
+                } satisfies ActionError,
+            };
+        }
+        throw error;
+    }
+}

@@ -27,6 +27,21 @@ export type ProcedureCategory =
     | "educacion";
 
 /**
+ * Runtime representation of supported procedure categories derived from the
+ * `ProcedureCategory` domain union. Used by Zod schema builders that require
+ * runtime value arrays.
+ */
+export const ProcedureCategoryValues = [
+    "terapia-manual",
+    "ejercicio-terapeutico",
+    "rehabilitacion-neurologica",
+    "rehabilitacion-respiratoria",
+    "fisioterapia",
+    "terapias-complementarias",
+    "educacion",
+] as const;
+
+/**
  * Codes representing specific procedures, grouped by category.  The union
  * includes every code associated with a particular `ProcedureCategory`.
  */
@@ -94,6 +109,70 @@ export type ProcedureCode =
     | "uso-ayudas-tecnicas"
     | "prevencion-caidas"
     | "ergonomia-higiene-postural";
+
+/**
+ * Runtime representation of supported procedure codes derived from the
+ * `ProcedureCode` domain union. Used by Zod schema builders that require
+ * runtime value arrays.
+ */
+export const ProcedureCodeValues = [
+    "masoterapia",
+    "liberacion-miofascial",
+    "movilizacion-articular-pasiva",
+    "movilizacion-articular-activa-asistida",
+    "manipulacion-articular",
+    "estiramiento-muscular",
+    "inhibicion-muscular",
+    "puntos-gatillo",
+    "traccion-manual",
+    "drenaje-linfatico",
+    "fortalecimiento",
+    "ejercicios-linfokineticos",
+    "resistencia-muscular",
+    "movilidad-articular-activa",
+    "coordinacion",
+    "equilibrio",
+    "reeducacion-marcha",
+    "entrenamiento-funcional",
+    "entrenamiento-propioceptivo",
+    "ejercicios-bandas-elasticas",
+    "ejercicios-peso-corporal",
+    "rango-movimiento-rom",
+    "facilitacion-neuromuscular-pnf",
+    "control-postural",
+    "reeducacion-motora",
+    "entrenamiento-avd",
+    "reeducacion-equilibrio",
+    "entrenamiento-transferencias",
+    "ejercicios-respiratorios",
+    "entrenamiento-muscular-respiratorio",
+    "ventilacion-dirigida",
+    "drenaje-bronquial",
+    "drenaje-postural",
+    "percusion-toracica",
+    "vibracion-toracica",
+    "expansion-pulmonar-dirigida",
+    "espiracion-lenta-prolongada",
+    "tos-asistida",
+    "espirometro-incentivo",
+    "ultrasonido-terapeutico",
+    "laser",
+    "onda-corta",
+    "electroestimulacion-nmes",
+    "corrientes-interferenciales",
+    "electroanalgesia",
+    "crioterapia",
+    "termoterapia",
+    "magnetoterapia",
+    "vendaje-neuromuscular",
+    "vendaje-funcional",
+    "compresion-elastica",
+    "educacion-paciente",
+    "educacion-cuidador",
+    "uso-ayudas-tecnicas",
+    "prevencion-caidas",
+    "ergonomia-higiene-postural",
+] as const;
 
 /**
  * Core domain representation of a procedure ordered or performed during an

@@ -5,8 +5,12 @@ import type { FhirEncounter } from "../schemas/encounter.schema";
 import { fhirEncounterSchema } from "../schemas/encounter.schema";
 import { mapFhirEncounterToEncounter } from "../mappers/encounter.mapper";
 import { mapToFhirEncounter } from "../mappers/encounter.write.mapper";
+import { buildFinalizeEncounterBundle } from "../mappers/finalize-encounter-bundle.mapper";
 
-import type { CreateEncounterInput } from "../../../domain/encounters/encounter.write-input";
+import type {
+    CreateEncounterInput,
+    FinalizeEncounterInput,
+} from "../../../domain/encounters/encounter.write-input";
 import type { EncounterRepository } from "../../../domain/encounters/encounter.repository";
 import type { Encounter } from "../../../domain/encounters/encounter";
 
@@ -163,5 +167,10 @@ export class EncounterFhirRepository implements EncounterRepository {
         // Send to FHIR server (may throw FhirWriteError)
         const result = await this.client.post("Encounter", fhirEncounter);
         return result;
+    }
+
+    public async finalize(input: FinalizeEncounterInput): Promise<void> {
+        const bundle = buildFinalizeEncounterBundle(input);
+        await this.client.postBundle(bundle);
     }
 }

@@ -20,8 +20,8 @@ import {
     createBarthelAssessmentRepository,
     createNecpalAssessmentRepository,
     createPlanOfCareRepository,
+    createEcogAssessmentRepository,
 } from "@/infrastructure/fhir/factories";
-import { createEcogAssessmentRepository } from "@/infrastructure/fhir/factories/ecog-assessment.factory";
 
 import { currentPractitionerId } from "@/config/fhir.config";
 

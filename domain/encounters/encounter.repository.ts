@@ -6,7 +6,7 @@
  * dependencies are referenced here.
  */
 
-import type { CreateEncounterInput } from "./encounter.write-input";
+import type { CreateEncounterInput, FinalizeEncounterInput } from "./encounter.write-input";
 import type { Encounter } from "./encounter";
 
 export interface EncounterRepository {
@@ -65,4 +65,22 @@ export interface EncounterRepository {
      * The method returns only the ID. The caller uses this to redirect or fetch full details.
      */
     create(input: CreateEncounterInput): Promise<{ id: string }>;
+
+    /**
+     * Finalizes an already-existing encounter by writing clinical observations
+     * and procedures, and updating encounter status/timing via a FHIR transaction.
+     *
+     * This is a composed use case, not pure persistence. It delegates to
+     * infrastructure mappers to construct a FHIR Transaction Bundle containing:
+     *   - a PUT entry for updating the Encounter
+     *   - POST entries for Observations (vital signs and EVA)
+     *   - POST entries for Procedures
+     * The bundle is sent through the FHIR client.
+     *
+     * Errors are NOT caught here; they propagate to the Server Action.
+     * In a larger system, this orchestration would reside in an application
+     * service layer; in this project it is intentionally placed in the
+     * repository as a learning-lab simplification (see write-phase-architecture.md).
+     */
+    finalize(input: FinalizeEncounterInput): Promise<void>;
 }

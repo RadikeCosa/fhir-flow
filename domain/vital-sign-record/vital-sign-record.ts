@@ -61,6 +61,14 @@ export interface VitalSignRecord {
         display: string;
     };
 
+    /**
+     * Optional linked encounter id.
+     *
+     * This field is not always present for historical vital records created
+     * before the write phase introduced encounter linkage.
+     */
+    encounterId?: string;
+
     /** Heart rate in beats per minute (optional). */
     heartRate?: number;
 
