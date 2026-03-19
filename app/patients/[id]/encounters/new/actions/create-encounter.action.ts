@@ -10,7 +10,8 @@ import type { CreateEncounterInput } from "../../../../../../domain/encounters/e
 import { validateEncounterRules, DomainRuleError } from "../../../../../../domain/shared/domain-rules.validator";
 import { FhirMapperError, FhirWriteError } from "../../../../../../domain/shared/error-types";
 import { createEncounterRepository } from "../../../../../../infrastructure/fhir/factories/encounter.factory";
-import { getCurrentPractitioner } from "@/app/current-practitioner";
+import { currentPractitionerId } from "@/config/fhir.config";
+import { createPractitionerRepository } from "@/infrastructure/fhir/factories";
 import { createEncounterFormSchema } from "../components/CreateEncounterForm/create-encounter-form.schema";
 
 export async function createEncounterAction(
@@ -31,25 +32,34 @@ export async function createEncounterAction(
         };
     }
 
-    let practitionerName: string;
-    try {
-        const practitioner = await getCurrentPractitioner();
-        practitionerName = practitioner.displayName;
-    } catch (error: unknown) {
-        if (error instanceof FhirMapperError) {
-            return {
-                success: false,
-                error: {
-                    layer: "fhir",
-                    message: error.message,
-                    code: error.code,
-                    details: undefined,
-                } satisfies ActionError,
-            };
-        }
+    const practitionerRepo = createPractitionerRepository();
+    const practitioner = await practitionerRepo.findById(currentPractitionerId);
 
-        throw error;
+    if (!practitioner) {
+        return {
+            success: false,
+            error: {
+                layer: "fhir",
+                message: `Current practitioner ${currentPractitionerId} could not be resolved from FHIR`,
+                code: "CURRENT_PRACTITIONER_NOT_FOUND",
+                details: undefined,
+            } satisfies ActionError,
+        };
     }
+
+    if (!practitioner.displayName || practitioner.displayName.trim() === "") {
+        return {
+            success: false,
+            error: {
+                layer: "fhir",
+                message: `Current practitioner ${currentPractitionerId} does not have a displayable name in FHIR`,
+                code: "CURRENT_PRACTITIONER_NAME_MISSING",
+                details: undefined,
+            } satisfies ActionError,
+        };
+    }
+
+    const practitionerName = practitioner.displayName;
 
     const input: CreateEncounterInput = {
         patientId,
