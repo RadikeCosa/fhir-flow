@@ -10,7 +10,6 @@
 import type { CreateEncounterInput } from "../../../domain/encounters/encounter.write-input";
 import type { FhirEncounter } from "../schemas/encounter.schema";
 import { FhirMapperError } from "../../../domain/shared/error-types";
-import { currentPractitionerId } from "../../../config/fhir.config";
 import { CLINICAL_NOTE_EXTENSION_URL } from "../../../lib/fhir/systems";
 import { formatEncounterVisitType } from "../../../lib/patient/formatters/encounter.formatters";
 
@@ -22,9 +21,9 @@ export function mapToFhirEncounter(input: CreateEncounterInput): FhirEncounter {
     if (!input.episodeOfCareId || input.episodeOfCareId.trim() === "") {
         throw new FhirMapperError("Episode of care ID cannot be empty", "MISSING_EPISODE_ID");
     }
-    if (!currentPractitionerId || currentPractitionerId.trim() === "") {
+    if (!input.performerId || input.performerId.trim() === "") {
         throw new FhirMapperError(
-            "Performer ID (from config) cannot be empty",
+            "Performer ID (from server action) cannot be empty",
             "MISSING_PERFORMER_ID"
         );
     }
@@ -64,7 +63,7 @@ export function mapToFhirEncounter(input: CreateEncounterInput): FhirEncounter {
         participant: [
             {
                 individual: {
-                    reference: `Practitioner/${currentPractitionerId}`,
+                    reference: `Practitioner/${input.performerId}`,
                     display: input.practitionerName,
                 },
             },

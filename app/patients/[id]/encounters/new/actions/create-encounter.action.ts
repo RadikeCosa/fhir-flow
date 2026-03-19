@@ -51,9 +51,12 @@ export async function createEncounterAction(
 
     const practitionerName = practitioner.displayName;
 
+    const performerId = practitioner.id;
+
     const input: CreateEncounterInput = {
         patientId,
         practitionerName,
+        performerId,
         episodeOfCareId,
         plannedAt: parseResult.data.plannedAt.toISOString(),
         visitType: parseResult.data.visitType,

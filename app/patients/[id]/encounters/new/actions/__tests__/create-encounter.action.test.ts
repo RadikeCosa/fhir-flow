@@ -60,6 +60,7 @@ describe("createEncounterAction", () => {
         expect(createMock).toHaveBeenCalledWith(
             expect.objectContaining({
                 practitionerName: "Lic. Ramiro Perez",
+                performerId: "kine-1",
             })
         );
         expect(revalidatePathMock).toHaveBeenNthCalledWith(1, "/patients/patient-1");

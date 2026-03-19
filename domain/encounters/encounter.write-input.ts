@@ -21,6 +21,12 @@ export interface CreateEncounterInput {
      * Human-readable practitioner name used in the UI and persisted in FHIR.
      */
     practitionerName: string;
+    /**
+     * Simple Practitioner resource id (without the `Practitioner/` prefix).
+     * Resolved by the Server Action and carried through the write input so
+     * that mappers remain pure and do not read runtime config.
+     */
+    performerId: string;
 
     /**
      * Simple EpisodeOfCare resource id (without the `EpisodeOfCare/` prefix).

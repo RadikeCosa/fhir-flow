@@ -18,6 +18,7 @@ function makeInput(overrides: Partial<CreateEncounterInput> = {}): CreateEncount
     return {
         patientId: "patient-1",
         practitionerName: "Lic. Ramiro Perez",
+        performerId: "kine-1",
         episodeOfCareId: "episode-1",
         plannedAt: "2026-03-20T10:00:00.000Z",
         visitType: "follow-up",
@@ -30,8 +31,6 @@ function makeInput(overrides: Partial<CreateEncounterInput> = {}): CreateEncount
 describe("mapToFhirEncounter", () => {
     it("writes practitioner display in participant individual", async () => {
         process.env.FHIR_BASE_URL = "http://localhost:8080/fhir";
-        process.env.CURRENT_PRACTITIONER_ID = "kine-1";
-
         const { mapToFhirEncounter } = await loadMapperModule();
         const result = mapToFhirEncounter(makeInput());
 
@@ -40,8 +39,6 @@ describe("mapToFhirEncounter", () => {
 
     it("throws when practitionerName is blank", async () => {
         process.env.FHIR_BASE_URL = "http://localhost:8080/fhir";
-        process.env.CURRENT_PRACTITIONER_ID = "kine-1";
-
         const { mapToFhirEncounter } = await loadMapperModule();
 
         expect(() =>

@@ -56,6 +56,7 @@ vi.mock('@/infrastructure/fhir/factories', () => ({
     createProcedureRepository: () => repositories.procedureRepo,
     createBarthelAssessmentRepository: () => repositories.barthelRepo,
     createNecpalAssessmentRepository: () => repositories.necpalRepo,
+    createEcogAssessmentRepository: () => repositories.ecogRepo,
     createPlanOfCareRepository: () => repositories.planRepo,
 }));
 

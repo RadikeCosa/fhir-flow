@@ -8,6 +8,7 @@ function makeInput(overrides: Partial<CreateEncounterInput> = {}): CreateEncount
     return {
         patientId: "patient-1",
         practitionerName: "Lic. Ramiro Perez",
+        performerId: "kine-1",
         episodeOfCareId: "episode-1",
         plannedAt: "2026-03-20T10:00:00.000Z",
         visitType: "follow-up",
