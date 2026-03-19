@@ -6,7 +6,7 @@ import {
   createPatientRepository,
 } from "@/infrastructure/fhir/factories";
 import { formatPatientName } from "@/lib/patient/formatters";
-import { getCurrentPractitioner } from "@/app/current-practitioner";
+import { getCurrentPractitioner } from "@/lib/server/current-practitioner";
 import { CreateEncounterForm } from "./components/CreateEncounterForm";
 
 export const metadata: Metadata = {

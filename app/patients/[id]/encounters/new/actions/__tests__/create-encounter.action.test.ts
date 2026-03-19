@@ -12,7 +12,7 @@ vi.mock("../../../../../../../infrastructure/fhir/factories/encounter.factory", 
     }),
 }));
 
-vi.mock("@/app/current-practitioner", () => ({
+vi.mock("@/lib/server/current-practitioner", () => ({
     getCurrentPractitioner: getCurrentPractitionerMock,
 }));
 
