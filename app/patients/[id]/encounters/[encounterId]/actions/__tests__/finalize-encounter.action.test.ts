@@ -151,6 +151,7 @@ describe("finalizeEncounterAction", () => {
             expect.objectContaining({
                 encounterId: "enc-123",
                 patientId: "patient-1",
+                episodeOfCareId: "episode-1",
                 performerId: "prac-1",
                 practitionerName: "Lic. Ramiro Perez",
                 periodStart: "2026-03-20T10:00:00.000Z",

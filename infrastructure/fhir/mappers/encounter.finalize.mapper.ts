@@ -16,6 +16,11 @@ export function mapToFhirEncounterUpdate(input: FinalizeEncounterInput): unknown
         resourceType: "Encounter",
         id: input.encounterId,
         status: "finished",
+        class: {
+            system: "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+            code: "HH",
+            display: "Home health",
+        },
         period: {
             start: input.periodStart,
             end: input.periodEnd,
@@ -23,6 +28,11 @@ export function mapToFhirEncounterUpdate(input: FinalizeEncounterInput): unknown
         subject: {
             reference: `Patient/${input.patientId}`,
         },
+        episodeOfCare: [
+            {
+                reference: `EpisodeOfCare/${input.episodeOfCareId}`,
+            },
+        ],
         participant: [
             {
                 individual: {
