@@ -55,7 +55,7 @@ Usalo para:
 
 ### Lifecycle
 
-Busca en `docs/adr/ADR-001-visit-lyfecicle-and-write-arquitecture.md`.
+Busca en `docs/adr/ADR-001-encounter-lifecycle-and-write-architecture.md`.
 
 Usalo para:
 
@@ -66,7 +66,7 @@ Usalo para:
 
 ### Practitioner Responsibility
 
-Busca en `docs/adr/ADR-001-visit-lyfecicle-and-write-arquitecture.md`.
+Busca en `docs/adr/ADR-001-encounter-lifecycle-and-write-architecture.md`.
 
 Usalo para confirmar que:
 
