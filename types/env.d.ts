@@ -24,12 +24,6 @@ declare global {
              * Example: kine-1
              */
             CURRENT_PRACTITIONER_ID: string;
-
-            /**
-             * Human-readable practitioner name shown in UI and persisted in write payloads.
-             * Example: Lic. Ramiro Perez
-             */
-            CURRENT_PRACTITIONER_NAME: string;
         }
     }
 }

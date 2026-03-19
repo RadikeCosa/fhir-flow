@@ -313,7 +313,7 @@ Fields required to create a planned encounter:
 |---|---|---|
 | `patientId` | string | Reference to Patient |
 | `episodeOfCareId` | string | Reference to EpisodeOfCare |
-| `performerId` | string | Reference to Practitioner (from env: CURRENT_PRACTITIONER_ID) |
+| `performerId` | string | Reference to Practitioner (from env: CURRENT_PRACTITIONER_ID). The display name is resolved from that FHIR Practitioner at runtime. |
 | `visitType` | EncounterVisitType | initial / follow-up / re-assessment / discharge |
 | `periodStart` | string | ISO datetime — planned visit date and time |
 | `clinicalNote` | string \| null | Optional preparation note |

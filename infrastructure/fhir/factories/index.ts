@@ -8,6 +8,7 @@
 export { createPatientRepository } from "./patient.factory";
 export { createEpisodeOfCareRepository } from "./episode-of-care.factory";
 export { createEncounterRepository } from "./encounter.factory";
+export { createPractitionerRepository } from "./practitioner.factory";
 export { createVitalSignRecordRepository } from "./vital-sign-record.factory";
 export { createAssessmentRepository } from "./assessment.factory";
 export { createProcedureRepository } from "./procedure.factory";

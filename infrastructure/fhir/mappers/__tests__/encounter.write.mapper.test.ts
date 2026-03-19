@@ -31,7 +31,6 @@ describe("mapToFhirEncounter", () => {
     it("writes practitioner display in participant individual", async () => {
         process.env.FHIR_BASE_URL = "http://localhost:8080/fhir";
         process.env.CURRENT_PRACTITIONER_ID = "kine-1";
-        process.env.CURRENT_PRACTITIONER_NAME = "Lic. Ramiro Perez";
 
         const { mapToFhirEncounter } = await loadMapperModule();
         const result = mapToFhirEncounter(makeInput());
@@ -42,7 +41,6 @@ describe("mapToFhirEncounter", () => {
     it("throws when practitionerName is blank", async () => {
         process.env.FHIR_BASE_URL = "http://localhost:8080/fhir";
         process.env.CURRENT_PRACTITIONER_ID = "kine-1";
-        process.env.CURRENT_PRACTITIONER_NAME = "Lic. Ramiro Perez";
 
         const { mapToFhirEncounter } = await loadMapperModule();
 

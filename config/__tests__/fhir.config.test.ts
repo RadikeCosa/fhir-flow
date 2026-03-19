@@ -13,23 +13,21 @@ afterEach(() => {
 });
 
 describe("fhir.config env validation", () => {
-    it("throws when CURRENT_PRACTITIONER_NAME is missing", async () => {
+    it("throws when CURRENT_PRACTITIONER_ID is missing", async () => {
         process.env.FHIR_BASE_URL = "http://localhost:8080/fhir";
-        process.env.CURRENT_PRACTITIONER_ID = "kine-1";
-        delete process.env.CURRENT_PRACTITIONER_NAME;
+        delete (process.env as Partial<NodeJS.ProcessEnv>).CURRENT_PRACTITIONER_ID;
 
         await expect(loadConfigModule()).rejects.toThrow(
-            "Missing required environment variable: CURRENT_PRACTITIONER_NAME"
+            "Missing required environment variable: CURRENT_PRACTITIONER_ID"
         );
     });
 
-    it("exports a trimmed practitioner name when env vars are valid", async () => {
+    it("exports a trimmed practitioner id when env vars are valid", async () => {
         process.env.FHIR_BASE_URL = "http://localhost:8080/fhir";
-        process.env.CURRENT_PRACTITIONER_ID = "kine-1";
-        process.env.CURRENT_PRACTITIONER_NAME = "  Lic. Ramiro Perez  ";
+        process.env.CURRENT_PRACTITIONER_ID = "  kine-1  ";
 
         const config = await loadConfigModule();
 
-        expect(config.currentPractitionerName).toBe("Lic. Ramiro Perez");
+        expect(config.currentPractitionerId).toBe("kine-1");
     });
 });
