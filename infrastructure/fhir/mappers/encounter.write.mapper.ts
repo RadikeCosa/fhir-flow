@@ -28,6 +28,12 @@ export function mapToFhirEncounter(input: CreateEncounterInput): FhirEncounter {
             "MISSING_PERFORMER_ID"
         );
     }
+    if (!input.practitionerName || input.practitionerName.trim() === "") {
+        throw new FhirMapperError(
+            "Performer name (from server action) cannot be empty",
+            "MISSING_PERFORMER_NAME"
+        );
+    }
 
     const fhirEncounter = {
         resourceType: "Encounter",
@@ -59,6 +65,7 @@ export function mapToFhirEncounter(input: CreateEncounterInput): FhirEncounter {
             {
                 individual: {
                     reference: `Practitioner/${currentPractitionerId}`,
+                    display: input.practitionerName,
                 },
             },
         ],

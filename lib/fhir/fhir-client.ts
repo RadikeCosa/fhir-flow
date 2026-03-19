@@ -111,6 +111,39 @@ export class FhirClient {
     }
 
     /**
+     * Low-level fetch used by multiple methods. Returns the Response and the
+     * parsed body (JSON or text) so callers can inspect headers/status.
+     */
+    private async doFetch(url: string, fetchOptions: RequestInit): Promise<{ response: Response; parsedBody: unknown; contentType: string }> {
+        let res: Response;
+        try {
+            res = await fetch(url, fetchOptions);
+        } catch (err) {
+            throw new FhirError(`Network request failed for ${url}: ${String(err)}`, err);
+        }
+
+        const contentType = res.headers.get("content-type") || "";
+
+        // Attempt to parse JSON when possible
+        let parsedBody: unknown = null;
+        if (contentType.includes("application/json") || contentType.includes("application/fhir+json") || contentType.includes("+json")) {
+            try {
+                parsedBody = await res.json();
+            } catch {
+                parsedBody = null;
+            }
+        } else {
+            try {
+                parsedBody = await res.text();
+            } catch {
+                parsedBody = null;
+            }
+        }
+
+        return { response: res, parsedBody, contentType };
+    }
+
+    /**
      * Low-level request helper. Throws typed errors on non-2xx responses or
      * when server returns a FHIR OperationOutcome.
      */
@@ -134,33 +167,7 @@ export class FhirClient {
             mergedHeaders["Content-Type"] = mergedHeaders["Content-Type"] ?? "application/fhir+json";
         }
 
-        let res: Response;
-        try {
-            res = await fetch(url, fetchOptions);
-        } catch (err) {
-            // Network-level failure (DNS, connection refused, CORS, etc.)
-            throw new FhirError(`Network request failed for ${url}: ${String(err)}`, err);
-        }
-
-        const contentType = res.headers.get("content-type") || "";
-
-        // Attempt to parse JSON when possible
-        let parsedBody: unknown = null;
-        if (contentType.includes("application/json") || contentType.includes("application/fhir+json") || contentType.includes("+json")) {
-            try {
-                parsedBody = await res.json();
-            } catch {
-                // fall through and handle as text if json parsing fails
-                parsedBody = null;
-            }
-        } else {
-            // non-json responses: try to read as text
-            try {
-                parsedBody = await res.text();
-            } catch {
-                parsedBody = null;
-            }
-        }
+        const { response: res, parsedBody } = await this.doFetch(url, fetchOptions);
 
         // Type guard reused in multiple places
         const isOutcome = (obj: unknown): obj is OperationOutcome => {
@@ -228,24 +235,8 @@ export class FhirClient {
             }
         }
 
-        // Fallback: perform a direct fetch to the absolute URL.
-        const response = await fetch(url, { method: "GET", headers: this.defaultHeaders });
-        const contentType = response.headers.get("content-type") || "";
-
-        let parsedBody: unknown = null;
-        if (contentType.includes("application/json") || contentType.includes("application/fhir+json") || contentType.includes("+json")) {
-            try {
-                parsedBody = await response.json();
-            } catch {
-                parsedBody = null;
-            }
-        } else {
-            try {
-                parsedBody = await response.text();
-            } catch {
-                parsedBody = null;
-            }
-        }
+        // Fallback: perform a direct fetch to the absolute URL using the shared helper.
+        const { response, parsedBody } = await this.doFetch(url, { method: "GET", headers: this.defaultHeaders });
 
         const isOutcome = (obj: unknown): obj is OperationOutcome => {
             if (typeof obj !== "object" || obj === null) return false;
@@ -298,22 +289,13 @@ export class FhirClient {
      */
     public async post(resourceType: string, body: unknown): Promise<{ id: string }> {
         const path = `/${encodeURIComponent(resourceType)}`;
-        const response = await fetch(this.buildUrl(path), {
+        const url = this.buildUrl(path);
+
+        const { response, parsedBody } = await this.doFetch(url, {
             method: "POST",
             headers: { ...this.defaultHeaders, "Content-Type": "application/fhir+json" },
             body: JSON.stringify(body),
         });
-
-        // Parse response body
-        let parsedBody: unknown = null;
-        const contentType = response.headers.get("content-type") || "";
-        if (contentType.includes("application/json") || contentType.includes("application/fhir+json")) {
-            try {
-                parsedBody = await response.json();
-            } catch {
-                parsedBody = null;
-            }
-        }
 
         // Detect OperationOutcome in any 2xx response
         const isOutcome = (obj: unknown): obj is OperationOutcome => {

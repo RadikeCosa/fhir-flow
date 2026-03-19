@@ -182,7 +182,7 @@ export function CreateEncounterForm({
         </label>
         <div className="mt-1 flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-sm text-foreground">
           <User size={14} aria-hidden="true" />
-          <span>{practitionerName || "Profesional asignado"}</span>
+          <span>{practitionerName}</span>
         </div>
       </div>
 

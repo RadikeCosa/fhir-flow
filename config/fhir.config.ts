@@ -37,6 +37,11 @@ if (!currentPractitionerIdValue) {
     throw new Error("Missing required environment variable: CURRENT_PRACTITIONER_ID");
 }
 
+// validar que exista un nombre de profesional activo
+if (!currentPractitionerNameValue || currentPractitionerNameValue.trim() === "") {
+    throw new Error("Missing required environment variable: CURRENT_PRACTITIONER_NAME");
+}
+
 export const fhirConfig: FhirServerConfig = {
     baseUrl: fhirBaseUrl, // asigna la URL base desde la variable de entorno
 
@@ -67,4 +72,4 @@ export const currentPractitionerId: string = currentPractitionerIdValue;
 
 // Temporary display name for the current practitioner.
 // Will be replaced by auth session data when authentication is implemented.
-export const currentPractitionerName: string = currentPractitionerNameValue?.trim() ?? "";
+export const currentPractitionerName: string = currentPractitionerNameValue.trim();

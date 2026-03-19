@@ -8,6 +8,7 @@ import { createEncounterRepository } from "../../../../../../infrastructure/fhir
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createEncounterFormSchema } from "../components/CreateEncounterForm/create-encounter-form.schema";
+import { currentPractitionerName } from "../../../../../../config/fhir.config";
 
 /**
  * Server Action: creates a new planned Encounter on the FHIR server.
@@ -52,6 +53,7 @@ export async function createEncounterAction(
     // Layer 2: Domain rules validation
     const input: CreateEncounterInput = {
         patientId,
+        practitionerName: currentPractitionerName,
         episodeOfCareId,
         plannedAt: parseResult.data.plannedAt.toISOString(),
         visitType: parseResult.data.visitType,

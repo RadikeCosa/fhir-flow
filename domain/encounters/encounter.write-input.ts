@@ -17,6 +17,11 @@ export interface CreateEncounterInput {
     patientId: string;
 
     /**
+     * Human-readable practitioner name used in the UI and persisted in FHIR.
+     */
+    practitionerName: string;
+
+    /**
      * Simple EpisodeOfCare resource id (without the `EpisodeOfCare/` prefix).
      */
     episodeOfCareId: string;

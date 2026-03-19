@@ -24,6 +24,14 @@ export function validateEncounterRules(input: CreateEncounterInput): void {
         throw new DomainRuleError("Patient ID is required", "MISSING_PATIENT_ID");
     }
 
+    // Require a non-empty practitioner name.
+    if (!input.practitionerName || input.practitionerName.trim() === "") {
+        throw new DomainRuleError(
+            "Practitioner name is required",
+            "MISSING_PRACTITIONER_NAME"
+        );
+    }
+
     // Require a non-empty episode of care ID.
     if (!input.episodeOfCareId || input.episodeOfCareId.trim() === "") {
         throw new DomainRuleError("Episode of care ID is required", "MISSING_EPISODE_ID");

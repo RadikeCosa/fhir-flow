@@ -57,10 +57,7 @@ export default async function CreateEncounterPage({ params }: PageProps) {
   })();
 
   const patientName = await patientNamePromise;
-  const practitionerName =
-    currentPractitionerName.trim() !== ""
-      ? currentPractitionerName
-      : "Profesional asignado";
+  const practitionerName = currentPractitionerName;
 
   // Fetch all episodes of care for this patient
   const episodeRepo = createEpisodeOfCareRepository();

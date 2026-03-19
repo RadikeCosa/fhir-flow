@@ -48,6 +48,11 @@ export interface PatientDetailData {
     reAssessmentEntries: ReAssessmentEntry[];
 }
 
+function isPastEncounterDate(periodStart: string, now: Date): boolean {
+    const timestamp = Date.parse(periodStart);
+    return !Number.isNaN(timestamp) && timestamp < now.getTime();
+}
+
 export async function getPatientDetailData(
     patientId: string
 ): Promise<PatientDetailData> {
@@ -118,26 +123,37 @@ export async function getPatientDetailData(
             : Promise.resolve<PlanOfCare | null>(null),
     ]);
 
+    const now = new Date();
+
     const reAssessmentEncounters = activeEpisode
         ? (
             await encounterRepo.findAllByEpisodeOfCareId(activeEpisode.id)
         )
-            .filter((e) => e.visitType === "re-assessment")
+            .filter(
+                (e) =>
+                    e.visitType === "re-assessment"
+                    && e.status === "finished"
+                    && isPastEncounterDate(e.periodStart, now)
+            )
             .sort((a, b) => a.periodStart.localeCompare(b.periodStart))
         : [];
 
-    const reAssessmentEntries: ReAssessmentEntry[] = await Promise.all(
-        reAssessmentEncounters.map(async (encounter) => {
-            const [barthel, planOfCare] = await Promise.all([
-                barthelRepo.findByEncounterId(encounter.id),
-                planRepo.findByEncounterId(encounter.id),
-            ]);
-            return {
-                encounter,
-                assessments: barthel ? [barthel] : [],
-                planOfCare,
-            };
-        })
+    const reAssessmentEntries: ReAssessmentEntry[] = (
+        await Promise.all(
+            reAssessmentEncounters.map(async (encounter) => {
+                const [barthel, planOfCare] = await Promise.all([
+                    barthelRepo.findByEncounterId(encounter.id),
+                    planRepo.findByEncounterId(encounter.id),
+                ]);
+                return {
+                    encounter,
+                    assessments: barthel ? [barthel] : [],
+                    planOfCare,
+                };
+            })
+        )
+    ).filter(
+        (entry) => entry.assessments.length > 0 || entry.planOfCare !== null
     );
 
     return {

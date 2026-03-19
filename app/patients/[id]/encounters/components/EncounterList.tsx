@@ -34,6 +34,18 @@ export default function EncounterList({
   const planned = encounters.filter((e) => e.status === "planned");
   const others = encounters.filter((e) => e.status !== "planned");
 
+  // Ensure we always sort planned encounters ascending (nearest first)
+  const plannedSortedByStartAsc = [...planned].sort(
+    (a, b) =>
+      new Date(a.periodStart).getTime() - new Date(b.periodStart).getTime(),
+  );
+
+  // Ensure others are always sorted descending (most recent first)
+  const othersSortedByStartDesc = [...others].sort(
+    (a, b) =>
+      new Date(b.periodStart).getTime() - new Date(a.periodStart).getTime(),
+  );
+
   const renderGroup = (title: string, list: Encounter[]) => {
     if (list.length === 0) return null;
 
@@ -58,10 +70,48 @@ export default function EncounterList({
     );
   };
 
+  const upcomingCount = plannedSortedByStartAsc.length;
+  const upcomingExtras = Math.max(0, upcomingCount - 1);
+
   return (
     <div className="space-y-8">
-      {renderGroup("Próximas sesiones", planned)}
-      {renderGroup("Sesiones anteriores", others)}
+      {upcomingCount > 0 && (
+        <>
+          <h3 className="text-lg font-semibold text-foreground">
+            Próximas sesiones
+          </h3>
+          <div className="space-y-3">
+            <EncounterCard
+              key={plannedSortedByStartAsc[0].id}
+              encounter={plannedSortedByStartAsc[0]}
+              procedures={
+                proceduresByEncounterId[plannedSortedByStartAsc[0].id] ?? []
+              }
+              vitalSigns={
+                vitalsByEncounterId[plannedSortedByStartAsc[0].id] ?? []
+              }
+              evaRecords={evaByEncounterId[plannedSortedByStartAsc[0].id] ?? []}
+              barthelAssessment={
+                barthelByEncounterId[plannedSortedByStartAsc[0].id] ?? null
+              }
+              necpalAssessment={
+                necpalByEncounterId[plannedSortedByStartAsc[0].id] ?? null
+              }
+              ecogAssessment={
+                ecogByEncounterId[plannedSortedByStartAsc[0].id] ?? null
+              }
+            />
+          </div>
+          {upcomingExtras > 0 && (
+            <p className="text-xs text-muted">
+              + {upcomingExtras} sesión{upcomingExtras === 1 ? "" : "es"} más
+              programada{upcomingExtras === 1 ? "" : "s"}
+            </p>
+          )}
+        </>
+      )}
+
+      {renderGroup("Sesiones anteriores", othersSortedByStartDesc)}
     </div>
   );
 }
