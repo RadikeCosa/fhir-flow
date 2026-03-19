@@ -39,28 +39,24 @@ export const createEncounterFormSchema = z.object({
     plannedAt: z
         .date()
         .superRefine((value, ctx) => {
-            if (!(value instanceof Date) || isNaN(value.getTime())) {
+            if (!(value instanceof Date) || Number.isNaN(value.getTime())) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.invalid_type,
                     expected: "date",
                     received: typeof value,
                     message: "Debe ser una fecha válida",
                 });
+                return;
             }
 
             const now = new Date();
-            const startOfToday = new Date(
-                now.getFullYear(),
-                now.getMonth(),
-                now.getDate(),
-            );
-            const maxDate = new Date(startOfToday);
+            const maxDate = new Date(now);
             maxDate.setDate(maxDate.getDate() + 10);
 
-            if (value < startOfToday) {
+            if (value < now) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
-                    message: "No se pueden planificar visitas en fechas pasadas",
+                    message: "La fecha y hora planificadas no pueden ser anteriores al momento actual",
                 });
             }
 

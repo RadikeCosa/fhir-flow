@@ -1,9 +1,10 @@
 import { cache } from "react";
 import { currentPractitionerId } from "@/config/fhir.config";
+import type { Practitioner } from "@/domain/practitioners/practitioner";
 import { FhirMapperError } from "@/domain/shared/error-types";
 import { createPractitionerRepository } from "@/infrastructure/fhir/factories";
 
-export const getCurrentPractitioner = cache(async () => {
+export const getCurrentPractitioner = cache(async (): Promise<Practitioner> => {
   const practitionerRepo = createPractitionerRepository();
   const practitioner = await practitionerRepo.findById(currentPractitionerId);
 
@@ -21,5 +22,8 @@ export const getCurrentPractitioner = cache(async () => {
     );
   }
 
-  return practitioner;
+  return {
+    id: practitioner.id,
+    displayName: practitioner.displayName,
+  };
 });

@@ -10,8 +10,7 @@ import type { CreateEncounterInput } from "../../../../../../domain/encounters/e
 import { validateEncounterRules, DomainRuleError } from "../../../../../../domain/shared/domain-rules.validator";
 import { FhirMapperError, FhirWriteError } from "../../../../../../domain/shared/error-types";
 import { createEncounterRepository } from "../../../../../../infrastructure/fhir/factories/encounter.factory";
-import { currentPractitionerId } from "@/config/fhir.config";
-import { createPractitionerRepository } from "@/infrastructure/fhir/factories";
+import { getCurrentPractitioner } from "@/lib/server/current-practitioner";
 import { createEncounterFormSchema } from "../components/CreateEncounterForm/create-encounter-form.schema";
 
 export async function createEncounterAction(
@@ -32,31 +31,22 @@ export async function createEncounterAction(
         };
     }
 
-    const practitionerRepo = createPractitionerRepository();
-    const practitioner = await practitionerRepo.findById(currentPractitionerId);
-
-    if (!practitioner) {
-        return {
-            success: false,
-            error: {
-                layer: "fhir",
-                message: `Current practitioner ${currentPractitionerId} could not be resolved from FHIR`,
-                code: "CURRENT_PRACTITIONER_NOT_FOUND",
-                details: undefined,
-            } satisfies ActionError,
-        };
-    }
-
-    if (!practitioner.displayName || practitioner.displayName.trim() === "") {
-        return {
-            success: false,
-            error: {
-                layer: "fhir",
-                message: `Current practitioner ${currentPractitionerId} does not have a displayable name in FHIR`,
-                code: "CURRENT_PRACTITIONER_NAME_MISSING",
-                details: undefined,
-            } satisfies ActionError,
-        };
+    let practitioner;
+    try {
+        practitioner = await getCurrentPractitioner();
+    } catch (error: unknown) {
+        if (error instanceof FhirMapperError) {
+            return {
+                success: false,
+                error: {
+                    layer: "fhir",
+                    message: error.message,
+                    code: error.code,
+                    details: undefined,
+                } satisfies ActionError,
+            };
+        }
+        throw error;
     }
 
     const practitionerName = practitioner.displayName;
@@ -90,9 +80,11 @@ export async function createEncounterAction(
     try {
         const repo = createEncounterRepository();
         const result = await repo.create(input);
+        const encounterDetailPath = `/patients/${patientId}/encounters/${result.id}`;
 
         revalidatePath(`/patients/${patientId}`);
-        redirect(`/patients/${patientId}/encounters`);
+        revalidatePath(encounterDetailPath);
+        redirect(encounterDetailPath);
 
         return { success: true, data: { encounterId: result.id } };
     } catch (error: unknown) {
