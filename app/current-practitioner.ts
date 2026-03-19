@@ -1,0 +1,25 @@
+import { cache } from "react";
+import { currentPractitionerId } from "@/config/fhir.config";
+import { FhirMapperError } from "@/domain/shared/error-types";
+import { createPractitionerRepository } from "@/infrastructure/fhir/factories";
+
+export const getCurrentPractitioner = cache(async () => {
+  const practitionerRepo = createPractitionerRepository();
+  const practitioner = await practitionerRepo.findById(currentPractitionerId);
+
+  if (!practitioner) {
+    throw new FhirMapperError(
+      `Current practitioner ${currentPractitionerId} could not be resolved from FHIR`,
+      "CURRENT_PRACTITIONER_NOT_FOUND",
+    );
+  }
+
+  if (!practitioner.displayName || practitioner.displayName.trim() === "") {
+    throw new FhirMapperError(
+      `Current practitioner ${currentPractitionerId} does not have a displayable name in FHIR`,
+      "CURRENT_PRACTITIONER_NAME_MISSING",
+    );
+  }
+
+  return practitioner;
+});

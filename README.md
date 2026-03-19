@@ -81,14 +81,13 @@ Crear un archivo `.env.local` en la raiz:
 ```env
 FHIR_BASE_URL=http://localhost:8080/fhir
 CURRENT_PRACTITIONER_ID=kine-1
-CURRENT_PRACTITIONER_NAME=Lic. Ramiro Perez
 ```
 
 Variables requeridas:
 
 - `FHIR_BASE_URL`: URL base del servidor FHIR.
 - `CURRENT_PRACTITIONER_ID`: Practitioner usado para consultas clinicas contextualizadas.
-- `CURRENT_PRACTITIONER_NAME`: Nombre visible del profesional actual para formularios y persistencia en Encounter.participant.individual.display.
+- El nombre visible del profesional actual se resuelve desde `Practitioner/{CURRENT_PRACTITIONER_ID}` en FHIR para mostrarlo en la UI y persistirlo en `Encounter.participant.individual.display`.
 
 ## Instalacion
 

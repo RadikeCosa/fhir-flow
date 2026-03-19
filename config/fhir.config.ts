@@ -23,9 +23,6 @@ const fhirBaseUrl = process.env.FHIR_BASE_URL;
 // obtiene CURRENT_PRACTITIONER_ID del entorno (valor crudo)
 const currentPractitionerIdValue = process.env.CURRENT_PRACTITIONER_ID;
 
-// obtiene CURRENT_PRACTITIONER_NAME del entorno (valor crudo)
-const currentPractitionerNameValue = process.env.CURRENT_PRACTITIONER_NAME;
-
 // validar que la URL base de FHIR esté presente y no vacía
 if (!fhirBaseUrl) {
     // si no está definida la variable de entorno, detener con error claro
@@ -33,13 +30,8 @@ if (!fhirBaseUrl) {
 }
 
 // validar que exista un id de profesional activo
-if (!currentPractitionerIdValue) {
+if (!currentPractitionerIdValue || currentPractitionerIdValue.trim() === "") {
     throw new Error("Missing required environment variable: CURRENT_PRACTITIONER_ID");
-}
-
-// validar que exista un nombre de profesional activo
-if (!currentPractitionerNameValue || currentPractitionerNameValue.trim() === "") {
-    throw new Error("Missing required environment variable: CURRENT_PRACTITIONER_NAME");
 }
 
 export const fhirConfig: FhirServerConfig = {
@@ -68,8 +60,4 @@ export const fhirConfig: FhirServerConfig = {
 };
 
 // El ID del profesional configurado, validado al inicio del módulo.
-export const currentPractitionerId: string = currentPractitionerIdValue;
-
-// Temporary display name for the current practitioner.
-// Will be replaced by auth session data when authentication is implemented.
-export const currentPractitionerName: string = currentPractitionerNameValue.trim();
+export const currentPractitionerId: string = currentPractitionerIdValue.trim();
