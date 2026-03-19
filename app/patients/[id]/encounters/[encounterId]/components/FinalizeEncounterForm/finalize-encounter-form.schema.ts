@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
     ProcedureCategoryValues,
     ProcedureCodeValues,
-} from "@/domain/procedures/procedure";
+} from "../../../../../../../domain/procedures/procedure";
 
 /**
  * Schema for the finalize encounter form.

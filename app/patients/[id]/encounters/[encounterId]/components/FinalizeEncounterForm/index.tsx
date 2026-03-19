@@ -11,6 +11,10 @@ import {
   ProcedureCategoryValues,
   ProcedureCodeValues,
 } from "@/domain/procedures/procedure";
+import type {
+  ProcedureCategory,
+  ProcedureCode,
+} from "@/domain/procedures/procedure";
 import { PROCEDURE_CODES_BY_CATEGORY } from "@/domain/procedures/procedure-code-category.map";
 
 interface FinalizeEncounterFormProps {
@@ -20,10 +24,17 @@ interface FinalizeEncounterFormProps {
   periodStart: string;
 }
 
-function formatDateTimeLocal(date: Date): string {
-  const pad = (v: number) => String(v).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
+const defaultProcedure: {
+  category: ProcedureCategory;
+  code: ProcedureCode;
+  bodySite?: string;
+  note?: string;
+} = {
+  category: ProcedureCategoryValues[0],
+  code: ProcedureCodeValues[0],
+  bodySite: "",
+  note: "",
+};
 
 export default function FinalizeEncounterForm({
   patientId,
@@ -42,7 +53,7 @@ export default function FinalizeEncounterForm({
   const form = useForm<FinalizeEncounterFormInput>({
     resolver: zodResolver(finalizeEncounterFormSchema),
     defaultValues: {
-      periodEnd: new Date(formatDateTimeLocal(new Date())),
+      periodEnd: new Date(),
       clinicalNote: "",
       reasonDisplay: "",
       evaScore: undefined,
@@ -57,7 +68,10 @@ export default function FinalizeEncounterForm({
   });
 
   const { control, register, handleSubmit, formState, setValue } = form;
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove } = useFieldArray<
+    FinalizeEncounterFormInput,
+    "procedures"
+  >({
     control,
     name: "procedures",
   });
@@ -97,10 +111,16 @@ export default function FinalizeEncounterForm({
       </div>
 
       {error && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          <div className="font-semibold">{error.layer} error</div>
-          <div>{error.message}</div>
-          {error.code && <div>Código: {error.code}</div>}
+        <div className="rounded-md bg-red-50 p-4 border border-red-200">
+          <h3 className="text-sm font-semibold text-red-800">
+            {error.layer === "validation" && "Error de validación"}
+            {error.layer === "domain" && "Error de reglas clínicas"}
+            {error.layer === "fhir" && "Error al guardar en el servidor"}
+          </h3>
+          <p className="text-sm text-red-700 mt-1">{error.message}</p>
+          {error.code && (
+            <p className="text-xs text-red-600 mt-1">Código: {error.code}</p>
+          )}
         </div>
       )}
 
@@ -412,14 +432,7 @@ export default function FinalizeEncounterForm({
 
               <button
                 type="button"
-                onClick={() =>
-                  append({
-                    category: ProcedureCategoryValues[0],
-                    code: ProcedureCodeValues[0],
-                    bodySite: "",
-                    note: "",
-                  } as unknown as never)
-                }
+                onClick={() => append({ ...defaultProcedure })}
                 className="mt-2 inline-flex items-center rounded-md bg-secondary px-3 py-2 text-sm text-white"
               >
                 Agregar procedimiento
