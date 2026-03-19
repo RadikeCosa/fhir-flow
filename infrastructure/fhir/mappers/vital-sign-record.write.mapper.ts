@@ -4,10 +4,23 @@
  */
 import type { FinalizeEncounterInput } from "../../../domain/encounters/encounter.write-input";
 
+const VITAL_SIGNS_CATEGORY = [
+    {
+        coding: [
+            {
+                system: "http://terminology.hl7.org/CodeSystem/observation-category",
+                code: "vital-signs",
+                display: "Vital Signs",
+            },
+        ],
+    },
+];
+
 function createBaseObservationResource(input: FinalizeEncounterInput): Record<string, unknown> {
     return {
         resourceType: "Observation",
         status: "final",
+        category: VITAL_SIGNS_CATEGORY,
         subject: {
             reference: `Patient/${input.patientId}`,
         },
