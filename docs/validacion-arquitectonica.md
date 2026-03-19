@@ -1,263 +1,108 @@
-# ✅ VALIDACIÓN ARQUITECTÓNICA — Cambios v1.3
+# Validación Arquitectónica Vigente (estado real)
 
-## Principio Hexagonal: ¿Se Mantiene?
+Fecha: 2026-03-19
 
-### Pregunta 1: ¿FHIR cruza el límite del dominio?
+Este documento reemplaza el enfoque de "aprobado total" por una validación honesta del estado actual.
 
-**Respuesta**: ✅ NO
+## Autoridad utilizada
 
-**Verificación:**
-- Domain Rules Validator vive en `domain/shared/` — **NO importa de `infrastructure/fhir/`**
-- Domain Rules Validator NO recibe FHIR resources como input
-- Domain Rules Validator solo recibe tipos del dominio (`EncounterInput`, etc.)
-- Inverse Mapper es quien traduce domain → FHIR, **no el validator**
+- `.github/instructions/copilot.instructions.md`
+- `docs/write-phase-architecture.md`
+- `docs/adr/ADR-001-encounter-lifecycle-and-write-architecture.md` (archivo ADR vigente en el repositorio)
 
-**Conclusión**: Límite de dominio está protegido. ✅
+## Convenciones de estado
 
----
+- **Válido hoy**: implementado y alineado con arquitectura.
+- **Parcialmente válido**: dirección correcta, implementación incompleta o con transición activa.
+- **Deuda conocida**: brecha reconocida entre modelo objetivo y comportamiento actual.
+- **Pendiente ADR / tickets siguientes**: decisión ya definida por ADR pero aún no operativa.
 
-### Pregunta 2: ¿Las 4 capas de validación tienen responsabilidades claras y distintas?
+## Matriz de validación vigente
 
-**Respuesta**: ✅ SÍ
+| Tema | Estado | Diagnóstico actual | Evidencia de autoridad | Acción siguiente |
+|---|---|---|---|---|
+| Hexagonal boundaries | **Válido hoy** | El dominio no debe depender de FHIR; FHIR permanece fuera del boundary de dominio. | Reglas no negociables en copilot instructions + write flow oficial. | Mantener enforcement en revisiones y tests de arquitectura. |
+| Validation layers | **Parcialmente válido** | La separación por capas está bien definida (Form Zod, Domain Rules, Inverse Mapper, FHIR Client), pero requiere enforcement sostenido en implementación. | Secciones de Validation Architecture en ambos docs base. | Mantener checklist por PR y evitar mover reglas clínicas a schema/mapper. |
+| ActionResult / ActionError | **Parcialmente válido** | `ActionResult` es contrato estable en Server Actions; `ActionError.details` sigue transicional (`unknown`). | ADR + write-phase definen estabilidad de `layer/message/code` y evolución de `details`. | Ticket de tipado por capa (`validation/domain/fhir`) sin romper contrato estable. |
+| Inverse mapper purity | **Parcialmente válido** | Regla arquitectónica es clara: mapper puro, sin resolver identidad ni reglas de negocio. Persisten riesgos de drift cuando la resolución de contexto no entra por input. | copilot instructions + ADR (responsabilidad de practitioner en Server Action). | Verificar por flujo que mapper solo transforme input validado y no lea config. |
+| Practitioner resolution | **Parcialmente válido** | El ADR fija que la resolución de practitioner es server-side y luego via write input. La dirección está cerrada, la implementación requiere consistencia completa entre create/finalize. | ADR sección de practitioner responsibility + write-phase. | Completar uniformidad de input (`performerId`, `practitionerName`) en todos los writes. |
+| Transitional `planned -> finished` | **Deuda conocida** | Sigue permitido por compatibilidad transicional. No representa el lifecycle objetivo. | ADR + write-phase lo declaran explícitamente como transición. | Implementar `startEncounterAction` y migrar finalización para requerir `in-progress`. |
+| Canonical read debt | **Deuda conocida** | Arquitectura define detalle de encounter como canonical read post-write, pero la hidratación final completa aún es deuda. | ADR + write-phase (Canonical Read After Write). | Priorizar ticket de detalle canónico por estado y reducir dependencia clínica en history. |
+| Documentation drift | **Parcialmente válido** | Documentación alinea dirección, pero hubo deriva de tono (“todo aprobado”) y riesgo de leer transición como estado final. | Diferencia entre validación previa y lenguaje explícito de ADR/write-phase. | Mantener este documento como checklist vivo y actualizar por fase/ticket real. |
 
-| Capa | Responsabilidad | Input | Output | Afecta? |
-|------|-----------------|-------|--------|---------|
-| Form Zod | Shape/format | Raw user input | Validated data | SÍ — form validation error |
-| Domain Rules | Clinical coherence | Domain type | Void (throws if invalid) | SÍ — domain rule error |
-| Inverse Mapper | FHIR transformation | Domain type | FHIR resources | NO — mapper no valida |
-| FHIR Client | HTTP/response validation | FHIR resources | Response or error | SÍ — FHIR error |
+## Revisión explícita por tema solicitado
 
-**Conclusión**: Cada capa sabe qué valida. No hay overlap. ✅
+### 1. Hexagonal boundaries
 
----
+**Estado:** Válido hoy
 
-### Pregunta 3: ¿El Server Action orchesta correctamente?
+El principio se mantiene: el dominio no debe importar tipos/recursos FHIR y la traducción a FHIR pertenece al borde de infraestructura (mappers + client). Esto sigue siendo correcto y vigente.
 
-**Respuesta**: ✅ SÍ
+### 2. Validation layers
 
-**Flujo:**
-```
-Server Action recibe form data
-  ↓
-1. Zod.parse(formData) → parseResult
-   if !valid → return ActionResult { layer: "validation", ... }
-  ↓
-2. validateDomainRules(parseResult.data) → void
-   if throws → catch DomainRuleError → return ActionResult { layer: "domain", ... }
-  ↓
-3. repository.create(validatedInput) → ActionResult { data: { id } }
-   (mapper + fhir-client inside)
-   if throws FhirWriteError → return ActionResult { layer: "fhir", ... }
-  ↓
-return ActionResult { success: true, data }
-```
+**Estado:** Parcialmente válido
 
-**Conclusión**: Orquestación es clara y lineal. ✅
+La arquitectura de validación está correctamente estratificada y definida. Lo pendiente no es de diseño, sino de disciplina de implementación: evitar overlap (por ejemplo, reglas clínicas en schema o mapper) y sostener validaciones en la secuencia obligatoria de Server Action.
 
----
+### 3. ActionResult / ActionError
 
-### Pregunta 4: ¿Qué impide que la lógica clínica termine en otros lugares?
+**Estado:** Parcialmente válido
 
-**Respuesta**: ✅ Forbidden Patterns + Architecture
+`ActionResult` permanece como contrato estable de Server Action. `ActionError` tiene capa y mensaje utilizables hoy, pero `details` sigue en transición y no debe presentarse como modelo tipado final.
 
-**Mecanismos:**
-1. **Sección "Forbidden Patterns"** explícitamente lista:
-   - "Form schema implementing clinical rules"
-   - "Inverse mapper validating rules"
-   - "Domain rules validator making HTTP calls"
+### 4. Inverse mapper purity
 
-2. **Validación en implementación** (post-generación):
-   - Server Action **DEBE llamar** validateDomainRules()
-   - Si falta, el Validation Checklist lo flagea
+**Estado:** Parcialmente válido
 
-3. **File structure** lo enforce:
-   - Domain rules vive en `domain/shared/`, visible para todos
-   - No está escondido en `infrastructure/` o `app/`
+La pureza del inverse mapper está definida como regla no negociable. La deuda aparece cuando el contexto requerido por mapeo no entra de forma explícita por write input en todos los flujos.
 
-**Conclusión**: La lógica clínica no tiene otro lugar a dónde ir. ✅
+### 5. Practitioner resolution
 
----
+**Estado:** Parcialmente válido
 
-## Error Handling: ¿Está Bien Tipado?
+La responsabilidad quedó correctamente asignada por ADR: resolver practitioner en Server Action y pasar contexto al repositorio/mapper por input. La consistencia total entre flujos aún es trabajo en curso.
 
-### Pregunta 5: ¿Cada tipo de error es distinguible?
+### 6. Transitional `planned -> finished`
 
-**Respuesta**: ✅ SÍ
+**Estado:** Deuda conocida
 
-```typescript
-ActionError = {
-  layer: "validation" | "domain" | "fhir"  ← Distinguible
-  message: string
-  code?: string  ← Diferenciación adicional
-  details?: unknown  ← Para contexto completo
-}
-```
+Es compatibilidad transicional aceptada, no diseño objetivo. Debe tratarse como excepción temporal hasta habilitar transición explícita `planned -> in-progress -> finished`.
 
-**Ejemplos reales:**
-```
-{ layer: "validation", message: "Invalid datetime format", code: "FORM_VALIDATION_FAILED" }
-{ layer: "domain", message: "Diastolic > systolic", code: "INVALID_VITALS" }
-{ layer: "fhir", message: "Conflict: Encounter already exists", code: "FHIR_CONFLICT" }
-```
+### 7. Canonical read debt
 
-**Ventajas:**
-- UI puede mostrar mensajes específicos por layer
-- Logging puede filtrar por layer
-- Tests pueden verificar error type exacto
+**Estado:** Deuda conocida
 
-**Conclusión**: Error typing es exhaustivo y bien categorizado. ✅
+La intención arquitectónica está cerrada (detalle como fuente canónica para una encounter), pero su implementación aún no está completa en el estado `finished`. No debe comunicarse como cerrado.
 
----
+### 8. Documentation drift
 
-## Fold Separation: ¿No Se Cruzan Schemas?
+**Estado:** Parcialmente válido
 
-### Pregunta 6: ¿Form schema y FHIR schema se importan entre sí?
+La base documental principal (copilot instructions + write-phase + ADR) está alineada en dirección. El drift estuvo en validaciones con lenguaje excesivamente concluyente para temas que siguen transicionales o con deuda.
 
-**Respuesta**: ✅ NO, está prohibido
+## Pendientes del ADR / tickets siguientes
 
-**Reglas:**
-- Form schema vive en `app/.../components/` → NO importa `infrastructure/`
-- FHIR schema vive en `infrastructure/fhir/schemas/` → NO importa `app/`
-- Domain rules validator importa tipos de dominio → NO importa ni form ni FHIR
+1. Implementar transición operacional `planned -> in-progress` (`startEncounterAction`).
+2. Endurecer finalización para requerir `in-progress` cuando el start esté operativo.
+3. Completar canonical read del detalle de encounter `finished` con hidratación clínica completa.
+4. Tipar `ActionError.details` por variante/capa sin romper `ActionResult`.
+5. Cerrar consistencia total de practitioner context en todos los write inputs.
 
-**Enforcement:**
-- "Forbidden Patterns" lista: "Form schema importing from FHIR infrastructure"
-- Linter podría verificar esto (comentario para futuro)
+## Checklist vigente para validación de cambios
 
-**Conclusión**: Límites de Zod están separados. ✅
+Usar este checklist en cada cambio de write flow:
 
----
+- [ ] El dominio no importa FHIR ni devuelve recursos FHIR.
+- [ ] Server Action orquesta: Zod -> Domain Rules -> Repository -> ActionResult.
+- [ ] Domain Rules Validator no hace IO ni efectos secundarios.
+- [ ] Inverse mapper es puro y no resuelve practitioner desde config/sesión.
+- [ ] El error devuelto distingue al menos `layer`, `message` y `code`.
+- [ ] Si un flujo depende de `planned -> finished`, está marcado como transición.
+- [ ] No se afirma como "resuelto" lo que ADR/write-phase aún marcan como deuda.
+- [ ] Los cambios documentales reflejan estado real, no estado aspiracional.
 
-## Write Flow Completeness
+## Veredicto vigente
 
-### Pregunta 7: ¿Todas las fases pueden reutilizar este patrón?
+La arquitectura **no está “todo aprobado”**.
 
-**Respuesta**: ✅ SÍ
-
-**Verificación:**
-
-| Phase | Single/Multi | Patrón | Escalabilidad |
-|-------|--------------|--------|---------------|
-| 1 | Single POST | Server Action → Zod → DomainRules → Mapper → FHIR.post() | ✓ Funciona |
-| 2 | Multi POST (Bundle) | Idem (pero FHIR.postBundle() en lugar de FHIR.post()) | ✓ Funciona |
-| 3 | Multi POST (Bundle) | Idem | ✓ Funciona |
-| 4 | Single POST | Idem | ✓ Funciona |
-| 5 | Single PATCH | Idem (pero FHIR.patch() en lugar de FHIR.post()) | ✓ Funciona |
-
-**Conclusión**: Patrón es escalable a 5 fases sin cambios arquitectónicos. ✅
-
----
-
-## Technical Debt Tracking
-
-### Pregunta 8: ¿El Technical Debt Register es completo?
-
-**Respuesta**: ✅ SÍ, y auditable
-
-**Items registrados:**
-1. ✅ Encounter status transitions — documentado, Phase 5
-2. ✅ Observations on planned Encounter — documentado, Phase 5
-3. ✅ No overlap detection — documentado, TBD
-4. ✅ Validator stateless — documentado, TBD
-5. ✅ No rollback handling — documentado, TBD
-
-**Por qué importa:**
-- Alguien en el futuro sabrá que estas son **decisiones deliberadas**, no bugs
-- Cada item tiene una "Resolution Phase", no es vago
-- El register es parte de la arquitectura oficial, no escondido en PRs
-
-**Conclusión**: Deuda técnica es explícita y auditable. ✅
-
----
-
-## Backward Compatibility
-
-### Pregunta 9: ¿Los cambios rompen la arquitectura read existente?
-
-**Respuesta**: ✅ NO
-
-**Por qué:**
-- Read flow fue: `FHIR → Client → Zod → Mapper → Domain → UI`
-- Read flow ahora: sin cambios (escrito en sección 1, pero no tocado)
-- Domain Rules Validator es **solo para write**, no afecta read
-- Read mappers no cambian
-- Repositories siguen teniendo métodos read, ahora también tienen write
-
-**Conclusión**: Las 4 fases de read existente siguen funcionando. ✅
-
----
-
-## Documentación Coherencia
-
-### Pregunta 10: ¿Ambos documentos dicen lo mismo en sus intersecciones?
-
-**Respuesta**: ✅ SÍ
-
-**Intersecciones:**
-
-| Tema | copilot_instructions.md | write-phase-architecture.md | Coherencia |
-|------|------------------------|----------------------------|-----------|
-| Write flow | "Client → Server Action → Zod → Domain Rules → Repo → ..." | Sección 1 + Sección 4 | ✅ Match |
-| Domain Rules | Nueva sección "Validation Architecture" | Sección 11 "Domain Rules Validator" | ✅ Complementarios |
-| ActionResult | Mencionado en "Write Phase" section | Sección 5 + 5.1 | ✅ Match |
-| Forbidden patterns | Links a write-phase docs | Sección 16 | ✅ Extensión, no contradicción |
-| Server Action | Responsabilidades listadas | Sección 4.1 | ✅ Match |
-
-**Conclusión**: Documentos se refuerzan mutuamente sin contradicción. ✅
-
----
-
-## Tabla de Validación Final
-
-| Aspecto | ¿Válido? | Evidencia |
-|---------|----------|-----------|
-| **Hexagonal boundaries** | ✅ | Domain Rules NO importa FHIR |
-| **Layer separation** | ✅ | 4 capas con responsabilidades disjuntas |
-| **Error typing** | ✅ | ActionError tipado por layer |
-| **Zod separation** | ✅ | Form ≠ FHIR schemas, nunca se importan |
-| **Flow completeness** | ✅ | 5 fases pueden usar el patrón |
-| **Technical debt** | ✅ | Registrado y auditable |
-| **Backward compat** | ✅ | Read flow intacto |
-| **Doc coherence** | ✅ | Ambos docs alineados |
-
----
-
-## ⚠️ Consideraciones Finales
-
-### Lo que NO cambiamos (y por qué está bien)
-
-1. **Layer flow** global — seguimos siendo hexagonal
-2. **FHIR Client responsibilities** — en `lib/fhir/fhir-client.ts`
-3. **Inverse Mapper como pure function** — sin cambios
-4. **Read operations** — completamente intactas
-
-### Lo que SÍ agregamos (y por qué es necesario)
-
-1. **Domain Rules Validator** — captura lógica clínica
-2. **ActionError typed** — diferencia errores por origen
-3. **Technical Debt Register** — documenta simplificaciones
-4. **Validation Architecture** — explícita, no implícita
-
-### Riesgos Mitigados
-
-| Riesgo | Mitigation |
-|--------|-----------|
-| Domain Rules Validator se vuelve "God class" | Tiene una sola responsabilidad: validar reglas clínicas. HTTP y DB no entran. |
-| Form schema y FHIR schema se cruzan | Forbidden pattern #1. Linter podría detectarlo. |
-| Errores se pierden en traducción | ActionError tipado. Cada layer tira el suyo. |
-| Domain Rules Validator hace queries a BD | Forbidden pattern. Se pasa contexto desde Server Action si es necesario. |
-| Overlap con Inverse Mapper validation | Mapper valida referencias ausentes (safety net). Rules valida coherencia. |
-
----
-
-## ✅ VEREDICTO FINAL
-
-**Los documentos actualizados son arquitectónicamente válidos.**
-
-Mantienen los principios hexagonales, introducen claridad donde faltaba (validación clínica), y documentan deuda técnica de forma explícita.
-
-Listos para pasar a **Phase 1 implementation con Copilot prompts**.
-
----
-
-*Validación arquitectónica · v1.3 · APROBADO*
+El sistema tiene bases sólidas en boundaries y responsabilidades, pero mantiene deuda explícita en lifecycle operativo, canonical read y cierre del contrato de errores tipados. La validación correcta hoy es: **base válida + transición activa + deuda reconocida + pendientes concretos del ADR**.

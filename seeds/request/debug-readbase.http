@@ -1,0 +1,199 @@
+### Encounters
+GET http://localhost:8080/fhir/Encounter
+Accept: application/fhir+json
+
+
+### Read Observations for Encounter 1007
+GET http://localhost:8080/fhir/Observation?encounter=Encounter/1007&code=9279-1
+Accept: application/fhir+json
+
+### 
+GET http://localhost:8080/fhir/Observation?encounter=Encounter/1007&code=85354-9
+Accept: application/fhir+json
+###
+GET http://localhost:8080/fhir/Observation?encounter=Encounter/1007&code=59408-5
+Accept: application/fhir+json
+
+
+### Practitioners
+GET http://localhost:8080/fhir/Practitioner
+Accept: application/fhir+json
+
+### Patient pac-1
+GET http://localhost:8080/fhir/Patient/pac-1
+Accept: application/fhir+json
+
+### All Patients
+GET http://localhost:8080/fhir/Patient
+Accept: application/fhir+json
+
+### EpisodeOfCare ep-1
+GET http://localhost:8080/fhir/EpisodeOfCare/ep-1
+Accept: application/fhir+json
+
+### All EpisodesOfCare
+GET http://localhost:8080/fhir/EpisodeOfCare
+Accept: application/fhir+json
+
+### EpisodeOfCare for patient pac-1
+GET http://localhost:8080/fhir/EpisodeOfCare?patient=Patient/pac-1
+Accept: application/fhir+json
+
+### EpisodeOfCare ep-1
+GET http://localhost:8080/fhir/EpisodeOfCare/ep-1
+Accept: application/fhir+json
+
+### Create planned Encounter linked to episode
+POST http://localhost:8080/fhir/Encounter
+Content-Type: application/fhir+json
+Accept: application/fhir+json
+
+{
+  "resourceType": "Encounter",
+  "status": "planned",
+  "class": {
+    "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+    "code": "HH",
+    "display": "Home health"
+  },
+  "subject": {
+    "reference": "Patient/pac-1"
+  },
+  "episodeOfCare": [
+    {
+      "reference": "EpisodeOfCare/ep-1"
+    }
+  ],
+  "participant": [
+    {
+      "individual": {
+        "reference": "Practitioner/kine-1",
+        "display": "Marty Alejandro McFly"
+      }
+    }
+  ],
+  "period": {
+    "start": "2026-03-19T20:00:00.000Z"
+  },
+  "reasonCode": [
+    {
+      "text": "Visita de seguimiento"
+    }
+  ]
+}
+### All Encounters
+GET http://localhost:8080/fhir/Encounter
+Accept: application/fhir+json
+
+### Encounters by episode
+GET http://localhost:8080/fhir/Encounter?episode-of-care=EpisodeOfCare/ep-1
+Accept: application/fhir+json
+
+### Encounters by patient
+GET http://localhost:8080/fhir/Encounter?subject=Patient/pac-1
+Accept: application/fhir+json
+
+### Finalize Encounter 1007 manually
+PUT http://localhost:8080/fhir/Encounter/1007
+Content-Type: application/fhir+json
+Accept: application/fhir+json
+
+{
+  "resourceType": "Encounter",
+  "id": "1007",
+  "status": "finished",
+  "class": {
+    "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+    "code": "HH",
+    "display": "Home health"
+  },
+  "subject": {
+    "reference": "Patient/pac-1"
+  },
+  "episodeOfCare": [
+    {
+      "reference": "EpisodeOfCare/ep-1"
+    }
+  ],
+  "participant": [
+    {
+      "individual": {
+        "reference": "Practitioner/kine-1",
+        "display": "Marty Alejandro McFly"
+      }
+    }
+  ],
+  "period": {
+    "start": "2026-03-19T20:00:00.000Z",
+    "end": "2026-03-19T22:00:00.000Z"
+  },
+  "reasonCode": [
+    {
+      "text": "Visita de seguimiento"
+    }
+  ]
+}
+
+### Read Encounter 1007 after finalize
+GET http://localhost:8080/fhir/Encounter/1007
+Accept: application/fhir+json
+
+### Encounters by episode after finalize
+GET http://localhost:8080/fhir/Encounter?episode-of-care=EpisodeOfCare/ep-1
+Accept: application/fhir+json
+
+### Create manual heart rate Observation with vital-signs category
+POST http://localhost:8080/fhir/Observation
+Content-Type: application/fhir+json
+Accept: application/fhir+json
+
+{
+  "resourceType": "Observation",
+  "status": "final",
+  "category": [
+    {
+      "coding": [
+        {
+          "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+          "code": "vital-signs",
+          "display": "Vital Signs"
+        }
+      ]
+    }
+  ],
+  "code": {
+    "coding": [
+      {
+        "system": "http://loinc.org",
+        "code": "8867-4",
+        "display": "Heart rate"
+      }
+    ]
+  },
+  "subject": {
+    "reference": "Patient/pac-1"
+  },
+  "encounter": {
+    "reference": "Encounter/1007"
+  },
+  "effectiveDateTime": "2026-03-19T22:00:00.000Z",
+  "performer": [
+    {
+      "reference": "Practitioner/kine-1",
+      "display": "Marty Alejandro McFly"
+    }
+  ],
+  "valueQuantity": {
+    "value": 77,
+    "unit": "beats/minute",
+    "system": "http://unitsofmeasure.org",
+    "code": "/min"
+  }
+}
+### All observations for Encounter 1007
+GET http://localhost:8080/fhir/Observation?encounter=Encounter/1007
+Accept: application/fhir+json
+
+### Vital-signs observations for Encounter 1007
+GET http://localhost:8080/fhir/Observation?encounter=Encounter/1007&category=vital-signs
+Accept: application/fhir+json

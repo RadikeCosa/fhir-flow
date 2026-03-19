@@ -1,3 +1,8 @@
+> **Nota de revisión histórica**
+> 
+> Este documento es un informe de revisión puntual (artefacto de evaluación), no una fuente de verdad operativa ni técnica.
+> La documentación de autoridad actual está en `docs/adr/ADR-001-encounter-lifecycle-and-write-architecture.md`, `docs/write-phase-architecture.md`, y `docs/validacion-arquitectonica.md`.
+> 
 'll review your app's UI thoroughly. Let me start by exploring the project structure and all the UI-related files.He revisado a fondo toda la capa UI de tu aplicación FHIR Flow. A continuación te presento el informe completo:
 🏥 Informe de Revisión de UI — FHIR Flow
 Archivos analizados
