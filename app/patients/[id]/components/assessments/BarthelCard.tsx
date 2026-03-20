@@ -6,7 +6,7 @@ import type {
   BarthelAssessment,
   BarthelFunctionalLevel,
   BarthelActivityKey,
-} from "../../../../../domain/assessments/barthel-assessment";
+} from "@/domain/assessments/barthel-assessment";
 
 const ACTIVITY_LABELS: Record<BarthelActivityKey, string> = {
   feeding: "Alimentación",

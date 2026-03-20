@@ -1,6 +1,6 @@
-import type { BarthelAssessment } from "../../../../../domain/assessments/barthel-assessment";
-import { BarthelCard } from "../assessments/BarthelCard";
-import BarthelDeltaDisplay from "./BarthelDeltaDisplay";
+import type { BarthelAssessment } from "@/domain/assessments/barthel-assessment";
+import { BarthelCard } from "@/app/patients/[id]/components/assessments/BarthelCard";
+import BarthelDeltaDisplay from "@/app/patients/[id]/components/re-assessments/BarthelDeltaDisplay";
 
 interface ReAssessmentBarthelBlockProps {
   assessment: BarthelAssessment;

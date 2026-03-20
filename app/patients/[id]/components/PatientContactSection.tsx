@@ -1,11 +1,11 @@
 import React from "react";
-import type { Patient } from "../../../../domain/patients/patient";
-import { SectionCard } from "./SectionCard";
+import type { Patient } from "@/domain/patients/patient";
+import { SectionCard } from "@/app/patients/components/SectionCard";
 import {
   formatAddress,
   formatContactName,
   formatRelationship,
-} from "../../../../lib/patient/formatters";
+} from "@/lib/patient/formatters";
 
 interface Props {
   patient: Patient;

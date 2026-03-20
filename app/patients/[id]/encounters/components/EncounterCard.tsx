@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { SectionCard } from "../../../components/detail/SectionCard";
+import { SectionCard } from "../../../components/SectionCard";
 import { formatDateTime } from "../../../../../lib/patient/formatters";
 import { formatEncounterVisitType } from "../../../../../lib/patient/formatters/encounter.formatters";
 import type { Encounter } from "../../../../../domain/encounters/encounter";

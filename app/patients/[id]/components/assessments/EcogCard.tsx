@@ -5,7 +5,7 @@ import { useState } from "react";
 import type {
   EcogAssessment,
   EcogPerformanceLevel,
-} from "../../../../../domain/assessments/ecog-assessment";
+} from "@/domain/assessments/ecog-assessment";
 
 interface EcogCardProps {
   assessment: EcogAssessment;
@@ -118,17 +118,13 @@ export function EcogCard({ assessment }: EcogCardProps) {
       </div>
 
       {expanded && (
-        <div className="mt-3 space-y-1">
-          <div className="text-2xl font-bold text-foreground">
-            {assessment.score}
-            <span className="text-base font-medium text-muted"> / 4</span>
-          </div>
+        <div className="mt-3">
           <span
             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badge.className}`}
           >
             {badge.label}
           </span>
-          <div className="text-xs text-muted">{levelInfo.description}</div>
+          <p className="text-xs text-muted mt-2">{levelInfo.description}</p>
         </div>
       )}
     </div>

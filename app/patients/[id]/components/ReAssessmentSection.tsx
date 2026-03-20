@@ -1,8 +1,8 @@
-import type { Encounter } from "../../../../domain/encounters/encounter";
-import type { BarthelAssessment } from "../../../../domain/assessments/barthel-assessment";
-import type { PlanOfCare } from "../../../../domain/plan-of-care/plan-of-care";
-import { SectionCard } from "./SectionCard";
-import ReAssessmentCard from "./re-assessments/ReAssessmentCard";
+import type { Encounter } from "@/domain/encounters/encounter";
+import type { BarthelAssessment } from "@/domain/assessments/barthel-assessment";
+import type { PlanOfCare } from "@/domain/plan-of-care/plan-of-care";
+import { SectionCard } from "@/app/patients/components/SectionCard";
+import ReAssessmentCard from "@/app/patients/[id]/components/re-assessments/ReAssessmentCard";
 
 export interface ReAssessmentEntry {
   encounter: Encounter;

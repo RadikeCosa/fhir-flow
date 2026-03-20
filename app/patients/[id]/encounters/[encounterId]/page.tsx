@@ -1,13 +1,9 @@
 import Link from "next/link";
 import Breadcrumbs from "../../../../components/Breadcrumbs";
 import FinalizeEncounterForm from "./components/FinalizeEncounterForm";
-import {
-  createEncounterRepository,
-  createPatientRepository,
-} from "@/infrastructure/fhir/factories";
+import { getEncounterDetailData, type EncounterDetailData } from "./data";
 import { formatDateTime, formatPatientName } from "@/lib/patient/formatters";
 import { formatEncounterVisitType } from "@/lib/patient/formatters/encounter.formatters";
-import { getCurrentPractitioner } from "@/lib/server/current-practitioner";
 
 type PageProps = {
   params: Promise<{
@@ -19,15 +15,12 @@ type PageProps = {
 export default async function EncounterDetailPage({ params }: PageProps) {
   const { id: patientId, encounterId } = await params;
 
-  const encounterRepo = createEncounterRepository();
-  const patientRepo = createPatientRepository();
+  const data: EncounterDetailData = await getEncounterDetailData(
+    patientId,
+    encounterId,
+  );
 
-  const [encounter, patient, practitioner] = await Promise.all([
-    encounterRepo.findById(encounterId),
-    patientRepo.findById(patientId),
-    getCurrentPractitioner(),
-  ]);
-
+  const { encounter, patient, practitioner } = data;
   const backHref = `/patients/${patientId}/encounters`;
 
   if (!encounter) {
@@ -129,6 +122,7 @@ export default async function EncounterDetailPage({ params }: PageProps) {
               <FinalizeEncounterForm
                 patientId={patientId}
                 encounterId={encounterId}
+                patientName={patientName}
                 practitionerName={practitioner.displayName}
                 periodStart={encounter.periodStart}
                 periodStartFormatted={

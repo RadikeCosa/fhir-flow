@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CalendarPlus, User } from "lucide-react";
 import type { CreateEncounterFormInput } from "./create-encounter-form.schema";
 import { createEncounterFormSchema } from "./create-encounter-form.schema";
@@ -88,17 +88,15 @@ export function CreateEncounterForm({
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
-  const [minDateTime, setMinDateTime] = useState("");
-  const [maxDateTime, setMaxDateTime] = useState("");
-
-  useEffect(() => {
+  const [minDateTime] = useState(() => {
+    return formatLocalDateTime(new Date());
+  });
+  const [maxDateTime] = useState(() => {
     const now = new Date();
-    setMinDateTime(formatLocalDateTime(now));
-
     const maxDate = new Date(now);
     maxDate.setDate(maxDate.getDate() + 10);
-    setMaxDateTime(formatLocalDateTime(maxDate));
-  }, []);
+    return formatLocalDateTime(maxDate);
+  });
 
   /**
    * Form submission handler.

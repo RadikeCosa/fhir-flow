@@ -1,17 +1,17 @@
 import React from "react";
 import Link from "next/link";
-import { SectionCard } from "./SectionCard";
-import { formatDate } from "../../../../lib/patient/formatters";
-import { formatEncounterDuration } from "../../../../lib/patient/formatters/encounter.formatters";
-import type { Encounter } from "../../../../domain/encounters/encounter";
-import type { Procedure } from "../../../../domain/procedures/procedure";
-import type { EvaAssessment } from "../../../../domain/assessments/eva-assessment";
-import type { VitalSignRecord } from "../../../../domain/vital-sign-record/vital-sign-record";
-import EncounterBadgesRow from "../../[id]/encounters/components/EncounterBadgesRow";
-import EncounterClinicalNote from "../../[id]/encounters/components/EncounterClinicalNote";
-import EncounterVitalSignsSection from "../../[id]/encounters/components/EncounterVitalSignsSection";
-import EncounterEvaSection from "../../[id]/encounters/components/EncounterEvaSection";
-import EncounterProcedures from "../../[id]/encounters/components/EncounterProcedures";
+import { SectionCard } from "@/app/patients/components/SectionCard";
+import { formatDate } from "@/lib/patient/formatters";
+import { formatEncounterDuration } from "@/lib/patient/formatters/encounter.formatters";
+import type { Encounter } from "@/domain/encounters/encounter";
+import type { Procedure } from "@/domain/procedures/procedure";
+import type { EvaAssessment } from "@/domain/assessments/eva-assessment";
+import type { VitalSignRecord } from "@/domain/vital-sign-record/vital-sign-record";
+import EncounterBadgesRow from "@/app/patients/[id]/encounters/components/EncounterBadgesRow";
+import EncounterClinicalNote from "@/app/patients/[id]/encounters/components/EncounterClinicalNote";
+import EncounterVitalSignsSection from "@/app/patients/[id]/encounters/components/EncounterVitalSignsSection";
+import EncounterEvaSection from "@/app/patients/[id]/encounters/components/EncounterEvaSection";
+import EncounterProcedures from "@/app/patients/[id]/encounters/components/EncounterProcedures";
 
 interface Props {
   lastEncounter: Encounter | null;
@@ -152,6 +152,17 @@ export const LastEncounterSection: React.FC<Props> = ({
               </>
             )}
 
+            {formatEncounterDuration(nextPlannedEncounter.durationMinutes) && (
+              <>
+                <dt className="text-xs text-muted font-medium">Duración:</dt>
+                <dd className="text-sm text-foreground">
+                  {formatEncounterDuration(
+                    nextPlannedEncounter.durationMinutes,
+                  )}
+                </dd>
+              </>
+            )}
+
             {nextPlannedEncounter.reasonDisplay?.trim() && (
               <>
                 <dt className="text-xs text-muted font-medium">Motivo:</dt>
@@ -161,34 +172,18 @@ export const LastEncounterSection: React.FC<Props> = ({
               </>
             )}
           </dl>
-
-          {nextPlannedEncounter.clinicalNote?.trim() && (
-            <EncounterClinicalNote
-              note={nextPlannedEncounter.clinicalNote}
-              plannedStyle
-            />
-          )}
         </>
       )}
 
-      {patientId && (
-        <div className="mt-3 pt-3 border-t border-border flex justify-end">
-          {nextPlannedEncounter && (
-            <Link
-              href={`/patients/${patientId}/encounters/${nextPlannedEncounter.id}`}
-              className="text-xs text-primary hover:underline"
-            >
-              Registrar visita →
-            </Link>
-          )}
-          <Link
-            href={`/patients/${patientId}/encounters`}
-            className="text-xs text-primary hover:underline"
-          >
-            Ver historial →
-          </Link>
-        </div>
-      )}
+      {/* footer link */}
+      <div className="border-t border-border mt-3 pt-3 flex justify-end">
+        <Link
+          href={`/patients/${patientId}/encounters`}
+          className="text-xs text-primary hover:underline"
+        >
+          Ver historial →
+        </Link>
+      </div>
     </SectionCard>
   );
 };

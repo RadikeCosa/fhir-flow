@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { SectionCard } from "../../../components/detail/SectionCard";
+import { SectionCard } from "../../../components/SectionCard";
 import type { VitalSignRecord } from "../../../../../domain/vital-sign-record/vital-sign-record";
 import type { EvaAssessment } from "../../../../../domain/assessments/eva-assessment";
 import {

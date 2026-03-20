@@ -1,4 +1,4 @@
-import { SectionCard } from "../../../components/detail/SectionCard";
+import { SectionCard } from "../../../components/SectionCard";
 import { Minus, TrendingDown, TrendingUp } from "lucide-react";
 import type { EvaAssessment } from "../../../../../domain/assessments/eva-assessment";
 import {

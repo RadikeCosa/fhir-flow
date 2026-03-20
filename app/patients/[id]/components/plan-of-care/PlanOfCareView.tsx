@@ -7,7 +7,7 @@ import type {
   CareGoalStatus,
   ActivityStatus,
   PlanOfCareStatus,
-} from "../../../../../domain/plan-of-care/plan-of-care";
+} from "@/domain/plan-of-care/plan-of-care";
 import { formatDate } from "../../../../../lib/patient/formatters";
 
 interface PlanOfCareViewProps {

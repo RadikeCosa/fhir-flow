@@ -1,8 +1,8 @@
 "use client";
 
-import { BarthelCard } from "../../../components/detail/assessments/BarthelCard";
-import { EcogCard } from "../../../components/detail/assessments/EcogCard";
-import { NecpalCard } from "../../../components/detail/assessments/NecpalCard";
+import { BarthelCard } from "../../components/assessments/BarthelCard";
+import { EcogCard } from "../../components/assessments/EcogCard";
+import { NecpalCard } from "../../components/assessments/NecpalCard";
 import type { BarthelAssessment } from "../../../../../domain/assessments/barthel-assessment";
 import type { EcogAssessment } from "../../../../../domain/assessments/ecog-assessment";
 import type { NecpalAssessment } from "../../../../../domain/assessments/necpal-assessment";

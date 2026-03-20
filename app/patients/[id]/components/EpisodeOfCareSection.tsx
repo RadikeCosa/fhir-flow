@@ -1,15 +1,15 @@
 import React from "react";
-import { EpisodeOfCare } from "../../../../domain/episode-of-care/episode-of-care";
+import { EpisodeOfCare } from "@/domain/episode-of-care/episode-of-care";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { SectionCard } from "./SectionCard";
+import { SectionCard } from "@/app/patients/components/SectionCard";
 import {
   translateEpisodeStatus,
   formatEpisodeType,
   getSeverityBadge,
   formatReferralLine,
   formatEpisodeStartLabel,
-} from "../../../../lib/patient/formatters";
+} from "@/lib/patient/formatters";
 
 interface Props {
   episodes: EpisodeOfCare[];

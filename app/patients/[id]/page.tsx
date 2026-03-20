@@ -3,12 +3,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { PatientDetailData } from "./data";
 import { PatientNotFoundError, getPatientDetailData } from "./data";
-import { PatientPersonalSection } from "../components/detail/PatientPersonalSection";
-import { PatientContactSection } from "../components/detail/PatientContactSection";
-import { EpisodeOfCareSection } from "../components/detail/EpisodeOfCareSection";
-import { InitialEvaluationSection } from "../components/detail/InitialEvaluationSection";
-import { LastEncounterSection } from "../components/detail/LastEncounterSection";
-import ReAssessmentSection from "../components/detail/ReAssessmentSection";
+import { PatientPersonalSection } from "./components/PatientPersonalSection";
+import { PatientContactSection } from "./components/PatientContactSection";
+import { EpisodeOfCareSection } from "./components/EpisodeOfCareSection";
+import { InitialEvaluationSection } from "./components/InitialEvaluationSection";
+import { LastEncounterSection } from "./components/LastEncounterSection";
+import ReAssessmentSection from "./components/ReAssessmentSection";
 import { formatPatientName } from "@/lib/patient/formatters";
 
 type Props = {

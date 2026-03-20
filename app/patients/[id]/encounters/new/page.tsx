@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { currentPractitionerId } from "@/config/fhir.config";
 import type { EpisodeOfCare } from "@/domain/episode-of-care/episode-of-care";
 import {
@@ -54,16 +55,46 @@ export default async function CreateEncounterPage({ params }: PageProps) {
   );
 
   if (activeEpisodes.length === 0) {
-    throw new Error(
-      `No active episode of care found for patient ${patientId}. ` +
-        "The patient must have an active care plan before planning a visit.",
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-surface border border-border rounded-lg shadow-md p-6 text-center">
+          <h2 className="text-base font-semibold text-foreground mb-2">
+            Sin plan de cuidado activo
+          </h2>
+          <p className="text-sm text-muted mb-4">
+            El paciente no tiene un episodio de cuidado activo. Es necesario
+            tener un plan de cuidado activo para planificar una visita.
+          </p>
+          <Link
+            href={`/patients/${patientId}`}
+            className="text-sm text-primary"
+          >
+            ← Volver
+          </Link>
+        </div>
+      </div>
     );
   }
 
   if (activeEpisodes.length > 1) {
-    throw new Error(
-      `Multiple active episodes found for patient ${patientId}. ` +
-        "Data integrity issue: a patient should have at most one active episode at a time.",
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-surface border border-border rounded-lg shadow-md p-6 text-center">
+          <h2 className="text-base font-semibold text-foreground mb-2">
+            Error de integridad de datos
+          </h2>
+          <p className="text-sm text-muted mb-4">
+            Se detectó un problema: el paciente tiene múltiples planes de
+            cuidado activos. Por favor, contacta al equipo de soporte.
+          </p>
+          <Link
+            href={`/patients/${patientId}`}
+            className="text-sm text-primary"
+          >
+            ← Volver
+          </Link>
+        </div>
+      </div>
     );
   }
 

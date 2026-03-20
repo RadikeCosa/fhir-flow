@@ -5,7 +5,7 @@ import { useState } from "react";
 import type {
   NecpalAssessment,
   NecpalResult,
-} from "../../../../../domain/assessments/necpal-assessment";
+} from "@/domain/assessments/necpal-assessment";
 
 interface NecpalCardProps {
   assessment: NecpalAssessment;
@@ -100,38 +100,34 @@ export function NecpalCard({ assessment }: NecpalCardProps) {
             Una respuesta negativa activa el cribado NECPAL positivo
           </div>
 
-          {assessment.positiveScreen && (
-            <div className="mt-3 space-y-2">
-              {(
-                Object.keys(INDICATOR_LABELS) as Array<
-                  keyof typeof INDICATOR_LABELS
+          <div className="mt-2 space-y-1 text-xs">
+            {Object.entries(INDICATOR_LABELS).map(([key, label]) => (
+              <div key={key}>
+                <span
+                  className={
+                    assessment.indicators[
+                      key as Exclude<
+                        keyof NecpalAssessment["indicators"],
+                        "surpriseQuestion"
+                      >
+                    ]
+                      ? "text-success"
+                      : "text-muted"
+                  }
                 >
-              ).map((key) => {
-                const present = assessment.indicators[key];
-                return (
-                  <div
-                    key={key}
-                    className={`flex items-center justify-between rounded px-2 py-1 text-xs ${
-                      present ? "border-l-2 border-error" : ""
-                    }`}
-                  >
-                    <span className="text-foreground">
-                      {INDICATOR_LABELS[key]}
-                    </span>
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded-full font-medium ${
-                        present
-                          ? "bg-surface text-success border border-success"
-                          : "bg-surface text-muted border border-border"
-                      }`}
+                  {assessment.indicators[
+                    key as Exclude<
+                      keyof NecpalAssessment["indicators"],
+                      "surpriseQuestion"
                     >
-                      {present ? "Presente" : "Ausente"}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                  ]
+                    ? "✓"
+                    : "○"}{" "}
+                  {label}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

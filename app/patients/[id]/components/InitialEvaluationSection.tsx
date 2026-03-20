@@ -1,14 +1,14 @@
 import React from "react";
-import { SectionCard } from "./SectionCard";
-import { BarthelCard } from "./assessments/BarthelCard";
-import { EcogCard } from "./assessments/EcogCard";
-import { NecpalCard } from "./assessments/NecpalCard";
-import { PlanOfCareView } from "./plan-of-care/PlanOfCareView";
-import { formatDate } from "../../../../lib/patient/formatters";
-import type { PlanOfCare } from "../../../../domain/plan-of-care/plan-of-care";
-import type { BarthelAssessment } from "../../../../domain/assessments/barthel-assessment";
-import type { EcogAssessment } from "../../../../domain/assessments/ecog-assessment";
-import type { NecpalAssessment } from "../../../../domain/assessments/necpal-assessment";
+import { SectionCard } from "@/app/patients/components/SectionCard";
+import { BarthelCard } from "@/app/patients/[id]/components/assessments/BarthelCard";
+import { EcogCard } from "@/app/patients/[id]/components/assessments/EcogCard";
+import { NecpalCard } from "@/app/patients/[id]/components/assessments/NecpalCard";
+import { PlanOfCareView } from "@/app/patients/[id]/components/plan-of-care/PlanOfCareView";
+import { formatDate } from "@/lib/patient/formatters";
+import type { PlanOfCare } from "@/domain/plan-of-care/plan-of-care";
+import type { BarthelAssessment } from "@/domain/assessments/barthel-assessment";
+import type { EcogAssessment } from "@/domain/assessments/ecog-assessment";
+import type { NecpalAssessment } from "@/domain/assessments/necpal-assessment";
 
 interface InitialEvaluationSectionProps {
   encounterId: string | null;

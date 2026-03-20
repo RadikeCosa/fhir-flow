@@ -15,8 +15,11 @@ import type {
 import { PROCEDURE_CODES_BY_CATEGORY } from "@/domain/procedures/procedure-code-category.map";
 
 interface FinalizeEncounterFormProps {
+  // Internal use only, not for display
   patientId: string;
   encounterId: string;
+  // Display props
+  patientName: string;
   practitionerName: string;
   periodStart: string;
   periodStartFormatted?: string;
@@ -49,6 +52,7 @@ const createDefaultProcedure = (
 export default function FinalizeEncounterForm({
   patientId,
   encounterId,
+  patientName,
   practitionerName,
   periodStart,
   periodStartFormatted,
@@ -111,8 +115,7 @@ export default function FinalizeEncounterForm({
   return (
     <div className="space-y-6">
       <div className="rounded-lg border border-border bg-surface p-4">
-        <div className="text-sm text-muted">Paciente: {patientId}</div>
-        <div className="text-sm text-muted">Encuentro: {encounterId}</div>
+        <div className="text-sm text-muted">Paciente: {patientName}</div>
         <div className="text-sm text-muted">
           Profesional: {practitionerName}
         </div>

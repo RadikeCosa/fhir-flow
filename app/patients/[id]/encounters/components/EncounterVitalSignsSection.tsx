@@ -1,4 +1,4 @@
-import { SectionCard } from "../../../components/detail/SectionCard";
+import { SectionCard } from "../../../components/SectionCard";
 import type { VitalSignRecord } from "../../../../../domain/vital-sign-record/vital-sign-record";
 import EncounterVitalSignsValueList from "./EncounterVitalSignsValueList";
 

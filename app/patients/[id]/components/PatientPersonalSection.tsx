@@ -1,13 +1,13 @@
 import React from "react";
-import type { Patient } from "../../../../domain/patients/patient";
-import { SectionCard } from "./SectionCard";
+import type { Patient } from "@/domain/patients/patient";
+import { SectionCard } from "@/app/patients/components/SectionCard";
 import {
   computeAgeFromBirthDate,
   formatGenderToSpanish,
   formatMaritalStatus,
   formatDeceased,
   formatPatientName,
-} from "../../../../lib/patient/formatters";
+} from "@/lib/patient/formatters";
 
 interface Props {
   patient: Patient;
@@ -58,7 +58,7 @@ export const PatientPersonalSection: React.FC<Props> = ({
             ? practitioners
                 .map((p: { id: string; display: string }) => p.display)
                 .join(", ")
-            : "No registrado"}
+            : "No asignado"}
         </dd>
       </dl>
     </SectionCard>
