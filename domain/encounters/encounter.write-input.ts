@@ -75,6 +75,7 @@ export interface FinalizeEncounterInput {
     episodeOfCareId: string;
     performerId: string;
     practitionerName: string;
+    visitType: EncounterVisitType;
     periodStart: string;
     periodEnd: string;
     clinicalNote?: string | null;

@@ -104,6 +104,52 @@ describe("finalizeEncounterAction", () => {
         expect(finalizeMock).not.toHaveBeenCalled();
     });
 
+    it("returns a domain-layer error when the encounter does not belong to the route patient", async () => {
+        findByIdMock.mockResolvedValue({
+            ...baseEncounter,
+            patientId: "patient-2",
+        });
+
+        const { finalizeEncounterAction } = await import("../finalize-encounter.action");
+
+        await expect(
+            finalizeEncounterAction("patient-1", "enc-123", validFormData)
+        ).resolves.toEqual({
+            success: false,
+            error: {
+                layer: "domain",
+                message: "El encuentro no pertenece al paciente indicado en la ruta",
+                code: "ENCOUNTER_PATIENT_MISMATCH",
+            },
+        });
+
+        expect(getCurrentPractitionerMock).not.toHaveBeenCalled();
+        expect(finalizeMock).not.toHaveBeenCalled();
+    });
+
+    it("returns a domain-layer error when the encounter is cancelled", async () => {
+        findByIdMock.mockResolvedValue({
+            ...baseEncounter,
+            status: "cancelled" as const,
+        });
+
+        const { finalizeEncounterAction } = await import("../finalize-encounter.action");
+
+        await expect(
+            finalizeEncounterAction("patient-1", "enc-123", validFormData)
+        ).resolves.toEqual({
+            success: false,
+            error: {
+                layer: "domain",
+                message: "No es posible finalizar un encuentro finalizado o cancelado",
+                code: "ENCOUNTER_NOT_EDITABLE",
+            },
+        });
+
+        expect(getCurrentPractitionerMock).not.toHaveBeenCalled();
+        expect(finalizeMock).not.toHaveBeenCalled();
+    });
+
     it("returns a domain-layer error when the encounter is not editable", async () => {
         findByIdMock.mockResolvedValue({
             ...baseEncounter,
@@ -125,6 +171,34 @@ describe("finalizeEncounterAction", () => {
 
         expect(getCurrentPractitionerMock).not.toHaveBeenCalled();
         expect(finalizeMock).not.toHaveBeenCalled();
+    });
+
+    it("keeps allowing planned encounters during the transitional lifecycle", async () => {
+        findByIdMock.mockResolvedValue(baseEncounter);
+        getCurrentPractitionerMock.mockResolvedValue({
+            id: "prac-1",
+            displayName: "Lic. Ramiro Perez",
+        });
+        finalizeMock.mockResolvedValue(undefined);
+        redirectMock.mockImplementation(() => {
+            throw new Error("NEXT_REDIRECT");
+        });
+
+        const { finalizeEncounterAction } = await import("../finalize-encounter.action");
+
+        await expect(
+            finalizeEncounterAction("patient-1", "enc-123", validFormData)
+        ).rejects.toThrow("NEXT_REDIRECT");
+
+        expect(finalizeMock).toHaveBeenCalledWith(
+            expect.objectContaining({
+                encounterId: "enc-123",
+                patientId: "patient-1",
+                visitType: "follow-up",
+                periodStart: "2026-03-20T10:00:00.000Z",
+                periodEnd: "2026-03-20T11:00:00.000Z",
+            })
+        );
     });
 
     it("redirects to the encounter detail page when finalization succeeds", async () => {
@@ -154,6 +228,7 @@ describe("finalizeEncounterAction", () => {
                 episodeOfCareId: "episode-1",
                 performerId: "prac-1",
                 practitionerName: "Lic. Ramiro Perez",
+                visitType: "follow-up",
                 periodStart: "2026-03-20T10:00:00.000Z",
                 periodEnd: "2026-03-20T11:00:00.000Z",
                 clinicalNote: "Paciente estable. Se realiza cierre de visita.",
@@ -168,6 +243,43 @@ describe("finalizeEncounterAction", () => {
         );
         expect(redirectMock).toHaveBeenCalledWith(
             "/patients/patient-1/encounters/enc-123"
+        );
+    });
+
+    it("preserves the encounter clinical context when the form omits optional narrative fields", async () => {
+        findByIdMock.mockResolvedValue({
+            ...baseEncounter,
+            visitType: "discharge",
+            reasonDisplay: "Motivo original",
+            clinicalNote: "Nota original",
+        });
+        getCurrentPractitionerMock.mockResolvedValue({
+            id: "prac-1",
+            displayName: "Lic. Ramiro Perez",
+        });
+        finalizeMock.mockResolvedValue(undefined);
+        redirectMock.mockImplementation(() => {
+            throw new Error("NEXT_REDIRECT");
+        });
+
+        const { finalizeEncounterAction } = await import("../finalize-encounter.action");
+
+        await expect(
+            finalizeEncounterAction("patient-1", "enc-123", {
+                ...validFormData,
+                clinicalNote: undefined,
+                reasonDisplay: undefined,
+            })
+        ).rejects.toThrow("NEXT_REDIRECT");
+
+        expect(finalizeMock).toHaveBeenCalledWith(
+            expect.objectContaining({
+                encounterId: "enc-123",
+                patientId: "patient-1",
+                visitType: "discharge",
+                clinicalNote: "Nota original",
+                reasonDisplay: "Motivo original",
+            })
         );
     });
 

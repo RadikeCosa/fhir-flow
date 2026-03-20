@@ -13,6 +13,7 @@ function makeInput(
         episodeOfCareId: "episode-1",
         performerId: "prac-1",
         practitionerName: "Lic. Ramiro Perez",
+        visitType: "follow-up",
         periodStart: "2026-03-20T10:00:00.000Z",
         periodEnd: "2026-03-20T11:00:00.000Z",
         clinicalNote: "Paciente estable. Se finaliza visita.",
@@ -37,6 +38,16 @@ describe("mapToFhirEncounterUpdate", () => {
                 code: "HH",
                 display: "Home health",
             },
+            type: [
+                {
+                    coding: [
+                        {
+                            code: "follow-up",
+                            display: "Visita de seguimiento",
+                        },
+                    ],
+                },
+            ],
             subject: {
                 reference: "Patient/patient-1",
             },
@@ -87,5 +98,24 @@ describe("mapToFhirEncounterUpdate", () => {
         expect(result.resource.reasonCode).toBeUndefined();
         expect(result.resource.note).toBeUndefined();
         expect(result.resource.extension).toBeUndefined();
+    });
+
+    it("preserves the original visit type in the PUT payload", () => {
+        const result = mapToFhirEncounterUpdate(
+            makeInput({
+                visitType: "discharge",
+            })
+        ) as { resource: Record<string, unknown> };
+
+        expect(result.resource.type).toEqual([
+            {
+                coding: [
+                    {
+                        code: "discharge",
+                        display: "Alta",
+                    },
+                ],
+            },
+        ]);
     });
 });

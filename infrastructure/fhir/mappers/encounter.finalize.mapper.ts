@@ -6,6 +6,7 @@
 import type { FinalizeEncounterInput } from "../../../domain/encounters/encounter.write-input";
 import { FhirMapperError } from "../../../domain/shared/error-types";
 import { CLINICAL_NOTE_EXTENSION_URL } from "../../../lib/fhir/systems";
+import { formatEncounterVisitType } from "../../../lib/patient/formatters/encounter.formatters";
 
 export function mapToFhirEncounterUpdate(input: FinalizeEncounterInput): unknown {
     if (!input.encounterId || input.encounterId.trim() === "") {
@@ -21,6 +22,16 @@ export function mapToFhirEncounterUpdate(input: FinalizeEncounterInput): unknown
             code: "HH",
             display: "Home health",
         },
+        type: [
+            {
+                coding: [
+                    {
+                        code: input.visitType,
+                        display: formatEncounterVisitType(input.visitType),
+                    },
+                ],
+            },
+        ],
         period: {
             start: input.periodStart,
             end: input.periodEnd,
