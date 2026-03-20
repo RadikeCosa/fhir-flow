@@ -28,7 +28,7 @@ function mapStatus(s?: string): ProcedureStatus {
  * category/code/display trio.  Returns `null` when the system is not the
  * expected `PROCEDURE_SYSTEM` or the code is unrecognised.
  */
-function mapCode(
+export function mapProcedureCode(
     system?: string,
     code?: string
 ): { category: ProcedureCategory; code: ProcedureCode; display: string } | null {
@@ -406,7 +406,7 @@ export function mapFhirProcedureToDomain(
         Array.isArray(resource.code.coding) &&
         resource.code.coding.length > 0
     ) {
-        const mapped = mapCode(
+        const mapped = mapProcedureCode(
             resource.code.coding[0].system,
             resource.code.coding[0].code
         );
