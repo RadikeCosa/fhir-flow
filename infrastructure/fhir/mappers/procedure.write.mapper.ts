@@ -50,7 +50,7 @@ export function mapToFhirProcedures(input: FinalizeEncounterInput): Array<unknow
                         {
                             system: PROCEDURE_SYSTEM,
                             code: procedure.code,
-                            display: metadata?.display,
+                            display: metadata.display,
                         },
                     ],
                 },

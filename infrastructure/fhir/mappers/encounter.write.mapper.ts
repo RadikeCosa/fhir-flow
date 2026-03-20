@@ -9,38 +9,18 @@
  */
 import type { CreateEncounterInput } from "../../../domain/encounters/encounter.write-input";
 import { FhirMapperError } from "../../../domain/shared/error-types";
+import type { FhirResource } from "../../../lib/fhir/fhir-client";
 import { CLINICAL_NOTE_EXTENSION_URL } from "../../../lib/fhir/systems";
 import { formatEncounterVisitType } from "../../../lib/patient/formatters/encounter.formatters";
 
-type EncounterWritePayload = {
+type EncounterWritePayload = FhirResource & {
     resourceType: "Encounter";
-    status: string;
-    class: {
-        system: string;
-        code: string;
-        display: string;
-    };
-    type: Array<{
-        coding: Array<{
-            code: string;
-            display: string;
-        }>;
-    }>;
-    subject: {
-        reference: string;
-    };
-    episodeOfCare: Array<{
-        reference: string;
-    }>;
-    participant: Array<{
-        individual: {
-            reference: string;
-            display: string;
+    participant?: Array<{
+        individual?: {
+            reference?: string;
+            display?: string;
         };
     }>;
-    period: {
-        start: string;
-    };
     reasonCode?: Array<{
         text: string;
     }>;
