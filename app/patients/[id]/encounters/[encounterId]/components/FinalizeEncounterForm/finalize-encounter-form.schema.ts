@@ -3,6 +3,7 @@ import {
     ProcedureCategoryValues,
     ProcedureCodeValues,
 } from "../../../../../../../domain/procedures/procedure";
+import { PROCEDURE_CODES_BY_CATEGORY } from "../../../../../../../domain/procedures/procedure-code-category.map";
 
 /**
  * Schema for the finalize encounter form.
@@ -87,8 +88,19 @@ export const finalizeEncounterFormSchema = z
                     "Si se indica presión arterial, debe completarse tanto sistólica como diastólica.",
             });
         }
+
+        data.procedures.forEach((procedure, index) => {
+            const allowedCodes = PROCEDURE_CODES_BY_CATEGORY[procedure.category];
+
+            if (!allowedCodes.includes(procedure.code)) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    path: ["procedures", index, "code"],
+                    message: "El código del procedimiento no coincide con la categoría seleccionada.",
+                });
+            }
+        });
     });
 
 export type FinalizeEncounterFormInput = z.input<typeof finalizeEncounterFormSchema>;
 export type FinalizeEncounterFormValues = z.infer<typeof finalizeEncounterFormSchema>;
-
