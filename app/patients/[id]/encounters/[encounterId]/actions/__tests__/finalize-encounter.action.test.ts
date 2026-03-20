@@ -76,6 +76,33 @@ describe("finalizeEncounterAction", () => {
         expect(finalizeMock).not.toHaveBeenCalled();
     });
 
+    it("returns a validation-layer error when a procedure code does not belong to its category", async () => {
+        const { finalizeEncounterAction } = await import("../finalize-encounter.action");
+
+        await expect(
+            finalizeEncounterAction("patient-1", "enc-123", {
+                ...validFormData,
+                procedures: [
+                    {
+                        category: "rehabilitacion-respiratoria",
+                        code: "masoterapia",
+                        bodySite: "Tórax",
+                    },
+                ],
+            })
+        ).resolves.toMatchObject({
+            success: false,
+            error: {
+                layer: "validation",
+                code: "FORM_VALIDATION_FAILED",
+            },
+        });
+
+        expect(findByIdMock).not.toHaveBeenCalled();
+        expect(getCurrentPractitionerMock).not.toHaveBeenCalled();
+        expect(finalizeMock).not.toHaveBeenCalled();
+    });
+
     it("returns a domain-layer error when the clinical note is missing", async () => {
         findByIdMock.mockResolvedValue(baseEncounter);
         getCurrentPractitionerMock.mockResolvedValue({

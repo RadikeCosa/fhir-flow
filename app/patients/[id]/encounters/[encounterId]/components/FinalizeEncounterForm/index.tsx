@@ -7,10 +7,7 @@ import type { FinalizeEncounterFormInput } from "./finalize-encounter-form.schem
 import { finalizeEncounterFormSchema } from "./finalize-encounter-form.schema";
 import { finalizeEncounterAction } from "../../actions/finalize-encounter.action";
 import type { ActionResult } from "../../../../../../../domain/shared/action-result.types";
-import {
-  ProcedureCategoryValues,
-  ProcedureCodeValues,
-} from "@/domain/procedures/procedure";
+import { ProcedureCategoryValues } from "@/domain/procedures/procedure";
 import type {
   ProcedureCategory,
   ProcedureCode,
@@ -24,17 +21,29 @@ interface FinalizeEncounterFormProps {
   periodStart: string;
 }
 
-const defaultProcedure: {
+const getProcedureCodes = (
+  category: ProcedureCategory,
+): readonly ProcedureCode[] => PROCEDURE_CODES_BY_CATEGORY[category];
+
+const getDefaultProcedureCode = (category: ProcedureCategory): ProcedureCode =>
+  getProcedureCodes(category)[0];
+
+const isProcedureCategory = (value: string): value is ProcedureCategory =>
+  ProcedureCategoryValues.includes(value as ProcedureCategory);
+
+const createDefaultProcedure = (
+  category: ProcedureCategory = ProcedureCategoryValues[0],
+): {
   category: ProcedureCategory;
   code: ProcedureCode;
   bodySite?: string;
   note?: string;
-} = {
-  category: ProcedureCategoryValues[0],
-  code: ProcedureCodeValues[0],
+} => ({
+  category,
+  code: getDefaultProcedureCode(category),
   bodySite: "",
   note: "",
-};
+});
 
 export default function FinalizeEncounterForm({
   patientId,
@@ -48,7 +57,7 @@ export default function FinalizeEncounterForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showVitals, setShowVitals] = useState(true);
   const [showEva, setShowEva] = useState(false);
-  const [showProcedures, setShowProcedures] = useState(false);
+  const [showProcedures, setShowProcedures] = useState(true);
 
   const form = useForm<FinalizeEncounterFormInput>({
     resolver: zodResolver(finalizeEncounterFormSchema),
@@ -343,14 +352,23 @@ export default function FinalizeEncounterForm({
           </button>
           {showProcedures && (
             <div className="space-y-3">
+              {fields.length === 0 && (
+                <div className="rounded-md border border-dashed border-border p-3 text-sm text-muted">
+                  No hay procedimientos cargados. Podés agregar uno desde esta sección.
+                </div>
+              )}
+
               {fields.map((field, index) => {
-                const category = watchProcedures?.[index]?.category;
-                const codes = category
-                  ? PROCEDURE_CODES_BY_CATEGORY[category]
-                  : ProcedureCodeValues;
+                const category =
+                  watchProcedures?.[index]?.category ??
+                  field.category ??
+                  ProcedureCategoryValues[0];
+                const codes = getProcedureCodes(category);
                 const categoryField = register(
                   `procedures.${index}.category` as const,
                 );
+                const codeField = register(`procedures.${index}.code` as const);
+
                 return (
                   <div
                     key={field.id}
@@ -364,12 +382,25 @@ export default function FinalizeEncounterForm({
                         <select
                           {...categoryField}
                           onChange={(event) => {
+                            const nextCategory = event.currentTarget.value;
+
                             categoryField.onChange(event);
-                            setValue(`procedures.${index}.code`, undefined);
+                            if (!isProcedureCategory(nextCategory)) {
+                              return;
+                            }
+
+                            setValue(
+                              `procedures.${index}.code`,
+                              getDefaultProcedureCode(nextCategory),
+                              {
+                                shouldDirty: true,
+                                shouldTouch: true,
+                                shouldValidate: true,
+                              },
+                            );
                           }}
                           className="mt-1 block w-full rounded-md border border-border px-3 py-2"
                         >
-                          <option value="">Seleccionar</option>
                           {ProcedureCategoryValues.map((cat) => (
                             <option key={cat} value={cat}>
                               {cat}
@@ -383,16 +414,20 @@ export default function FinalizeEncounterForm({
                           Código
                         </label>
                         <select
-                          {...register(`procedures.${index}.code` as const)}
+                          {...codeField}
                           className="mt-1 block w-full rounded-md border border-border px-3 py-2"
                         >
-                          <option value="">Seleccionar</option>
                           {codes.map((code) => (
                             <option key={code} value={code}>
                               {code}
                             </option>
                           ))}
                         </select>
+                        {formState.errors.procedures?.[index]?.code?.message && (
+                          <p className="text-xs text-red-600">
+                            {formState.errors.procedures[index]?.code?.message}
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -432,7 +467,7 @@ export default function FinalizeEncounterForm({
 
               <button
                 type="button"
-                onClick={() => append({ ...defaultProcedure })}
+                onClick={() => append(createDefaultProcedure())}
                 className="mt-2 inline-flex items-center rounded-md bg-secondary px-3 py-2 text-sm text-white"
               >
                 Agregar procedimiento
