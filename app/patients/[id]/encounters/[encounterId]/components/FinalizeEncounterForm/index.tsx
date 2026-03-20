@@ -468,7 +468,7 @@ export default function FinalizeEncounterForm({
               <button
                 type="button"
                 onClick={() => append(createDefaultProcedure())}
-                className="mt-2 inline-flex items-center rounded-md bg-secondary px-3 py-2 text-sm text-white"
+                className="mt-2 inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-white shadow-sm transition-colors duration-150 hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
                 Agregar procedimiento
               </button>
