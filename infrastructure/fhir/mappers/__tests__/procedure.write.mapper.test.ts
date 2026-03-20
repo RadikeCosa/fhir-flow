@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { FinalizeEncounterInput } from "../../../../domain/encounters/encounter.write-input";
+import { FhirMapperError } from "../../../../domain/shared/error-types";
 import { mapToFhirProcedures } from "../procedure.write.mapper";
 import { PROCEDURE_SYSTEM } from "../../../../lib/fhir/systems";
 
@@ -122,4 +123,43 @@ describe("mapToFhirProcedures", () => {
         });
         expect(result[0]?.resource.bodySite).toBeUndefined();
     });
+
+    it("throws a typed error when procedure metadata cannot be resolved", () => {
+        expect(() =>
+            mapToFhirProcedures(
+                makeInput({
+                    procedures: [
+                        {
+                            category: "terapia-manual",
+                            code: "codigo-inexistente" as never,
+                        },
+                    ],
+                })
+            )
+        ).toThrowError(
+            new FhirMapperError(
+                "Procedure metadata could not be resolved for code: codigo-inexistente",
+                "MISSING_PROCEDURE_METADATA"
+            )
+        );
+    });
+
+    it("omits bodySite and note when they are empty strings", () => {
+        const result = mapToFhirProcedures(
+            makeInput({
+                procedures: [
+                    {
+                        category: "terapia-manual",
+                        code: "masoterapia",
+                        bodySite: "",
+                        note: "",
+                    },
+                ],
+            })
+        ) as Array<{ resource: Record<string, unknown> }>;
+
+        expect(result[0]?.resource.bodySite).toBeUndefined();
+        expect(result[0]?.resource.note).toBeUndefined();
+    });
+
 });

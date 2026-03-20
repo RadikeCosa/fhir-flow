@@ -8,12 +8,52 @@
  * If required references are missing, a `FhirMapperError` is thrown.
  */
 import type { CreateEncounterInput } from "../../../domain/encounters/encounter.write-input";
-import type { FhirEncounter } from "../schemas/encounter.schema";
 import { FhirMapperError } from "../../../domain/shared/error-types";
 import { CLINICAL_NOTE_EXTENSION_URL } from "../../../lib/fhir/systems";
 import { formatEncounterVisitType } from "../../../lib/patient/formatters/encounter.formatters";
 
-export function mapToFhirEncounter(input: CreateEncounterInput): FhirEncounter {
+type EncounterWritePayload = {
+    resourceType: "Encounter";
+    status: string;
+    class: {
+        system: string;
+        code: string;
+        display: string;
+    };
+    type: Array<{
+        coding: Array<{
+            code: string;
+            display: string;
+        }>;
+    }>;
+    subject: {
+        reference: string;
+    };
+    episodeOfCare: Array<{
+        reference: string;
+    }>;
+    participant: Array<{
+        individual: {
+            reference: string;
+            display: string;
+        };
+    }>;
+    period: {
+        start: string;
+    };
+    reasonCode?: Array<{
+        text: string;
+    }>;
+    extension?: Array<{
+        url: string;
+        valueString: string;
+    }>;
+    note?: Array<{
+        text: string;
+    }>;
+};
+
+export function mapToFhirEncounter(input: CreateEncounterInput): EncounterWritePayload {
     // Required references: patient, episode of care, and performer (from config)
     if (!input.patientId || input.patientId.trim() === "") {
         throw new FhirMapperError("Patient ID cannot be empty", "MISSING_PATIENT_ID");
@@ -34,7 +74,7 @@ export function mapToFhirEncounter(input: CreateEncounterInput): FhirEncounter {
         );
     }
 
-    const fhirEncounter = {
+    const fhirEncounter: EncounterWritePayload = {
         resourceType: "Encounter",
         status: "planned",
         class: {
@@ -71,7 +111,7 @@ export function mapToFhirEncounter(input: CreateEncounterInput): FhirEncounter {
         period: {
             start: input.plannedAt,
         },
-    } as unknown as FhirEncounter;
+    };
 
     if (input.reasonDisplay && input.reasonDisplay.trim() !== "") {
         fhirEncounter.reasonCode = [
