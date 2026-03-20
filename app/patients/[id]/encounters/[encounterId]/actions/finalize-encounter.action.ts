@@ -45,6 +45,17 @@ export async function finalizeEncounterAction(
         };
     }
 
+    if (encounter.patientId !== patientId) {
+        return {
+            success: false,
+            error: {
+                layer: "domain",
+                message: "El encuentro no pertenece al paciente indicado en la ruta",
+                code: "ENCOUNTER_PATIENT_MISMATCH",
+            } satisfies ActionError,
+        };
+    }
+
     if (encounter.status === "finished" || encounter.status === "cancelled") {
         return {
             success: false,
@@ -74,15 +85,16 @@ export async function finalizeEncounterAction(
     }
 
     const input: FinalizeEncounterInput = {
-        encounterId,
+        encounterId: encounter.id,
         patientId: encounter.patientId,
         episodeOfCareId: encounter.episodeOfCareId,
         performerId: practitioner.id,
         practitionerName: practitioner.displayName,
+        visitType: encounter.visitType,
         periodStart: encounter.periodStart,
         periodEnd: parseResult.data.periodEnd.toISOString(),
-        clinicalNote: parseResult.data.clinicalNote ?? null,
-        reasonDisplay: parseResult.data.reasonDisplay ?? null,
+        clinicalNote: parseResult.data.clinicalNote ?? encounter.clinicalNote ?? null,
+        reasonDisplay: parseResult.data.reasonDisplay ?? encounter.reasonDisplay ?? null,
         heartRate: parseResult.data.heartRate,
         respiratoryRate: parseResult.data.respiratoryRate,
         oxygenSaturation: parseResult.data.oxygenSaturation,

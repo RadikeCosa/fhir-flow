@@ -10,6 +10,7 @@ function makeInput(overrides: Partial<FinalizeEncounterInput> = {}): FinalizeEnc
         episodeOfCareId: "episode-1",
         performerId: "prac-1",
         practitionerName: "Lic. Ramiro Perez",
+        visitType: "follow-up",
         periodStart: "2026-03-20T10:00:00.000Z",
         periodEnd: "2026-03-20T11:00:00.000Z",
         clinicalNote: "Paciente estable. Se finaliza visita.",
