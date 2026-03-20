@@ -19,6 +19,7 @@ interface FinalizeEncounterFormProps {
   encounterId: string;
   practitionerName: string;
   periodStart: string;
+  periodStartFormatted?: string;
 }
 
 const getProcedureCodes = (
@@ -50,6 +51,7 @@ export default function FinalizeEncounterForm({
   encounterId,
   practitionerName,
   periodStart,
+  periodStartFormatted,
 }: FinalizeEncounterFormProps) {
   const [serverResult, setServerResult] = useState<ActionResult<void> | null>(
     null,
@@ -115,7 +117,7 @@ export default function FinalizeEncounterForm({
           Profesional: {practitionerName}
         </div>
         <div className="text-sm text-muted">
-          Inicio del período: {periodStart}
+          Inicio del período: {periodStartFormatted ?? periodStart}
         </div>
       </div>
 
@@ -139,7 +141,7 @@ export default function FinalizeEncounterForm({
           <h2 className="font-semibold">Datos del cierre</h2>
 
           <p className="text-sm text-muted">
-            Fecha inicio (no editable): {periodStart}
+            Fecha inicio (no editable): {periodStartFormatted ?? periodStart}
           </p>
 
           <div className="mt-3">
@@ -354,7 +356,8 @@ export default function FinalizeEncounterForm({
             <div className="space-y-3">
               {fields.length === 0 && (
                 <div className="rounded-md border border-dashed border-border p-3 text-sm text-muted">
-                  No hay procedimientos cargados. Podés agregar uno desde esta sección.
+                  No hay procedimientos cargados. Podés agregar uno desde esta
+                  sección.
                 </div>
               )}
 
@@ -423,7 +426,8 @@ export default function FinalizeEncounterForm({
                             </option>
                           ))}
                         </select>
-                        {formState.errors.procedures?.[index]?.code?.message && (
+                        {formState.errors.procedures?.[index]?.code
+                          ?.message && (
                           <p className="text-xs text-red-600">
                             {formState.errors.procedures[index]?.code?.message}
                           </p>

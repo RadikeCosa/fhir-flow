@@ -173,6 +173,14 @@ export const LastEncounterSection: React.FC<Props> = ({
 
       {patientId && (
         <div className="mt-3 pt-3 border-t border-border flex justify-end">
+          {nextPlannedEncounter && (
+            <Link
+              href={`/patients/${patientId}/encounters/${nextPlannedEncounter.id}`}
+              className="text-xs text-primary hover:underline"
+            >
+              Registrar visita →
+            </Link>
+          )}
           <Link
             href={`/patients/${patientId}/encounters`}
             className="text-xs text-primary hover:underline"

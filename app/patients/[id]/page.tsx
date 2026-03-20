@@ -60,14 +60,22 @@ export default async function Page({ params }: Props) {
         <div className="min-w-0 flex-1">
           <Breadcrumbs patientName={patientFullName} />
         </div>
-        {hasActiveEpisode && (
-          <Link
-            href={`/patients/${id}/encounters/new`}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-hover transition-colors duration-150"
-          >
-            Planificar Visita
-          </Link>
-        )}
+        {hasActiveEpisode &&
+          (data.nextPlannedEncounter ? (
+            <Link
+              href={`/patients/${id}/encounters/${data.nextPlannedEncounter.id}`}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-hover transition-colors duration-150"
+            >
+              Registrar Visita
+            </Link>
+          ) : (
+            <Link
+              href={`/patients/${id}/encounters/new`}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-hover transition-colors duration-150"
+            >
+              Planificar Visita
+            </Link>
+          ))}
       </div>
       <div className="mb-4">
         <Link href="/patients" className="text-sm text-primary">

@@ -5,10 +5,7 @@ import {
   createEncounterRepository,
   createPatientRepository,
 } from "@/infrastructure/fhir/factories";
-import {
-  formatDateTime,
-  formatPatientName,
-} from "@/lib/patient/formatters";
+import { formatDateTime, formatPatientName } from "@/lib/patient/formatters";
 import { formatEncounterVisitType } from "@/lib/patient/formatters/encounter.formatters";
 import { getCurrentPractitioner } from "@/lib/server/current-practitioner";
 
@@ -111,9 +108,12 @@ export default async function EncounterDetailPage({ params }: PageProps) {
                 </dd>
               </div>
               <div>
-                <dt className="font-medium text-foreground">Inicio del período</dt>
+                <dt className="font-medium text-foreground">
+                  Inicio del período
+                </dt>
                 <dd className="text-muted">
-                  {formatDateTime(encounter.periodStart) ?? encounter.periodStart}
+                  {formatDateTime(encounter.periodStart) ??
+                    encounter.periodStart}
                 </dd>
               </div>
             </dl>
@@ -131,6 +131,9 @@ export default async function EncounterDetailPage({ params }: PageProps) {
                 encounterId={encounterId}
                 practitionerName={practitioner.displayName}
                 periodStart={encounter.periodStart}
+                periodStartFormatted={
+                  formatDateTime(encounter.periodStart) ?? encounter.periodStart
+                }
               />
             </div>
           </div>
@@ -156,19 +159,26 @@ export default async function EncounterDetailPage({ params }: PageProps) {
                   <dd className="text-muted">{encounter.status}</dd>
                 </div>
                 <div>
-                  <dt className="font-medium text-foreground">Tipo de visita</dt>
+                  <dt className="font-medium text-foreground">
+                    Tipo de visita
+                  </dt>
                   <dd className="text-muted">
                     {formatEncounterVisitType(encounter.visitType)}
                   </dd>
                 </div>
                 <div>
-                  <dt className="font-medium text-foreground">Inicio del período</dt>
+                  <dt className="font-medium text-foreground">
+                    Inicio del período
+                  </dt>
                   <dd className="text-muted">
-                    {formatDateTime(encounter.periodStart) ?? encounter.periodStart}
+                    {formatDateTime(encounter.periodStart) ??
+                      encounter.periodStart}
                   </dd>
                 </div>
                 <div>
-                  <dt className="font-medium text-foreground">Fin del período</dt>
+                  <dt className="font-medium text-foreground">
+                    Fin del período
+                  </dt>
                   <dd className="text-muted">
                     {formatDateTime(encounter.periodEnd) ??
                       encounter.periodEnd ??
@@ -182,7 +192,9 @@ export default async function EncounterDetailPage({ params }: PageProps) {
                   </dd>
                 </div>
                 <div className="md:col-span-2">
-                  <dt className="font-medium text-foreground">Motivo de la visita</dt>
+                  <dt className="font-medium text-foreground">
+                    Motivo de la visita
+                  </dt>
                   <dd className="text-muted whitespace-pre-wrap">
                     {encounter.reasonDisplay || "Sin registrar"}
                   </dd>
