@@ -8,7 +8,7 @@ import type { BarthelAssessment } from "@/domain/assessments/barthel-assessment"
 import type { NecpalAssessment } from "@/domain/assessments/necpal-assessment";
 import type { EcogAssessment } from "@/domain/assessments/ecog-assessment";
 import type { PlanOfCare } from "@/domain/plan-of-care/plan-of-care";
-import type { ReAssessmentEntry } from "@/app/patients/[id]/components/ReAssessmentSection";
+import type { ReAssessmentEntry } from "@/app/patients/[id]/types";
 
 import {
     createPatientRepository,

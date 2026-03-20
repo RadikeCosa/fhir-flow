@@ -1,14 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { currentPractitionerId } from "@/config/fhir.config";
-import type { EpisodeOfCare } from "@/domain/episode-of-care/episode-of-care";
-import {
-  createEpisodeOfCareRepository,
-  createPatientRepository,
-} from "@/infrastructure/fhir/factories";
-import { formatPatientName } from "@/lib/patient/formatters";
-import { getCurrentPractitioner } from "@/lib/server/current-practitioner";
 import { CreateEncounterForm } from "./components/CreateEncounterForm";
+import { getNewEncounterPageData, type NewEncounterPageData } from "./data";
 
 export const metadata: Metadata = {
   title: "Planificar Visita | FHIR Flow",
@@ -22,37 +15,8 @@ interface PageProps {
 export default async function CreateEncounterPage({ params }: PageProps) {
   const { id: patientId } = await params;
 
-  const patientNamePromise = (async () => {
-    try {
-      const patientRepo = createPatientRepository();
-      const patient = await patientRepo.findById(patientId);
-
-      return patient ? formatPatientName(patient.name) : "";
-    } catch {
-      return "";
-    }
-  })();
-
-  const practitionerNamePromise = (async () => {
-    try {
-      const practitioner = await getCurrentPractitioner();
-      return practitioner.displayName;
-    } catch {
-      return currentPractitionerId;
-    }
-  })();
-
-  const [patientName, practitionerName] = await Promise.all([
-    patientNamePromise,
-    practitionerNamePromise,
-  ]);
-
-  const episodeRepo = createEpisodeOfCareRepository();
-  const episodes = await episodeRepo.findAllByPatientId(patientId);
-
-  const activeEpisodes = episodes.filter(
-    (e: EpisodeOfCare) => e.status === "active",
-  );
+  const data: NewEncounterPageData = await getNewEncounterPageData(patientId);
+  const { patientName, practitionerName, activeEpisodes } = data;
 
   if (activeEpisodes.length === 0) {
     return (

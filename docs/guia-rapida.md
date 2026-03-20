@@ -116,3 +116,5 @@ El archivo ADR vigente en el repo hoy se llama:
 `docs/adr/ADR-001-encounter-lifecycle-and-write-architecture.md`
 
 Ese es el documento que debe tratarse como autoridad arquitectonica, aunque su nombre de archivo todavia conserve un typo historico.
+
+- `app-architecture-checkpoint-2026-03.md`: estado actual y refactors recientes de la capa `app/` en patients/encounters

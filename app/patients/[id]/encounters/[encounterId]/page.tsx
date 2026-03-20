@@ -3,7 +3,10 @@ import Breadcrumbs from "../../../../components/Breadcrumbs";
 import FinalizeEncounterForm from "./components/FinalizeEncounterForm";
 import { getEncounterDetailData, type EncounterDetailData } from "./data";
 import { formatDateTime, formatPatientName } from "@/lib/patient/formatters";
-import { formatEncounterVisitType } from "@/lib/patient/formatters/encounter.formatters";
+import {
+  formatEncounterVisitType,
+  getEncounterStatusBadge,
+} from "@/lib/patient/formatters/encounter.formatters";
 
 type PageProps = {
   params: Promise<{
@@ -64,6 +67,7 @@ export default async function EncounterDetailPage({ params }: PageProps) {
     encounter.status === "planned" || encounter.status === "in-progress";
   const readOnly =
     encounter.status === "finished" || encounter.status === "cancelled";
+  const encounterStatusBadge = getEncounterStatusBadge(encounter.status);
 
   return (
     <div className="space-y-6">
@@ -74,9 +78,7 @@ export default async function EncounterDetailPage({ params }: PageProps) {
           <h1 className="text-2xl font-semibold text-foreground">
             {formatEncounterVisitType(encounter.visitType)}
           </h1>
-          <p className="text-sm text-muted">
-            Paciente: {patientName} · Encuentro: {encounter.id}
-          </p>
+          <p className="text-sm text-muted">Paciente: {patientName}</p>
         </div>
         <Link href={backHref} className="text-sm text-primary">
           ← Volver
@@ -150,7 +152,13 @@ export default async function EncounterDetailPage({ params }: PageProps) {
               <dl className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
                 <div>
                   <dt className="font-medium text-foreground">Estado</dt>
-                  <dd className="text-muted">{encounter.status}</dd>
+                  <dd>
+                    <span
+                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${encounterStatusBadge.colorClass}`}
+                    >
+                      {encounterStatusBadge.label}
+                    </span>
+                  </dd>
                 </div>
                 <div>
                   <dt className="font-medium text-foreground">

@@ -1,14 +1,7 @@
-import type { Encounter } from "@/domain/encounters/encounter";
+import type { ReAssessmentEntry } from "@/app/patients/[id]/types";
 import type { BarthelAssessment } from "@/domain/assessments/barthel-assessment";
-import type { PlanOfCare } from "@/domain/plan-of-care/plan-of-care";
 import { SectionCard } from "@/app/patients/components/SectionCard";
 import ReAssessmentCard from "@/app/patients/[id]/components/re-assessments/ReAssessmentCard";
-
-export interface ReAssessmentEntry {
-  encounter: Encounter;
-  assessments: BarthelAssessment[];
-  planOfCare: PlanOfCare | null;
-}
 
 interface ReAssessmentSectionProps {
   entries: ReAssessmentEntry[];

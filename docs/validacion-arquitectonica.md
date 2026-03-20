@@ -106,3 +106,5 @@ Usar este checklist en cada cambio de write flow:
 La arquitectura **no está “todo aprobado”**.
 
 El sistema tiene bases sólidas en boundaries y responsabilidades, pero mantiene deuda explícita en lifecycle operativo, canonical read y cierre del contrato de errores tipados. La validación correcta hoy es: **base válida + transición activa + deuda reconocida + pendientes concretos del ADR**.
+
+Nota: los últimos refactors de la capa `app/` (loaders, contratos y convención de rutas en patients/encounters) están resumidos en `app-architecture-checkpoint-2026-03.md`.

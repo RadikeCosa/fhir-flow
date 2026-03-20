@@ -20,14 +20,11 @@ import {
     createEcogAssessmentRepository,
 } from "@/infrastructure/fhir/factories";
 
-import { currentPractitionerId } from "@/config/fhir.config";
-
 import { PatientNotFoundError } from "../data";
 
 export { PatientNotFoundError };
 
 export interface EncountersPageData {
-    currentPractitionerId: string;
     patient: Patient;
     activeEpisode: EpisodeOfCare | null;
     encounters: Encounter[];
@@ -67,7 +64,6 @@ export async function getEncountersPageData(
 
     if (!activeEpisode) {
         return {
-            currentPractitionerId,
             patient,
             activeEpisode: null,
             encounters: [],
@@ -129,7 +125,6 @@ export async function getEncountersPageData(
     });
 
     return {
-        currentPractitionerId,
         patient,
         activeEpisode,
         encounters,
