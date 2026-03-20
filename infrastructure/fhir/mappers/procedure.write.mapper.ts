@@ -4,7 +4,12 @@
  */
 import type { FinalizeEncounterInput } from "../../../domain/encounters/encounter.write-input";
 import { PROCEDURE_SYSTEM } from "../../../lib/fhir/systems";
+import { FhirMapperError } from "../../../domain/shared/error-types";
 import { mapProcedureCode } from "./procedure.mapper";
+
+function hasContent(value?: string): value is string {
+    return typeof value === "string" && value.trim() !== "";
+}
 
 export function mapToFhirProcedures(input: FinalizeEncounterInput): Array<unknown> {
     if (!Array.isArray(input.procedures) || input.procedures.length === 0) {
@@ -13,6 +18,13 @@ export function mapToFhirProcedures(input: FinalizeEncounterInput): Array<unknow
 
     return input.procedures.map((procedure) => {
         const metadata = mapProcedureCode(PROCEDURE_SYSTEM, procedure.code);
+
+        if (!metadata?.display) {
+            throw new FhirMapperError(
+                `Procedure metadata could not be resolved for code: ${procedure.code}`,
+                "MISSING_PROCEDURE_METADATA"
+            );
+        }
 
         return {
             request: { method: "POST", url: "Procedure" },
@@ -38,11 +50,11 @@ export function mapToFhirProcedures(input: FinalizeEncounterInput): Array<unknow
                         {
                             system: PROCEDURE_SYSTEM,
                             code: procedure.code,
-                            display: metadata?.display,
+                            display: metadata.display,
                         },
                     ],
                 },
-                ...(procedure.bodySite
+                ...(hasContent(procedure.bodySite)
                     ? {
                           bodySite: [
                               {
@@ -51,7 +63,7 @@ export function mapToFhirProcedures(input: FinalizeEncounterInput): Array<unknow
                           ],
                       }
                     : {}),
-                ...(procedure.note ? { note: [{ text: procedure.note }] } : {}),
+                ...(hasContent(procedure.note) ? { note: [{ text: procedure.note }] } : {}),
             },
         };
     });

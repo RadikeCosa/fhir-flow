@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { FhirMapperError } from "../../../../../../../domain/shared/error-types";
+import { FhirMapperError, FhirWriteError } from "../../../../../../../domain/shared/error-types";
 
 const createMock = vi.fn();
 const getCurrentPractitionerMock = vi.fn();
@@ -100,6 +100,52 @@ describe("createEncounterAction", () => {
             },
         });
         expect(createMock).not.toHaveBeenCalled();
+    });
+
+
+    it("returns a controlled fhir-layer ActionResult when repository create fails with FhirWriteError", async () => {
+        const operationOutcome = {
+            resourceType: "OperationOutcome" as const,
+            issue: [
+                {
+                    severity: "error" as const,
+                    code: "exception" as const,
+                    diagnostics: "FHIR write failed",
+                },
+            ],
+        };
+
+        getCurrentPractitionerMock.mockResolvedValue({
+            id: "kine-1",
+            displayName: "Lic. Ramiro Perez",
+        });
+        createMock.mockRejectedValue(
+            new FhirWriteError(
+                "No se pudo crear el encuentro",
+                500,
+                operationOutcome,
+                "FHIR_WRITE_FAILED"
+            )
+        );
+
+        const { createEncounterAction } = await import("../create-encounter.action");
+
+        await expect(
+            createEncounterAction("patient-1", "episode-1", {
+                plannedAt: new Date("2026-03-20T10:00:00.000Z"),
+                visitType: "follow-up",
+                reasonDisplay: "Control programado",
+                note: "Paciente estable",
+            })
+        ).resolves.toEqual({
+            success: false,
+            error: {
+                layer: "fhir",
+                message: "No se pudo crear el encuentro",
+                code: "FHIR_WRITE_FAILED",
+                details: operationOutcome,
+            },
+        });
     });
 
     it("returns a validation error when plannedAt is earlier than the current datetime", async () => {

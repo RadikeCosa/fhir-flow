@@ -131,6 +131,27 @@ describe("finalizeEncounterAction", () => {
         expect(finalizeMock).not.toHaveBeenCalled();
     });
 
+
+    it("returns a controlled fhir-layer error when the encounter cannot be found", async () => {
+        findByIdMock.mockResolvedValue(null);
+
+        const { finalizeEncounterAction } = await import("../finalize-encounter.action");
+
+        await expect(
+            finalizeEncounterAction("patient-1", "enc-404", validFormData)
+        ).resolves.toEqual({
+            success: false,
+            error: {
+                layer: "fhir",
+                message: "Encounter not found",
+                code: "ENCOUNTER_NOT_FOUND",
+            },
+        });
+
+        expect(getCurrentPractitionerMock).not.toHaveBeenCalled();
+        expect(finalizeMock).not.toHaveBeenCalled();
+    });
+
     it("returns a domain-layer error when the encounter does not belong to the route patient", async () => {
         findByIdMock.mockResolvedValue({
             ...baseEncounter,
