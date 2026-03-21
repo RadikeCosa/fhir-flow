@@ -1,8 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { validateEncounterRules } from "../domain-rules.validator";
+import {
+    validateEncounterRules,
+    validateFinalizeEncounterRules,
+} from "../domain-rules.validator";
 import { DomainRuleError } from "../error-types";
-import type { CreateEncounterInput } from "../../encounters/encounter.write-input";
+import type {
+    CreateEncounterInput,
+    FinalizeEncounterInput,
+} from "../../encounters/encounter.write-input";
 
 function makeInput(overrides: Partial<CreateEncounterInput> = {}): CreateEncounterInput {
     return {
@@ -55,5 +61,55 @@ describe("validateEncounterRules", () => {
         expect(() =>
             validateEncounterRules(makeInput({ plannedTime: "25:70" }))
         ).toThrowError(DomainRuleError);
+    });
+});
+
+describe("validateFinalizeEncounterRules", () => {
+    function makeFinalize(overrides: Partial<FinalizeEncounterInput> = {}): FinalizeEncounterInput {
+        return {
+            encounterId: "enc-1",
+            patientId: "pat-1",
+            actualStartAt: "2026-03-20T10:00:00.000Z",
+            actualEndAt: "2026-03-20T11:00:00.000Z",
+            clinicalNote: "Nota clínica",
+            evaScore: 5,
+            practices: [] as unknown as any,
+            procedures: [],
+            ...overrides,
+        } as FinalizeEncounterInput;
+    }
+
+    it("rejects non-integer EVA value", () => {
+        expect(() =>
+            validateFinalizeEncounterRules(makeFinalize({ evaScore: 4.5 as unknown as number }))
+        ).toThrowError(DomainRuleError);
+    });
+
+    it("rejects EVA out of range", () => {
+        expect(() =>
+            validateFinalizeEncounterRules(makeFinalize({ evaScore: 11 }))
+        ).toThrowError(DomainRuleError);
+    });
+
+    it("rejects incomplete blood pressure", () => {
+        expect(() =>
+            validateFinalizeEncounterRules(makeFinalize({ bloodPressureSystolic: 120, bloodPressureDiastolic: undefined }))
+        ).toThrowError(DomainRuleError);
+
+        expect(() =>
+            validateFinalizeEncounterRules(makeFinalize({ bloodPressureSystolic: undefined, bloodPressureDiastolic: 80 }))
+        ).toThrowError(DomainRuleError);
+    });
+
+    it("rejects diastolic >= systolic", () => {
+        expect(() =>
+            validateFinalizeEncounterRules(makeFinalize({ bloodPressureSystolic: 100, bloodPressureDiastolic: 110 }))
+        ).toThrowError(DomainRuleError);
+    });
+
+    it("accepts valid finalize input", () => {
+        expect(() =>
+            validateFinalizeEncounterRules(makeFinalize({ bloodPressureSystolic: 120, bloodPressureDiastolic: 80, evaScore: 3 }))
+        ).not.toThrow();
     });
 });

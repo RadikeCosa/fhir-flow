@@ -15,6 +15,14 @@ import type {
 } from "@/domain/procedures/procedure";
 import { PROCEDURE_CODES_BY_CATEGORY } from "@/domain/procedures/procedure-code-category.map";
 import {
+  VITAL_SIGN_CAPTURE_RANGES,
+  EVA_HELPER_TEXT,
+} from "@/lib/clinical/vital-sign-capture-ranges";
+import {
+  formatProcedureCategory,
+  formatProcedureCode,
+} from "@/lib/patient/formatters/procedure.formatters";
+import {
   formatPlannedContext,
   resolveInitialActualDate,
 } from "./finalize-encounter-form.defaults";
@@ -40,19 +48,19 @@ const getDefaultProcedureCode = (category: ProcedureCategory): ProcedureCode =>
 const isProcedureCategory = (value: string): value is ProcedureCategory =>
   ProcedureCategoryValues.includes(value as ProcedureCategory);
 
-const createDefaultProcedure = (
-  category: ProcedureCategory = ProcedureCategoryValues[0],
-): {
-  category: ProcedureCategory;
-  code: ProcedureCode;
+export function createDefaultProcedure(): {
+  category: ProcedureCategory | "";
+  code: ProcedureCode | "";
   bodySite?: string;
   note?: string;
-} => ({
-  category,
-  code: getDefaultProcedureCode(category),
-  bodySite: "",
-  note: "",
-});
+} {
+  return {
+    category: "",
+    code: "",
+    bodySite: "",
+    note: "",
+  };
+}
 
 export default function FinalizeEncounterForm({
   patientId,
@@ -67,7 +75,7 @@ export default function FinalizeEncounterForm({
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showVitals, setShowVitals] = useState(true);
-  const [showEva, setShowEva] = useState(false);
+  const [showEva, setShowEva] = useState(true);
   const [showProcedures, setShowProcedures] = useState(true);
 
   const form = useForm<
@@ -271,28 +279,42 @@ export default function FinalizeEncounterForm({
                     htmlFor="heartRate"
                     className="block text-sm font-medium"
                   >
-                    Frecuencia cardíaca
+                    Frecuencia cardíaca (
+                    {VITAL_SIGN_CAPTURE_RANGES.heartRate.unit})
                   </label>
                   <input
                     type="number"
                     id="heartRate"
-                    {...register("heartRate", { valueAsNumber: true })}
+                    min={VITAL_SIGN_CAPTURE_RANGES.heartRate.min}
+                    max={VITAL_SIGN_CAPTURE_RANGES.heartRate.max}
+                    step={VITAL_SIGN_CAPTURE_RANGES.heartRate.step}
+                    {...register("heartRate")}
                     className="mt-1 block w-full rounded-md border border-border px-3 py-2"
                   />
+                  <p className="text-xs text-muted">
+                    {VITAL_SIGN_CAPTURE_RANGES.heartRate.helperText}
+                  </p>
                 </div>
                 <div>
                   <label
                     htmlFor="respiratoryRate"
                     className="block text-sm font-medium"
                   >
-                    Frecuencia respiratoria
+                    Frecuencia respiratoria (
+                    {VITAL_SIGN_CAPTURE_RANGES.respiratoryRate.unit})
                   </label>
                   <input
                     type="number"
                     id="respiratoryRate"
-                    {...register("respiratoryRate", { valueAsNumber: true })}
+                    min={VITAL_SIGN_CAPTURE_RANGES.respiratoryRate.min}
+                    max={VITAL_SIGN_CAPTURE_RANGES.respiratoryRate.max}
+                    step={VITAL_SIGN_CAPTURE_RANGES.respiratoryRate.step}
+                    {...register("respiratoryRate")}
                     className="mt-1 block w-full rounded-md border border-border px-3 py-2"
                   />
+                  <p className="text-xs text-muted">
+                    {VITAL_SIGN_CAPTURE_RANGES.respiratoryRate.helperText}
+                  </p>
                 </div>
               </div>
 
@@ -302,66 +324,100 @@ export default function FinalizeEncounterForm({
                     htmlFor="oxygenSaturation"
                     className="block text-sm font-medium"
                   >
-                    Saturación oxígeno
+                    Saturación oxígeno (
+                    {VITAL_SIGN_CAPTURE_RANGES.oxygenSaturation.unit})
                   </label>
                   <input
                     type="number"
-                    min="0"
-                    max="100"
                     id="oxygenSaturation"
-                    {...register("oxygenSaturation", { valueAsNumber: true })}
+                    min={VITAL_SIGN_CAPTURE_RANGES.oxygenSaturation.min}
+                    max={VITAL_SIGN_CAPTURE_RANGES.oxygenSaturation.max}
+                    step={VITAL_SIGN_CAPTURE_RANGES.oxygenSaturation.step}
+                    {...register("oxygenSaturation")}
                     className="mt-1 block w-full rounded-md border border-border px-3 py-2"
                   />
+                  <p className="text-xs text-muted">
+                    {VITAL_SIGN_CAPTURE_RANGES.oxygenSaturation.helperText}
+                  </p>
                 </div>
                 <div>
                   <label
                     htmlFor="bodyTemperature"
                     className="block text-sm font-medium"
                   >
-                    Temperatura corporal
+                    Temperatura corporal (
+                    {VITAL_SIGN_CAPTURE_RANGES.bodyTemperature.unit})
                   </label>
                   <input
                     type="number"
-                    step="0.1"
                     id="bodyTemperature"
-                    {...register("bodyTemperature", { valueAsNumber: true })}
+                    min={VITAL_SIGN_CAPTURE_RANGES.bodyTemperature.min}
+                    max={VITAL_SIGN_CAPTURE_RANGES.bodyTemperature.max}
+                    step={VITAL_SIGN_CAPTURE_RANGES.bodyTemperature.step}
+                    {...register("bodyTemperature")}
                     className="mt-1 block w-full rounded-md border border-border px-3 py-2"
                   />
+                  <p className="text-xs text-muted">
+                    {VITAL_SIGN_CAPTURE_RANGES.bodyTemperature.helperText}
+                  </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label
-                    htmlFor="bloodPressureSystolic"
-                    className="block text-sm font-medium"
-                  >
-                    Presión sistólica
-                  </label>
-                  <input
-                    type="number"
-                    id="bloodPressureSystolic"
-                    {...register("bloodPressureSystolic", {
-                      valueAsNumber: true,
-                    })}
-                    className="mt-1 block w-full rounded-md border border-border px-3 py-2"
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="bloodPressureDiastolic"
-                    className="block text-sm font-medium"
-                  >
-                    Presión diastólica
-                  </label>
-                  <input
-                    type="number"
-                    id="bloodPressureDiastolic"
-                    {...register("bloodPressureDiastolic", {
-                      valueAsNumber: true,
-                    })}
-                    className="mt-1 block w-full rounded-md border border-border px-3 py-2"
-                  />
+              <div className="rounded-md border border-border p-3">
+                <p className="text-sm font-medium">Tensión arterial (mmHg)</p>
+                <div className="grid grid-cols-2 gap-3 mt-2">
+                  <div>
+                    <label
+                      htmlFor="bloodPressureSystolic"
+                      className="block text-sm font-medium"
+                    >
+                      Presión sistólica (
+                      {VITAL_SIGN_CAPTURE_RANGES.bloodPressureSystolic.unit})
+                    </label>
+                    <input
+                      type="number"
+                      id="bloodPressureSystolic"
+                      min={VITAL_SIGN_CAPTURE_RANGES.bloodPressureSystolic.min}
+                      max={VITAL_SIGN_CAPTURE_RANGES.bloodPressureSystolic.max}
+                      step={
+                        VITAL_SIGN_CAPTURE_RANGES.bloodPressureSystolic.step
+                      }
+                      {...register("bloodPressureSystolic")}
+                      className="mt-1 block w-full rounded-md border border-border px-3 py-2"
+                    />
+                    <p className="text-xs text-muted">
+                      {
+                        VITAL_SIGN_CAPTURE_RANGES.bloodPressureSystolic
+                          .helperText
+                      }
+                    </p>
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="bloodPressureDiastolic"
+                      className="block text-sm font-medium"
+                    >
+                      Presión diastólica (
+                      {VITAL_SIGN_CAPTURE_RANGES.bloodPressureDiastolic.unit})
+                    </label>
+                    <input
+                      type="number"
+                      id="bloodPressureDiastolic"
+                      min={VITAL_SIGN_CAPTURE_RANGES.bloodPressureDiastolic.min}
+                      max={VITAL_SIGN_CAPTURE_RANGES.bloodPressureDiastolic.max}
+                      step={
+                        VITAL_SIGN_CAPTURE_RANGES.bloodPressureDiastolic.step
+                      }
+                      {...register("bloodPressureDiastolic")}
+                      className="mt-1 block w-full rounded-md border border-border px-3 py-2"
+                    />
+                    <p className="text-xs text-muted">
+                      {
+                        VITAL_SIGN_CAPTURE_RANGES.bloodPressureDiastolic
+                          .helperText
+                      }
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -384,12 +440,19 @@ export default function FinalizeEncounterForm({
               </label>
               <input
                 type="number"
-                min="0"
-                max="10"
                 id="evaScore"
-                {...register("evaScore", { valueAsNumber: true })}
+                min={VITAL_SIGN_CAPTURE_RANGES.evaScore.min}
+                max={VITAL_SIGN_CAPTURE_RANGES.evaScore.max}
+                step={VITAL_SIGN_CAPTURE_RANGES.evaScore.step}
+                {...register("evaScore")}
                 className="mt-1 block w-full rounded-md border border-border px-3 py-2"
               />
+              <p className="text-xs text-muted">{EVA_HELPER_TEXT}</p>
+              {formState.errors.evaScore && (
+                <p className="text-xs text-red-600">
+                  {formState.errors.evaScore.message}
+                </p>
+              )}
             </div>
           )}
         </div>
@@ -414,10 +477,11 @@ export default function FinalizeEncounterForm({
 
               {fields.map((field, index) => {
                 const category =
-                  watchProcedures?.[index]?.category ??
-                  field.category ??
-                  ProcedureCategoryValues[0];
-                const codes = getProcedureCodes(category);
+                  watchProcedures?.[index]?.category ?? field.category ?? "";
+                const codes =
+                  category && isProcedureCategory(category)
+                    ? getProcedureCodes(category)
+                    : [];
                 const categoryField = register(
                   `procedures.${index}.category` as const,
                 );
@@ -439,28 +503,30 @@ export default function FinalizeEncounterForm({
                             const nextCategory = event.currentTarget.value;
 
                             categoryField.onChange(event);
-                            if (!isProcedureCategory(nextCategory)) {
-                              return;
-                            }
-
-                            setValue(
-                              `procedures.${index}.code`,
-                              getDefaultProcedureCode(nextCategory),
-                              {
-                                shouldDirty: true,
-                                shouldTouch: true,
-                                shouldValidate: true,
-                              },
-                            );
+                            setValue(`procedures.${index}.code`, "", {
+                              shouldDirty: true,
+                              shouldTouch: true,
+                              shouldValidate: true,
+                            });
                           }}
                           className="mt-1 block w-full rounded-md border border-border px-3 py-2"
                         >
+                          <option value="">Seleccionar categoría</option>
                           {ProcedureCategoryValues.map((cat) => (
                             <option key={cat} value={cat}>
-                              {cat}
+                              {formatProcedureCategory(cat)}
                             </option>
                           ))}
                         </select>
+                        {formState.errors.procedures?.[index]?.category
+                          ?.message && (
+                          <p className="text-xs text-red-600">
+                            {
+                              formState.errors.procedures[index]?.category
+                                ?.message
+                            }
+                          </p>
+                        )}
                       </div>
 
                       <div>
@@ -471,9 +537,10 @@ export default function FinalizeEncounterForm({
                           {...codeField}
                           className="mt-1 block w-full rounded-md border border-border px-3 py-2"
                         >
+                          <option value="">Seleccionar procedimiento</option>
                           {codes.map((code) => (
                             <option key={code} value={code}>
-                              {code}
+                              {formatProcedureCode(code)}
                             </option>
                           ))}
                         </select>
@@ -489,7 +556,7 @@ export default function FinalizeEncounterForm({
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="block text-sm font-medium">
-                          Cuerpo afectado
+                          Región anatómica (opcional)
                         </label>
                         <input
                           type="text"
@@ -499,7 +566,7 @@ export default function FinalizeEncounterForm({
                       </div>
                       <div>
                         <label className="block text-sm font-medium">
-                          Nota
+                          Observaciones (opcional)
                         </label>
                         <input
                           type="text"

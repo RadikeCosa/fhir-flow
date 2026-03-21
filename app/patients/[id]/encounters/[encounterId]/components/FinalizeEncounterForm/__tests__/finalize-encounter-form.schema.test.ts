@@ -60,6 +60,37 @@ describe("finalizeEncounterFormSchema procedures", () => {
         );
     });
 
+    it("rejects empty category or code in procedures", () => {
+        const result = finalizeEncounterFormSchema.safeParse({
+            ...baseInput,
+            procedures: [
+                { category: "", code: "", bodySite: "", note: "" },
+            ],
+        });
+
+        expect(result.success).toBe(false);
+        const errors = result.error?.flatten().fieldErrors.procedures;
+        expect(errors).toEqual(
+            expect.arrayContaining(["Seleccionar categoría", "Seleccionar procedimiento"]),
+        );
+    });
+
+    it("accepts procedures with explicit category/code labels", () => {
+        const result = finalizeEncounterFormSchema.safeParse({
+            ...baseInput,
+            procedures: [
+                {
+                    category: "rehabilitacion-respiratoria",
+                    code: "ejercicios-respiratorios",
+                    bodySite: "Tórax",
+                    note: "Buena tolerancia",
+                },
+            ],
+        });
+
+        expect(result.success).toBe(true);
+    });
+
     it("requires clinical note", () => {
         const result = finalizeEncounterFormSchema.safeParse({
             ...baseInput,
@@ -69,6 +100,84 @@ describe("finalizeEncounterFormSchema procedures", () => {
         expect(result.success).toBe(false);
         expect(result.error?.flatten().fieldErrors.clinicalNote).toContain(
             "La nota clínica es obligatoria."
+        );
+    });
+});
+
+describe("finalizeEncounterFormSchema vitals + EVA", () => {
+    it("coerces optional numeric values and comma decimals", () => {
+        const result = finalizeEncounterFormSchema.safeParse({
+            ...baseInput,
+            heartRate: "120",
+            respiratoryRate: "20",
+            oxygenSaturation: "98",
+            bodyTemperature: "37,2",
+            bloodPressureSystolic: "120",
+            bloodPressureDiastolic: "80",
+            evaScore: "4",
+        });
+
+        expect(result.success).toBe(true);
+    });
+
+    it("rejects heart rate outside allowed range", () => {
+        const result = finalizeEncounterFormSchema.safeParse({
+            ...baseInput,
+            heartRate: 29,
+        });
+
+        expect(result.success).toBe(false);
+        expect(result.error?.flatten().fieldErrors.heartRate).toContain(
+            "Too small: expected number to be >=30"
+        );
+    });
+
+    it("rejects respiratory rate outside allowed range", () => {
+        const result = finalizeEncounterFormSchema.safeParse({
+            ...baseInput,
+            respiratoryRate: 4,
+        });
+
+        expect(result.success).toBe(false);
+        expect(result.error?.flatten().fieldErrors.respiratoryRate).toContain(
+            "Too small: expected number to be >=5"
+        );
+    });
+
+    it("rejects body temperature outside allowed range", () => {
+        const result = finalizeEncounterFormSchema.safeParse({
+            ...baseInput,
+            bodyTemperature: 43.1,
+        });
+
+        expect(result.success).toBe(false);
+        expect(result.error?.flatten().fieldErrors.bodyTemperature).toContain(
+            "Too big: expected number to be <=43"
+        );
+    });
+
+    it("rejects incomplete blood pressure", () => {
+        const result = finalizeEncounterFormSchema.safeParse({
+            ...baseInput,
+            bloodPressureSystolic: 120,
+        });
+
+        expect(result.success).toBe(false);
+        expect(result.error?.flatten().fieldErrors.bloodPressureDiastolic).toContain(
+            "Si se indica presión arterial, debe completarse tanto sistólica como diastólica."
+        );
+    });
+
+    it("rejects diastolic higher than systolic", () => {
+        const result = finalizeEncounterFormSchema.safeParse({
+            ...baseInput,
+            bloodPressureSystolic: 110,
+            bloodPressureDiastolic: 120,
+        });
+
+        expect(result.success).toBe(false);
+        expect(result.error?.flatten().fieldErrors.bloodPressureDiastolic).toContain(
+            "La presión diastólica no puede exceder la sistólica"
         );
     });
 });

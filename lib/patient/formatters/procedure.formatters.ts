@@ -1,7 +1,10 @@
 import { BadgeInfo } from "./shared.formatters";
+import { PROCEDURE_SYSTEM } from "../../fhir/systems";
+import { mapProcedureCode } from "../../../infrastructure/fhir/mappers/procedure.mapper";
 import type {
     Procedure,
     ProcedureCategory,
+    ProcedureCode,
     ProcedureStatus,
 } from "../../../domain/procedures/procedure";
 
@@ -34,6 +37,15 @@ export function formatProcedureCategory(category: ProcedureCategory): string {
  * Returns a badge info object suitable for displaying the procedure status.
  * Mirrors the pattern used by other formatter modules (eg. episode.formatters).
  */
+export function formatProcedureCode(code: ProcedureCode): string {
+    const procedure = mapProcedureCode(PROCEDURE_SYSTEM, code);
+    if (!procedure) {
+        return code;
+    }
+
+    return procedure.display;
+}
+
 export function getProcedureStatusBadge(status: ProcedureStatus): BadgeInfo {
     switch (status) {
         case "completed":

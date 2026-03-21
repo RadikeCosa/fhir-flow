@@ -5,6 +5,10 @@ import {
     isDateOnly,
     isValidLocalTimeString,
 } from "../../../../../../../lib/date-time/date-time.utils";
+import { coerceOptionalNumber } from "../../../../../../../lib/clinical/coerce";
+import {
+    VITAL_SIGN_CAPTURE_RANGES,
+} from "../../../../../../../lib/clinical/vital-sign-capture-ranges";
 import {
     ProcedureCategoryValues,
     ProcedureCodeValues,
@@ -55,19 +59,43 @@ export const finalizeEncounterFormSchema = z
                 }
             ),
 
-        evaScore: z.number().int().min(0).max(10).optional(),
-        bloodPressureSystolic: z.number().positive().optional(),
-        bloodPressureDiastolic: z.number().positive().optional(),
-        heartRate: z.number().int().positive().optional(),
-        respiratoryRate: z.number().int().positive().optional(),
-        oxygenSaturation: z.number().int().min(0).max(100).optional(),
-        bodyTemperature: z.number().positive().optional(),
+        evaScore: z
+            .preprocess(coerceOptionalNumber, z.number().int().min(VITAL_SIGN_CAPTURE_RANGES.evaScore.min).max(VITAL_SIGN_CAPTURE_RANGES.evaScore.max))
+            .optional(),
+        bloodPressureSystolic: z
+            .preprocess(coerceOptionalNumber, z.number().int().min(VITAL_SIGN_CAPTURE_RANGES.bloodPressureSystolic.min).max(VITAL_SIGN_CAPTURE_RANGES.bloodPressureSystolic.max))
+            .optional(),
+        bloodPressureDiastolic: z
+            .preprocess(coerceOptionalNumber, z.number().int().min(VITAL_SIGN_CAPTURE_RANGES.bloodPressureDiastolic.min).max(VITAL_SIGN_CAPTURE_RANGES.bloodPressureDiastolic.max))
+            .optional(),
+        heartRate: z
+            .preprocess(coerceOptionalNumber, z.number().int().min(VITAL_SIGN_CAPTURE_RANGES.heartRate.min).max(VITAL_SIGN_CAPTURE_RANGES.heartRate.max))
+            .optional(),
+        respiratoryRate: z
+            .preprocess(coerceOptionalNumber, z.number().int().min(VITAL_SIGN_CAPTURE_RANGES.respiratoryRate.min).max(VITAL_SIGN_CAPTURE_RANGES.respiratoryRate.max))
+            .optional(),
+        oxygenSaturation: z
+            .preprocess(coerceOptionalNumber, z.number().int().min(VITAL_SIGN_CAPTURE_RANGES.oxygenSaturation.min).max(VITAL_SIGN_CAPTURE_RANGES.oxygenSaturation.max))
+            .optional(),
+        bodyTemperature: z
+            .preprocess(coerceOptionalNumber, z.number().min(VITAL_SIGN_CAPTURE_RANGES.bodyTemperature.min).max(VITAL_SIGN_CAPTURE_RANGES.bodyTemperature.max))
+            .optional(),
 
         procedures: z
             .array(
                 z.object({
-                    category: z.enum(ProcedureCategoryValues),
-                    code: z.enum(ProcedureCodeValues),
+                    category: z
+                        .union([z.literal(""), z.enum(ProcedureCategoryValues)])
+                        .refine((value) => value !== "", {
+                            message: "Seleccionar categoría",
+                        })
+                        .transform((value) => value as ProcedureCategoryValues[number]),
+                    code: z
+                        .union([z.literal(""), z.enum(ProcedureCodeValues)])
+                        .refine((value) => value !== "", {
+                            message: "Seleccionar procedimiento",
+                        })
+                        .transform((value) => value as ProcedureCodeValues[number]),
                     bodySite: z.string().optional(),
                     note: z.string().optional(),
                 })
@@ -114,10 +142,43 @@ export const finalizeEncounterFormSchema = z
             });
         }
 
+        if (
+            hasSystolic &&
+            hasDiastolic &&
+            data.bloodPressureDiastolic !== undefined &&
+            data.bloodPressureSystolic !== undefined &&
+            data.bloodPressureDiastolic >= data.bloodPressureSystolic
+        ) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ["bloodPressureDiastolic"],
+                message:
+                    "La presión diastólica no puede exceder la sistólica",
+            });
+        }
+
         data.procedures.forEach((procedure, index) => {
+            if (!procedure.category) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    path: ["procedures", index, "category"],
+                    message: "Seleccionar categoría",
+                });
+                return;
+            }
+
+            if (!procedure.code) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    path: ["procedures", index, "code"],
+                    message: "Seleccionar procedimiento",
+                });
+                return;
+            }
+
             const allowedCodes = PROCEDURE_CODES_BY_CATEGORY[procedure.category];
 
-            if (!allowedCodes.includes(procedure.code)) {
+            if (!allowedCodes?.includes(procedure.code)) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
                     path: ["procedures", index, "code"],

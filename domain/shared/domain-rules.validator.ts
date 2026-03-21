@@ -10,6 +10,7 @@ import {
     isDateOnly,
     isValidLocalTimeString,
 } from "../../lib/date-time/date-time.utils";
+import { VITAL_SIGN_CAPTURE_RANGES } from "../../lib/clinical/vital-sign-capture-ranges";
 
 /**
  * Validates domain-level rules for creating an Encounter.
@@ -170,8 +171,32 @@ export function validateFinalizeEncounterRules(input: FinalizeEncounterInput): v
         throw new DomainRuleError("La presión diastólica no puede exceder la sistólica", "PRESSURE_INVALID");
     }
 
+    if (hasSystolic) {
+        if (
+            !Number.isInteger(input.bloodPressureSystolic!) ||
+            input.bloodPressureSystolic! < VITAL_SIGN_CAPTURE_RANGES.bloodPressureSystolic.min ||
+            input.bloodPressureSystolic! > VITAL_SIGN_CAPTURE_RANGES.bloodPressureSystolic.max
+        ) {
+            throw new DomainRuleError("La presión sistólica está fuera del rango válido", "PRESSURE_SYSTOLIC_OUT_OF_RANGE");
+        }
+    }
+
+    if (hasDiastolic) {
+        if (
+            !Number.isInteger(input.bloodPressureDiastolic!) ||
+            input.bloodPressureDiastolic! < VITAL_SIGN_CAPTURE_RANGES.bloodPressureDiastolic.min ||
+            input.bloodPressureDiastolic! > VITAL_SIGN_CAPTURE_RANGES.bloodPressureDiastolic.max
+        ) {
+            throw new DomainRuleError("La presión diastólica está fuera del rango válido", "PRESSURE_DIASTOLIC_OUT_OF_RANGE");
+        }
+    }
+
     if (input.evaScore !== undefined) {
-        if (!Number.isInteger(input.evaScore) || input.evaScore < 0 || input.evaScore > 10) {
+        if (
+            !Number.isInteger(input.evaScore) ||
+            input.evaScore < VITAL_SIGN_CAPTURE_RANGES.evaScore.min ||
+            input.evaScore > VITAL_SIGN_CAPTURE_RANGES.evaScore.max
+        ) {
             throw new DomainRuleError("El EVA debe ser un entero entre 0 y 10", "EVA_OUT_OF_RANGE");
         }
     }
