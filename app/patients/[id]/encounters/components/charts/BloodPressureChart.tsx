@@ -18,6 +18,7 @@ import {
   CLINICAL_CHART_RANGES,
   formatChartDate,
 } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
+import { getBloodPressureSingleValuePresentation } from "../../../../../../lib/patient/formatters/vital-sign.formatters";
 
 interface BloodPressureChartProps {
   data: { date: string; systolic: number; diastolic: number }[];
@@ -37,22 +38,32 @@ export default function BloodPressureChart({ data }: BloodPressureChartProps) {
 
   if (data.length === 1) {
     const point = data[0];
+    const presentation = getBloodPressureSingleValuePresentation(
+      point.systolic,
+      point.diastolic,
+    );
 
     return (
       <div
         role="status"
-        className="flex flex-col items-center justify-center py-16 px-8 text-center"
+        className="flex flex-col items-center justify-center gap-2 py-16 px-8 text-center border-l-4 border-border bg-surface rounded-md"
+        style={{ borderLeftColor: presentation.accentColor }}
       >
         <div className="text-sm font-semibold">Presión arterial</div>
-        <div className="flex items-baseline gap-2 text-3xl font-bold">
-          <span style={{ color: CLINICAL_CHART_COLORS.systolic }}>
-            {point.systolic}
-          </span>
-          <span style={{ color: CLINICAL_CHART_COLORS.diastolic }}>
-            {point.diastolic}
-          </span>
+        <div
+          className="flex items-baseline gap-2 text-3xl font-bold"
+          style={{ color: presentation.accentColor }}
+        >
+          <span>{point.systolic}</span>
+          <span>/</span>
+          <span>{point.diastolic}</span>
           <span className="text-xl font-normal">mmHg</span>
         </div>
+        <span
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${presentation.badge.colorClass}`}
+        >
+          {presentation.badge.label}
+        </span>
         <div className="text-sm text-muted">{formatChartDate(point.date)}</div>
         <div className="text-sm text-muted mt-2">
           Solo hay un registro disponible

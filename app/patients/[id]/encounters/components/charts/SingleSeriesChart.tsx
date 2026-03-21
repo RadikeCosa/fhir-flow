@@ -1,11 +1,17 @@
 "use client";
 
 import type { TimeValueDatum } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
+import type { VitalSignType } from "../../../../../../domain/vital-sign-record/vital-sign-record";
 import {
   CLINICAL_CHART_COLORS,
   CLINICAL_CHART_RANGES,
   formatChartDate,
 } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
+import {
+  getClinicalStateAccentColor,
+  getVitalSignSingleValuePresentation,
+} from "../../../../../../lib/patient/formatters/vital-sign.formatters";
+import { getEvaBadge } from "../../../../../../lib/patient/formatters/assessments/eva-assessment.formatters";
 import {
   LineChart,
   Line,
@@ -36,6 +42,8 @@ export interface SingleSeriesChartProps {
   unit: string;
   color: string;
   domain: [number, number];
+  fallbackKind: "vital-sign" | "eva";
+  vitalSignType?: VitalSignType;
   normalRange?: NormalRange;
   referenceZones?: ReferenceZone[];
   ticks?: number[];
@@ -49,6 +57,8 @@ export default function SingleSeriesChart({
   unit,
   color,
   domain,
+  fallbackKind,
+  vitalSignType,
   normalRange,
   referenceZones,
   ticks,
@@ -71,16 +81,33 @@ export default function SingleSeriesChart({
     const formattedValue = tooltipValueFormatter
       ? tooltipValueFormatter(point.value)
       : `${point.value} ${unit}`;
+    const evaBadge = getEvaBadge(point.value);
+    const presentation =
+      fallbackKind === "vital-sign" && vitalSignType
+        ? getVitalSignSingleValuePresentation(vitalSignType, point.value)
+        : {
+            badge: evaBadge,
+            accentColor: getClinicalStateAccentColor(evaBadge),
+          };
 
     return (
       <div
         role="status"
-        className="flex flex-col items-center justify-center py-16 px-8 text-center"
+        className="flex flex-col items-center justify-center gap-2 py-16 px-8 text-center border-l-4 border-border bg-surface rounded-md"
+        style={{ borderLeftColor: presentation.accentColor }}
       >
         <div className="text-sm font-semibold">{label}</div>
-        <div className="text-3xl font-bold" style={{ color }}>
+        <div
+          className="text-3xl font-bold"
+          style={{ color: presentation.accentColor }}
+        >
           {formattedValue}
         </div>
+        <span
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${presentation.badge.colorClass}`}
+        >
+          {presentation.badge.label}
+        </span>
         <div className="text-sm text-muted">{formatChartDate(point.date)}</div>
         <div className="text-sm text-muted mt-2">
           Solo hay un registro disponible
@@ -164,6 +191,8 @@ export const SINGLE_SERIES_CHART_CONFIGS = {
     label: "FC (lpm)",
     unit: "lpm",
     color: CLINICAL_CHART_COLORS.heartRate,
+    fallbackKind: "vital-sign",
+    vitalSignType: "heart-rate",
     domain: [
       CLINICAL_CHART_RANGES.heartRate.min,
       CLINICAL_CHART_RANGES.heartRate.max,
@@ -175,6 +204,8 @@ export const SINGLE_SERIES_CHART_CONFIGS = {
     label: "FR (rpm)",
     unit: "rpm",
     color: CLINICAL_CHART_COLORS.respiratoryRate,
+    fallbackKind: "vital-sign",
+    vitalSignType: "respiratory-rate",
     domain: [
       CLINICAL_CHART_RANGES.respiratoryRate.min,
       CLINICAL_CHART_RANGES.respiratoryRate.max,
@@ -186,6 +217,8 @@ export const SINGLE_SERIES_CHART_CONFIGS = {
     label: "SpO₂ (%)",
     unit: "%",
     color: CLINICAL_CHART_COLORS.oxygenSaturation,
+    fallbackKind: "vital-sign",
+    vitalSignType: "oxygen-saturation",
     domain: [
       CLINICAL_CHART_RANGES.oxygenSaturation.min,
       CLINICAL_CHART_RANGES.oxygenSaturation.max,
@@ -197,6 +230,8 @@ export const SINGLE_SERIES_CHART_CONFIGS = {
     label: "Temp (°C)",
     unit: "°C",
     color: CLINICAL_CHART_COLORS.bodyTemperature,
+    fallbackKind: "vital-sign",
+    vitalSignType: "body-temperature",
     domain: [
       CLINICAL_CHART_RANGES.bodyTemperature.min,
       CLINICAL_CHART_RANGES.bodyTemperature.max,
@@ -208,6 +243,7 @@ export const SINGLE_SERIES_CHART_CONFIGS = {
     label: "EVA",
     unit: "",
     color: CLINICAL_CHART_COLORS.neutral,
+    fallbackKind: "eva",
     domain: [CLINICAL_CHART_RANGES.eva.min, CLINICAL_CHART_RANGES.eva.max],
     ticks: [0, 2, 4, 6, 8, 10],
     referenceZones: [

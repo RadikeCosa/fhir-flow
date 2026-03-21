@@ -31,11 +31,11 @@ export interface VitalSignsChartData {
  * domains instead of computing dynamic ranges from the data.
  */
 export const CLINICAL_CHART_RANGES = {
-    heartRate: { min: 40, max: 180 },
-    respiratoryRate: { min: 8, max: 30 },
-    oxygenSaturation: { min: 85, max: 100 },
-    bodyTemperature: { min: 35.0, max: 42.0 },
-    bloodPressure: { min: 60, max: 200 }, // applies to both systolic and diastolic axes
+    heartRate: { min: 30, max: 220 },
+    respiratoryRate: { min: 5, max: 60 },
+    oxygenSaturation: { min: 50, max: 100 },
+    bodyTemperature: { min: 30.0, max: 43.0 },
+    bloodPressure: { min: 40, max: 280 }, // applies to both systolic and diastolic axes
     eva: { min: 0, max: 10 },
 };
 

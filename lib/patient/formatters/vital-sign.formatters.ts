@@ -1,6 +1,11 @@
 import { BadgeInfo } from "./shared.formatters";
 import { VitalSignType, VitalSignRecord } from "../../../domain/vital-sign-record/vital-sign-record";
 
+export interface ClinicalStatePresentation {
+    badge: BadgeInfo;
+    accentColor: string;
+}
+
 /**
  * Compute a badge based on a vital-sign measurement value.  The ranges used
  * are population-level standards and are **not** personalized to any
@@ -51,6 +56,43 @@ export function getVitalSignBadge(type: VitalSignType, value: number): BadgeInfo
         default:
             return { label: "Desconocido", colorClass: "bg-badge-neutral-bg text-badge-neutral-text" };
     }
+}
+
+export function getClinicalStateAccentColor(badge: BadgeInfo): string {
+    switch (badge.label) {
+        case "Normal":
+        case "Sin dolor":
+        case "Leve":
+            return "var(--color-success)";
+        case "Alerta":
+        case "Moderado":
+            return "#d97706";
+        case "Crítico":
+        case "Intenso":
+        case "Insoportable":
+            return "var(--color-error)";
+        default:
+            return "var(--color-muted)";
+    }
+}
+
+export function getVitalSignSingleValuePresentation(type: VitalSignType, value: number): ClinicalStatePresentation {
+    const badge = getVitalSignBadge(type, value);
+    return {
+        badge,
+        accentColor: getClinicalStateAccentColor(badge),
+    };
+}
+
+export function getBloodPressureSingleValuePresentation(
+    systolic: number,
+    diastolic: number,
+): ClinicalStatePresentation {
+    const badge = getBloodPressureBadge(systolic, diastolic);
+    return {
+        badge,
+        accentColor: getClinicalStateAccentColor(badge),
+    };
 }
 
 /**
