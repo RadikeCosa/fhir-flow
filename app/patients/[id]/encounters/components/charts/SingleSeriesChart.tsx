@@ -3,6 +3,7 @@
 import type { TimeValueDatum } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
 import type { VitalSignType } from "../../../../../../domain/vital-sign-record/vital-sign-record";
 import {
+  adaptClinicalRangesToChartReferences,
   CLINICAL_CHART_COLORS,
   CLINICAL_CHART_RANGES,
   formatChartDate,
@@ -12,6 +13,10 @@ import {
   getVitalSignSingleValuePresentation,
 } from "../../../../../../lib/patient/formatters/vital-sign.formatters";
 import { getEvaBadge } from "../../../../../../lib/patient/formatters/assessments/eva-assessment.formatters";
+import {
+  getClinicalRanges,
+  getEvaClinicalRanges,
+} from "../../../../../../lib/patient/formatters/clinical-ranges";
 import {
   LineChart,
   Line,
@@ -24,6 +29,31 @@ import {
   ReferenceArea,
 } from "recharts";
 import ChartTooltip from "./ChartTooltip";
+
+const HEART_RATE_CHART_REFERENCES = adaptClinicalRangesToChartReferences(
+  getClinicalRanges("heart-rate"),
+  { clampToDomain: CLINICAL_CHART_RANGES.heartRate },
+);
+const RESPIRATORY_RATE_CHART_REFERENCES = adaptClinicalRangesToChartReferences(
+  getClinicalRanges("respiratory-rate"),
+  { clampToDomain: CLINICAL_CHART_RANGES.respiratoryRate },
+);
+const OXYGEN_SATURATION_CHART_REFERENCES = adaptClinicalRangesToChartReferences(
+  getClinicalRanges("oxygen-saturation"),
+  { clampToDomain: CLINICAL_CHART_RANGES.oxygenSaturation },
+);
+const BODY_TEMPERATURE_CHART_REFERENCES = adaptClinicalRangesToChartReferences(
+  getClinicalRanges("body-temperature"),
+  { clampToDomain: CLINICAL_CHART_RANGES.bodyTemperature },
+);
+const EVA_CHART_REFERENCES = adaptClinicalRangesToChartReferences(
+  getEvaClinicalRanges(),
+  {
+    includeNormalRange: false,
+    includeNormalReferenceZones: true,
+    clampToDomain: CLINICAL_CHART_RANGES.eva,
+  },
+);
 
 export interface NormalRange {
   y1: number;
@@ -197,7 +227,7 @@ export const SINGLE_SERIES_CHART_CONFIGS = {
       CLINICAL_CHART_RANGES.heartRate.min,
       CLINICAL_CHART_RANGES.heartRate.max,
     ],
-    normalRange: { y1: 60, y2: 100 },
+    ...HEART_RATE_CHART_REFERENCES,
     emptyMessage: "No hay datos de frecuencia cardíaca",
   },
   respiratoryRate: {
@@ -210,7 +240,7 @@ export const SINGLE_SERIES_CHART_CONFIGS = {
       CLINICAL_CHART_RANGES.respiratoryRate.min,
       CLINICAL_CHART_RANGES.respiratoryRate.max,
     ],
-    normalRange: { y1: 12, y2: 20 },
+    ...RESPIRATORY_RATE_CHART_REFERENCES,
     emptyMessage: "No hay datos de frecuencia respiratoria",
   },
   oxygenSaturation: {
@@ -223,7 +253,7 @@ export const SINGLE_SERIES_CHART_CONFIGS = {
       CLINICAL_CHART_RANGES.oxygenSaturation.min,
       CLINICAL_CHART_RANGES.oxygenSaturation.max,
     ],
-    normalRange: { y1: 95, y2: 100 },
+    ...OXYGEN_SATURATION_CHART_REFERENCES,
     emptyMessage: "No hay datos de saturación de oxígeno",
   },
   bodyTemperature: {
@@ -236,7 +266,7 @@ export const SINGLE_SERIES_CHART_CONFIGS = {
       CLINICAL_CHART_RANGES.bodyTemperature.min,
       CLINICAL_CHART_RANGES.bodyTemperature.max,
     ],
-    normalRange: { y1: 36.1, y2: 37.2 },
+    ...BODY_TEMPERATURE_CHART_REFERENCES,
     emptyMessage: "No hay datos de temperatura corporal",
   },
   eva: {
@@ -246,11 +276,7 @@ export const SINGLE_SERIES_CHART_CONFIGS = {
     fallbackKind: "eva",
     domain: [CLINICAL_CHART_RANGES.eva.min, CLINICAL_CHART_RANGES.eva.max],
     ticks: [0, 2, 4, 6, 8, 10],
-    referenceZones: [
-      { y1: 0, y2: 3, fill: CLINICAL_CHART_COLORS.painLow },
-      { y1: 3, y2: 6, fill: CLINICAL_CHART_COLORS.painModerate },
-      { y1: 6, y2: 10, fill: CLINICAL_CHART_COLORS.painHigh },
-    ],
+    referenceZones: EVA_CHART_REFERENCES.referenceZones,
     tooltipValueFormatter: (v) => `Dolor: ${v} / 10`,
     emptyMessage: "No hay datos de EVA",
   },

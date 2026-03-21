@@ -1,5 +1,6 @@
 import { EvaAssessment } from "../../../domain/assessments/eva-assessment";
 import { VitalSignRecord } from "../../../domain/vital-sign-record/vital-sign-record";
+import type { ClinicalRanges } from "./clinical-ranges";
 
 /**
  * Shapes used for charting.  These are intentionally kept minimal so that
@@ -14,6 +15,22 @@ export interface BloodPressureDatum {
     date: string;
     systolic: number;
     diastolic: number;
+}
+
+export interface ClinicalChartNormalRange {
+    y1: number;
+    y2: number;
+}
+
+export interface ClinicalChartReferenceZone {
+    y1: number;
+    y2: number;
+    fill: string;
+}
+
+export interface ClinicalChartReferences {
+    normalRange?: ClinicalChartNormalRange;
+    referenceZones: ClinicalChartReferenceZone[];
 }
 
 export interface VitalSignsChartData {
@@ -58,6 +75,76 @@ export const CLINICAL_CHART_COLORS = {
     painModerate: "#d97706",
     painHigh: "#dc2626",
 };
+
+
+function getClinicalChartColor(severity: "normal" | "warning" | "critical"): string {
+    switch (severity) {
+        case "normal":
+            return CLINICAL_CHART_COLORS.normal;
+        case "warning":
+            return CLINICAL_CHART_COLORS.alert;
+        case "critical":
+            return CLINICAL_CHART_COLORS.critical;
+    }
+}
+
+export function adaptClinicalRangesToChartReferences(
+    ranges: ClinicalRanges,
+    options: {
+        includeNormalRange?: boolean;
+        includeNormalReferenceZones?: boolean;
+        clampToDomain?: { min: number; max: number };
+    } = {},
+): ClinicalChartReferences {
+    const zones = ranges.kind === "ordinal"
+        ? ranges.zones
+        : [
+            ...(ranges.critical ?? []),
+            ...(ranges.warning ?? []),
+            ranges.normal,
+        ];
+
+    const normalZones = zones.filter(zone => zone.severity === "normal");
+    const includeNormalRange = options.includeNormalRange ?? normalZones.length > 0;
+    const includeNormalReferenceZones = options.includeNormalReferenceZones ?? false;
+    const clampToDomain = options.clampToDomain;
+    const clamp = (value: number) => {
+        if (!clampToDomain) {
+            return value;
+        }
+
+        return Math.min(Math.max(value, clampToDomain.min), clampToDomain.max);
+    };
+
+    const toChartZone = (zone: { min: number; max: number; severity: "normal" | "warning" | "critical" }) => {
+        const y1 = clamp(zone.min);
+        const y2 = clamp(zone.max);
+
+        if (y1 > y2) {
+            return undefined;
+        }
+
+        return {
+            y1,
+            y2,
+            fill: getClinicalChartColor(zone.severity),
+        };
+    };
+
+    return {
+        normalRange: includeNormalRange && normalZones.length > 0
+            ? {
+                y1: clamp(Math.min(...normalZones.map(zone => zone.min))),
+                y2: clamp(Math.max(...normalZones.map(zone => zone.max))),
+            }
+            : undefined,
+        referenceZones: zones
+            .filter(zone => includeNormalReferenceZones || zone.severity !== "normal")
+            .sort((left, right) => left.min - right.min)
+            .map(toChartZone)
+            .filter((zone): zone is ClinicalChartReferenceZone => zone !== undefined),
+    };
+}
 
 /**
  * Convert a list of domain {@link VitalSignRecord} objects into separate
