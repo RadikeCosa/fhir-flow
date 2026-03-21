@@ -14,11 +14,18 @@ import {
 import ChartTooltip from "./ChartTooltip";
 
 import {
+  adaptClinicalRangesToChartReferences,
   CLINICAL_CHART_COLORS,
   CLINICAL_CHART_RANGES,
   formatChartDate,
 } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
 import { getBloodPressureSingleValuePresentation } from "../../../../../../lib/patient/formatters/vital-sign.formatters";
+import { CLINICAL_RANGES } from "../../../../../../lib/patient/formatters/clinical-ranges";
+
+const BLOOD_PRESSURE_CHART_REFERENCES = adaptClinicalRangesToChartReferences(
+  CLINICAL_RANGES.bloodPressure,
+  { clampToDomain: CLINICAL_CHART_RANGES.bloodPressure },
+);
 
 interface BloodPressureChartProps {
   data: { date: string; systolic: number; diastolic: number }[];
@@ -91,13 +98,23 @@ export default function BloodPressureChart({ data }: BloodPressureChartProps) {
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="date" tickFormatter={formatChartDate} />
           <YAxis domain={domain} />
-          {/* normal systolic range, light opacity zone */}
-          <ReferenceArea
-            y1={90}
-            y2={120}
-            fill={CLINICAL_CHART_COLORS.normal}
-            fillOpacity={0.08}
-          />
+          {BLOOD_PRESSURE_CHART_REFERENCES.normalRange ? (
+            <ReferenceArea
+              y1={BLOOD_PRESSURE_CHART_REFERENCES.normalRange.y1}
+              y2={BLOOD_PRESSURE_CHART_REFERENCES.normalRange.y2}
+              fill={CLINICAL_CHART_COLORS.normal}
+              fillOpacity={0.08}
+            />
+          ) : null}
+          {BLOOD_PRESSURE_CHART_REFERENCES.referenceZones.map((zone, index) => (
+            <ReferenceArea
+              key={index}
+              y1={zone.y1}
+              y2={zone.y2}
+              fill={zone.fill}
+              fillOpacity={0.08}
+            />
+          ))}
           <Tooltip
             cursor={{ strokeDasharray: "3 3" }}
             content={
