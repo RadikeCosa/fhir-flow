@@ -231,4 +231,45 @@ describe('getPatientDetailData re-assessment filtering', () => {
         expect(repositories.barthelRepo.findByEncounterId).not.toHaveBeenCalled();
         expect(repositories.planRepo.findByEncounterId).not.toHaveBeenCalled();
     });
+
+    it('uses actualStartAt as representative timestamp for finished encounter filtering/sorting', async () => {
+        const now = new Date('2026-03-18T12:00:00.000Z');
+        vi.setSystemTime(now);
+
+        const includedByActualStart = makeEncounter({
+            id: 'enc-included-by-actual',
+            periodStart: '2026-03-25T10:00:00.000Z',
+            actualStartAt: '2026-03-17T10:00:00.000Z',
+        });
+
+        const excludedByActualStart = makeEncounter({
+            id: 'enc-excluded-by-actual',
+            periodStart: '2026-03-10T10:00:00.000Z',
+            actualStartAt: '2026-03-20T10:00:00.000Z',
+        });
+
+        repositories.encounterRepo.findAllByEpisodeOfCareId.mockResolvedValue([
+            excludedByActualStart,
+            includedByActualStart,
+        ]);
+
+        repositories.barthelRepo.findByEncounterId.mockImplementation(async (encounterId: string) => {
+            if (encounterId === includedByActualStart.id) {
+                return makeBarthel(encounterId);
+            }
+            return null;
+        });
+
+        const result = await getPatientDetailData(patientFixture.id);
+
+        expect(result.reAssessmentEntries.map((entry) => entry.encounter.id)).toEqual([
+            includedByActualStart.id,
+        ]);
+        expect(repositories.barthelRepo.findByEncounterId).toHaveBeenCalledWith(
+            includedByActualStart.id
+        );
+        expect(repositories.barthelRepo.findByEncounterId).not.toHaveBeenCalledWith(
+            excludedByActualStart.id
+        );
+    });
 });

@@ -50,7 +50,7 @@ export function mapToFhirEvaObservation(input: FinalizeEncounterInput): unknown 
                     display: input.practitionerName,
                 },
             ],
-            effectiveDateTime: input.periodEnd,
+            effectiveDateTime: input.actualEndAt,
         },
     };
 

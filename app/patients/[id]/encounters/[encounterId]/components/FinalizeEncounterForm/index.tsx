@@ -4,6 +4,7 @@ import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import type { FinalizeEncounterFormInput } from "./finalize-encounter-form.schema";
+import type { FinalizeEncounterFormValues } from "./finalize-encounter-form.schema";
 import { finalizeEncounterFormSchema } from "./finalize-encounter-form.schema";
 import { finalizeEncounterAction } from "../../actions/finalize-encounter.action";
 import type { ActionResult } from "../../../../../../../domain/shared/action-result.types";
@@ -13,6 +14,10 @@ import type {
   ProcedureCode,
 } from "@/domain/procedures/procedure";
 import { PROCEDURE_CODES_BY_CATEGORY } from "@/domain/procedures/procedure-code-category.map";
+import {
+  formatPlannedContext,
+  resolveInitialActualDate,
+} from "./finalize-encounter-form.defaults";
 
 interface FinalizeEncounterFormProps {
   // Internal use only, not for display
@@ -21,8 +26,8 @@ interface FinalizeEncounterFormProps {
   // Display props
   patientName: string;
   practitionerName: string;
-  periodStart: string;
-  periodStartFormatted?: string;
+  plannedDate?: string;
+  plannedTime?: string;
 }
 
 const getProcedureCodes = (
@@ -54,8 +59,8 @@ export default function FinalizeEncounterForm({
   encounterId,
   patientName,
   practitionerName,
-  periodStart,
-  periodStartFormatted,
+  plannedDate,
+  plannedTime,
 }: FinalizeEncounterFormProps) {
   const [serverResult, setServerResult] = useState<ActionResult<void> | null>(
     null,
@@ -65,10 +70,16 @@ export default function FinalizeEncounterForm({
   const [showEva, setShowEva] = useState(false);
   const [showProcedures, setShowProcedures] = useState(true);
 
-  const form = useForm<FinalizeEncounterFormInput>({
+  const form = useForm<
+    FinalizeEncounterFormInput,
+    unknown,
+    FinalizeEncounterFormValues
+  >({
     resolver: zodResolver(finalizeEncounterFormSchema),
     defaultValues: {
-      periodEnd: new Date(),
+      actualDate: resolveInitialActualDate(plannedDate),
+      actualStartTime: "",
+      actualEndTime: "",
       clinicalNote: "",
       reasonDisplay: "",
       evaScore: undefined,
@@ -97,13 +108,12 @@ export default function FinalizeEncounterForm({
     defaultValue: [],
   });
 
-  const onSubmit = async (values: FinalizeEncounterFormInput) => {
+  const onSubmit = async (values: FinalizeEncounterFormValues) => {
     setIsSubmitting(true);
     setServerResult(null);
 
     const result = await finalizeEncounterAction(patientId, encounterId, {
       ...values,
-      periodEnd: values.periodEnd,
     });
 
     setServerResult(result);
@@ -120,7 +130,7 @@ export default function FinalizeEncounterForm({
           Profesional: {practitionerName}
         </div>
         <div className="text-sm text-muted">
-          Inicio del período: {periodStartFormatted ?? periodStart}
+          Planificada: {formatPlannedContext(plannedDate, plannedTime)}
         </div>
       </div>
 
@@ -143,30 +153,68 @@ export default function FinalizeEncounterForm({
         <div className="rounded-lg border border-border bg-surface p-4">
           <h2 className="font-semibold">Datos del cierre</h2>
 
-          <p className="text-sm text-muted">
-            Fecha inicio (no editable): {periodStartFormatted ?? periodStart}
-          </p>
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div>
+              <label htmlFor="actualDate" className="block text-sm font-medium">
+                Fecha real
+              </label>
+              <input
+                type="date"
+                id="actualDate"
+                {...register("actualDate")}
+                className="mt-1 block w-full rounded-md border border-border px-3 py-2"
+              />
+              {formState.errors.actualDate && (
+                <p className="text-xs text-red-600">
+                  {formState.errors.actualDate.message}
+                </p>
+              )}
+            </div>
 
-          <div className="mt-3">
-            <label htmlFor="periodEnd" className="block text-sm font-medium">
-              Fecha y hora de fin
-            </label>
-            <input
-              type="datetime-local"
-              id="periodEnd"
-              {...register("periodEnd", { valueAsDate: true })}
-              className="mt-1 block w-full rounded-md border border-border px-3 py-2"
-            />
-            {formState.errors.periodEnd && (
-              <p className="text-xs text-red-600">
-                {formState.errors.periodEnd.message}
-              </p>
-            )}
+            <div>
+              <label
+                htmlFor="actualStartTime"
+                className="block text-sm font-medium"
+              >
+                Inicio real
+              </label>
+              <input
+                type="time"
+                id="actualStartTime"
+                {...register("actualStartTime")}
+                className="mt-1 block w-full rounded-md border border-border px-3 py-2"
+              />
+              {formState.errors.actualStartTime && (
+                <p className="text-xs text-red-600">
+                  {formState.errors.actualStartTime.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label
+                htmlFor="actualEndTime"
+                className="block text-sm font-medium"
+              >
+                Fin real
+              </label>
+              <input
+                type="time"
+                id="actualEndTime"
+                {...register("actualEndTime")}
+                className="mt-1 block w-full rounded-md border border-border px-3 py-2"
+              />
+              {formState.errors.actualEndTime && (
+                <p className="text-xs text-red-600">
+                  {formState.errors.actualEndTime.message}
+                </p>
+              )}
+            </div>
           </div>
 
           <div className="mt-3">
             <label htmlFor="clinicalNote" className="block text-sm font-medium">
-              Nota clínica
+              Nota clínica *
             </label>
             <textarea
               id="clinicalNote"

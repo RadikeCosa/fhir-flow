@@ -2,6 +2,7 @@ import type { Encounter } from "@/domain/encounters/encounter";
 import type { BarthelAssessment } from "@/domain/assessments/barthel-assessment";
 import type { PlanOfCare } from "@/domain/plan-of-care/plan-of-care";
 import { formatDate } from "@/lib/patient/formatters";
+import { getEncounterRepresentativeStart } from "@/lib/patient/formatters/encounter.formatters";
 import { PlanOfCareView } from "@/app/patients/[id]/components/plan-of-care/PlanOfCareView";
 import ReAssessmentBarthelBlock from "@/app/patients/[id]/components/re-assessments/ReAssessmentBarthelBlock";
 
@@ -28,7 +29,7 @@ export default function ReAssessmentCard({
             Re-evaluación
           </span>
           <span className="text-sm font-semibold text-foreground">
-            {formatDate(encounter.periodStart) ?? ""}
+            {formatDate(getEncounterRepresentativeStart(encounter)) ?? ""}
           </span>
         </div>
         {encounter.participant && (

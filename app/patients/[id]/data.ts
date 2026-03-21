@@ -9,6 +9,7 @@ import type { NecpalAssessment } from "@/domain/assessments/necpal-assessment";
 import type { EcogAssessment } from "@/domain/assessments/ecog-assessment";
 import type { PlanOfCare } from "@/domain/plan-of-care/plan-of-care";
 import type { ReAssessmentEntry } from "@/app/patients/[id]/types";
+import { getEncounterRepresentativeStart } from "../../../lib/patient/formatters/encounter.formatters";
 
 import {
     createPatientRepository,
@@ -48,8 +49,8 @@ export interface PatientDetailData {
     reAssessmentEntries: ReAssessmentEntry[];
 }
 
-function isPastEncounterDate(periodStart: string, now: Date): boolean {
-    const timestamp = Date.parse(periodStart);
+function isPastEncounterDate(value: string, now: Date): boolean {
+    const timestamp = Date.parse(value);
     return !Number.isNaN(timestamp) && timestamp < now.getTime();
 }
 
@@ -133,9 +134,14 @@ export async function getPatientDetailData(
                 (e) =>
                     e.visitType === "re-assessment"
                     && e.status === "finished"
-                    && isPastEncounterDate(e.periodStart, now)
+                    && isPastEncounterDate(getEncounterRepresentativeStart(e), now)
             )
-            .sort((a, b) => a.periodStart.localeCompare(b.periodStart))
+            .sort(
+                (a, b) =>
+                    getEncounterRepresentativeStart(a).localeCompare(
+                        getEncounterRepresentativeStart(b)
+                    )
+            )
         : [];
 
     const reAssessmentEntries: ReAssessmentEntry[] = (

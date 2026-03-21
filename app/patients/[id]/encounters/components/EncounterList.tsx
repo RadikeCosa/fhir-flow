@@ -5,6 +5,7 @@ import type { EvaAssessment } from "../../../../../domain/assessments/eva-assess
 import type { BarthelAssessment } from "../../../../../domain/assessments/barthel-assessment";
 import type { NecpalAssessment } from "../../../../../domain/assessments/necpal-assessment";
 import type { EcogAssessment } from "../../../../../domain/assessments/ecog-assessment";
+import { getEncounterRepresentativeStart } from "../../../../../lib/patient/formatters/encounter.formatters";
 import EncounterCard from "./EncounterCard";
 
 interface Props {
@@ -43,7 +44,8 @@ export default function EncounterList({
   // Ensure others are always sorted descending (most recent first)
   const othersSortedByStartDesc = [...others].sort(
     (a, b) =>
-      new Date(b.periodStart).getTime() - new Date(a.periodStart).getTime(),
+      new Date(getEncounterRepresentativeStart(b)).getTime() -
+      new Date(getEncounterRepresentativeStart(a)).getTime(),
   );
 
   const renderGroup = (title: string, list: Encounter[]) => {

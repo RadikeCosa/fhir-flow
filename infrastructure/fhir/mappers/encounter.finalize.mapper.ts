@@ -33,8 +33,8 @@ export function mapToFhirEncounterUpdate(input: FinalizeEncounterInput): unknown
             },
         ],
         period: {
-            start: input.periodStart,
-            end: input.periodEnd,
+            start: input.actualStartAt,
+            end: input.actualEndAt,
         },
         subject: {
             reference: `Patient/${input.patientId}`,

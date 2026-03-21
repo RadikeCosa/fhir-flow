@@ -1,4 +1,11 @@
 import { z } from "zod";
+import {
+    APP_TIME_ZONE,
+    composeLocalDateTimeToUtcIso,
+    formatCalendarDateInTimeZone,
+    isDateOnly,
+    isValidLocalTimeString,
+} from "../../../../../../../lib/date-time/date-time.utils";
 
 /**
  * Zod schema for the "Create Encounter" form.
@@ -13,7 +20,6 @@ import { z } from "zod";
  *
  * For example, this schema won't validate that:
  * - The patient ID is non-empty (domain rule)
- * - The planned date is in the future (domain rule)
  * - A note has sufficient clinical detail (domain rule)
  *
  * Those are handled in Layer 2 of the write pipeline. This schema is Layer 1.
@@ -24,49 +30,26 @@ import { z } from "zod";
  * - **FHIR Mapper (Layer 3)**: Attach FHIR references, set defaults
  */
 export const createEncounterFormSchema = z.object({
-    /**
-     * Planned date/time for the encounter.
-     *
-     * Input type: The Client Component receives this from `<input type="datetime-local">`,
-     * which provides a Date object (after form library coercion).
-     *
-     * Output type: Date (ISO 8601 format in Server Action).
-     *
-     * Validation via .superRefine():
-     * - If value is not a Date instance: "Debe ser una fecha válida"
-     * - If value is missing/invalid: "Fecha y hora planificada es requerida"
-     */
-    plannedAt: z
-        .date()
-        .superRefine((value, ctx) => {
-            if (!(value instanceof Date) || Number.isNaN(value.getTime())) {
-                ctx.addIssue({
-                    code: z.ZodIssueCode.invalid_type,
-                    expected: "date",
-                    received: typeof value,
-                    message: "Debe ser una fecha válida",
-                });
-                return;
-            }
-
-            const now = new Date();
-            const maxDate = new Date(now);
-            maxDate.setDate(maxDate.getDate() + 10);
-
-            if (value < now) {
-                ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
-                    message: "La fecha y hora planificadas no pueden ser anteriores al momento actual",
-                });
-            }
-
-            if (value > maxDate) {
-                ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
-                    message: "La visita no puede planificarse con más de 10 días de anticipación",
-                });
-            }
+    plannedDate: z
+        .string()
+        .min(1, "La fecha planificada es requerida")
+        .refine((value) => isDateOnly(value), {
+            message: "La fecha planificada debe tener formato YYYY-MM-DD",
         }),
+
+    plannedTime: z.preprocess(
+        (value) => {
+            if (typeof value !== "string") return value;
+            const normalized = value.trim();
+            return normalized === "" ? undefined : normalized;
+        },
+        z
+            .string()
+            .refine((value) => isValidLocalTimeString(value), {
+                message: "La hora planificada debe tener formato HH:mm",
+            })
+            .optional()
+    ),
 
     visitType: z
         .enum(["initial", "follow-up", "re-assessment", "discharge"])
@@ -100,6 +83,66 @@ export const createEncounterFormSchema = z.object({
             (value) => !value || value.trim() !== "",
             { message: "El motivo no puede ser solo espacios en blanco" }
         ),
+}).superRefine((value, ctx) => {
+    const now = new Date();
+    const maxMoment = new Date(now.getTime());
+    maxMoment.setDate(maxMoment.getDate() + 10);
+
+    const today = formatCalendarDateInTimeZone(now, APP_TIME_ZONE);
+    const maxDateCalendar = formatCalendarDateInTimeZone(maxMoment, APP_TIME_ZONE);
+
+    if (value.plannedTime) {
+        try {
+            const plannedAtIso = composeLocalDateTimeToUtcIso(
+                value.plannedDate,
+                value.plannedTime,
+                APP_TIME_ZONE
+            );
+
+            const plannedAt = new Date(plannedAtIso);
+
+            if (plannedAt.getTime() < now.getTime()) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    path: ["plannedTime"],
+                    message:
+                        "La fecha y hora planificadas no pueden ser anteriores al momento actual",
+                });
+            }
+
+            if (plannedAt.getTime() > maxMoment.getTime()) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    path: ["plannedDate"],
+                    message:
+                        "La visita no puede planificarse con más de 10 días de anticipación",
+                });
+            }
+        } catch {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ["plannedTime"],
+                message: "La fecha y hora planificadas son inválidas",
+            });
+        }
+        return;
+    }
+
+    if (value.plannedDate < today) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["plannedDate"],
+            message: "La fecha planificada no puede ser anterior a hoy",
+        });
+    }
+
+    if (value.plannedDate > maxDateCalendar) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["plannedDate"],
+            message: "La visita no puede planificarse con más de 10 días de anticipación",
+        });
+    }
 });
 
 /**
@@ -117,7 +160,8 @@ export const createEncounterFormSchema = z.object({
  * Structure:
  * ```
  * {
- *   plannedAt: Date;
+ *   plannedDate: string;
+ *   plannedTime?: string;
  *   note?: string;
  * }
  * ```

@@ -11,6 +11,7 @@ import { validateFinalizeEncounterRules, DomainRuleError } from "../../../../../
 import { FhirMapperError, FhirWriteError } from "../../../../../../domain/shared/error-types";
 import { createEncounterRepository } from "../../../../../../infrastructure/fhir/factories/encounter.factory";
 import { getCurrentPractitioner } from "../../../../../../lib/server/current-practitioner";
+import { composeLocalDateTimeToUtcIso } from "../../../../../../lib/date-time/date-time.utils";
 import { finalizeEncounterFormSchema } from "../components/FinalizeEncounterForm/finalize-encounter-form.schema";
 
 export async function finalizeEncounterAction(
@@ -91,9 +92,15 @@ export async function finalizeEncounterAction(
         performerId: practitioner.id,
         practitionerName: practitioner.displayName,
         visitType: encounter.visitType,
-        periodStart: encounter.periodStart,
-        periodEnd: parseResult.data.periodEnd.toISOString(),
-        clinicalNote: parseResult.data.clinicalNote ?? encounter.clinicalNote ?? null,
+        actualStartAt: composeLocalDateTimeToUtcIso(
+            parseResult.data.actualDate,
+            parseResult.data.actualStartTime
+        ),
+        actualEndAt: composeLocalDateTimeToUtcIso(
+            parseResult.data.actualDate,
+            parseResult.data.actualEndTime
+        ),
+        clinicalNote: parseResult.data.clinicalNote,
         reasonDisplay: parseResult.data.reasonDisplay ?? encounter.reasonDisplay ?? null,
         heartRate: parseResult.data.heartRate,
         respiratoryRate: parseResult.data.respiratoryRate,

@@ -33,7 +33,7 @@ function createBaseObservationResource(input: FinalizeEncounterInput): Record<st
                 display: input.practitionerName,
             },
         ],
-        effectiveDateTime: input.periodEnd,
+        effectiveDateTime: input.actualEndAt,
     };
 }
 

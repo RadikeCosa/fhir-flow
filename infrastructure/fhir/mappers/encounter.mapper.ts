@@ -5,6 +5,11 @@ import type {
     EncounterVisitType,
     EncounterParticipant,
 } from "../../../domain/encounters/encounter";
+import {
+    composeLocalDateTimeToUtcIso,
+    parsePlannedDateAndTime,
+    isDateOnly,
+} from "../../../lib/date-time/date-time.utils";
 import { extractId } from "./shared/extract-helpers";
 
 /**
@@ -82,6 +87,49 @@ function computeDuration(start?: string, end?: string): number | undefined {
     return Math.round(diffMs / 60000);
 }
 
+function mapLegacyPlannedPeriodStart(periodStart?: string, status?: EncounterStatus): {
+    plannedDate?: string;
+    plannedTime?: string;
+} {
+    if (!periodStart || status !== "planned") {
+        return {};
+    }
+
+    const parsed = parsePlannedDateAndTime(periodStart);
+    if (!parsed) return {};
+
+    // For legacy planned, we accept date-only or datetime values.
+    return {
+        plannedDate: parsed.plannedDate,
+        plannedTime: parsed.plannedTime,
+    };
+}
+
+function resolveAliasPeriodStart(
+    actualStartAt?: string,
+    legacyPeriodStart?: string,
+    plannedDate?: string,
+    plannedTime?: string
+): string {
+    if (actualStartAt) return actualStartAt;
+    if (legacyPeriodStart) return legacyPeriodStart;
+    if (plannedDate && plannedTime) {
+        try {
+            return composeLocalDateTimeToUtcIso(plannedDate, plannedTime);
+        } catch {
+            // If conversion fails, fallback to the raw planned date as compatibility
+            // alias (date-only, or invalid expressions should not crash mapper).
+            return `${plannedDate}`;
+        }
+    }
+    if (plannedDate) return plannedDate;
+    return "";
+}
+
+function resolveAliasPeriodEnd(actualEndAt?: string): string | undefined {
+    return actualEndAt; // only actual end should drive periodEnd alias.
+}
+
 /**
  * Top-level mapper exposed to the infrastructure layer.  Assumes the
  * resource has already been validated against `fhirEncounterSchema`.
@@ -102,8 +150,21 @@ export function mapFhirEncounterToEncounter(resource: FhirEncounter): Encounter 
 
     const participant = mapParticipant(resource.participant);
 
-    const periodStart = resource.period?.start || "";
-    const periodEnd = resource.period?.end;
+    const rawPeriodStart = resource.period?.start;
+    const periodEndFromResource = resource.period?.end;
+
+    const planned = mapLegacyPlannedPeriodStart(rawPeriodStart, mapStatus(resource.status));
+
+    const actualStartAt =
+        mapStatus(resource.status) === "finished" || mapStatus(resource.status) === "in-progress"
+            ? rawPeriodStart
+            : undefined;
+    const actualEndAt =
+        mapStatus(resource.status) === "finished" ? periodEndFromResource : undefined;
+
+    const periodStart = resolveAliasPeriodStart(actualStartAt, rawPeriodStart, planned.plannedDate, planned.plannedTime);
+    const periodEnd = resolveAliasPeriodEnd(actualEndAt);
+
     const durationMinutes = computeDuration(periodStart, periodEnd);
 
     let reasonCode: string | undefined;
@@ -155,6 +216,10 @@ export function mapFhirEncounterToEncounter(resource: FhirEncounter): Encounter 
         patientId,
         visitType: mapVisitType(visitTypeCode),
         participant,
+        plannedDate: planned.plannedDate,
+        plannedTime: planned.plannedTime,
+        actualStartAt,
+        actualEndAt,
         periodStart,
         periodEnd,
         durationMinutes,

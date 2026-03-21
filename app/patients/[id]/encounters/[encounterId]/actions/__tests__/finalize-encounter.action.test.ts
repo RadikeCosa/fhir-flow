@@ -33,6 +33,10 @@ const baseEncounter = {
     patientId: "patient-1",
     visitType: "follow-up" as const,
     participant: null,
+    plannedDate: "2026-03-20",
+    plannedTime: "10:00",
+    actualStartAt: undefined,
+    actualEndAt: undefined,
     periodStart: "2026-03-20T10:00:00.000Z",
     periodEnd: undefined,
     durationMinutes: undefined,
@@ -42,7 +46,9 @@ const baseEncounter = {
 };
 
 const validFormData = {
-    periodEnd: new Date("2026-03-20T11:00:00.000Z"),
+    actualDate: "2026-03-20",
+    actualStartTime: "10:00",
+    actualEndTime: "11:00",
     clinicalNote: "Paciente estable. Se realiza cierre de visita.",
     reasonDisplay: "Control programado",
     procedures: [],
@@ -58,7 +64,9 @@ describe("finalizeEncounterAction", () => {
 
         await expect(
             finalizeEncounterAction("patient-1", "enc-123", {
-                periodEnd: "2026-03-20T11:00",
+                actualDate: "2026-03-20",
+                actualStartTime: "10:00",
+                actualEndTime: "99:99",
                 clinicalNote: "Paciente estable",
                 reasonDisplay: "Control programado",
                 procedures: [],
@@ -103,31 +111,24 @@ describe("finalizeEncounterAction", () => {
         expect(finalizeMock).not.toHaveBeenCalled();
     });
 
-    it("returns a domain-layer error when the clinical note is missing", async () => {
-        findByIdMock.mockResolvedValue(baseEncounter);
-        getCurrentPractitionerMock.mockResolvedValue({
-            id: "prac-1",
-            displayName: "Lic. Ramiro Perez",
-        });
-
+    it("returns a validation-layer error when the clinical note is missing", async () => {
         const { finalizeEncounterAction } = await import("../finalize-encounter.action");
 
         await expect(
             finalizeEncounterAction("patient-1", "enc-123", {
                 ...validFormData,
-                clinicalNote: undefined,
+                clinicalNote: "   ",
             })
-        ).resolves.toEqual({
+        ).resolves.toMatchObject({
             success: false,
             error: {
-                layer: "domain",
-                message: "La nota clínica es obligatoria",
-                code: "CLINICAL_NOTE_REQUIRED",
+                layer: "validation",
+                code: "FORM_VALIDATION_FAILED",
             },
         });
 
-        expect(findByIdMock).toHaveBeenCalledWith("enc-123");
-        expect(getCurrentPractitionerMock).toHaveBeenCalledTimes(1);
+        expect(findByIdMock).not.toHaveBeenCalled();
+        expect(getCurrentPractitionerMock).not.toHaveBeenCalled();
         expect(finalizeMock).not.toHaveBeenCalled();
     });
 
@@ -243,8 +244,8 @@ describe("finalizeEncounterAction", () => {
                 encounterId: "enc-123",
                 patientId: "patient-1",
                 visitType: "follow-up",
-                periodStart: "2026-03-20T10:00:00.000Z",
-                periodEnd: "2026-03-20T11:00:00.000Z",
+                actualStartAt: "2026-03-20T13:00:00.000Z",
+                actualEndAt: "2026-03-20T14:00:00.000Z",
             })
         );
     });
@@ -277,8 +278,8 @@ describe("finalizeEncounterAction", () => {
                 performerId: "prac-1",
                 practitionerName: "Lic. Ramiro Perez",
                 visitType: "follow-up",
-                periodStart: "2026-03-20T10:00:00.000Z",
-                periodEnd: "2026-03-20T11:00:00.000Z",
+                actualStartAt: "2026-03-20T13:00:00.000Z",
+                actualEndAt: "2026-03-20T14:00:00.000Z",
                 clinicalNote: "Paciente estable. Se realiza cierre de visita.",
                 reasonDisplay: "Control programado",
                 procedures: [],
@@ -315,7 +316,6 @@ describe("finalizeEncounterAction", () => {
         await expect(
             finalizeEncounterAction("patient-1", "enc-123", {
                 ...validFormData,
-                clinicalNote: undefined,
                 reasonDisplay: undefined,
             })
         ).rejects.toThrow("NEXT_REDIRECT");
@@ -325,8 +325,38 @@ describe("finalizeEncounterAction", () => {
                 encounterId: "enc-123",
                 patientId: "patient-1",
                 visitType: "discharge",
-                clinicalNote: "Nota original",
+                clinicalNote: "Paciente estable. Se realiza cierre de visita.",
                 reasonDisplay: "Motivo original",
+            })
+        );
+    });
+
+    it("allows finalize for planned encounters created without planned time", async () => {
+        findByIdMock.mockResolvedValue({
+            ...baseEncounter,
+            plannedDate: "2026-03-20",
+            plannedTime: undefined,
+            periodStart: "2026-03-20",
+        });
+        getCurrentPractitionerMock.mockResolvedValue({
+            id: "prac-1",
+            displayName: "Lic. Ramiro Perez",
+        });
+        finalizeMock.mockResolvedValue(undefined);
+        redirectMock.mockImplementation(() => {
+            throw new Error("NEXT_REDIRECT");
+        });
+
+        const { finalizeEncounterAction } = await import("../finalize-encounter.action");
+
+        await expect(
+            finalizeEncounterAction("patient-1", "enc-123", validFormData)
+        ).rejects.toThrow("NEXT_REDIRECT");
+
+        expect(finalizeMock).toHaveBeenCalledWith(
+            expect.objectContaining({
+                actualStartAt: "2026-03-20T13:00:00.000Z",
+                actualEndAt: "2026-03-20T14:00:00.000Z",
             })
         );
     });

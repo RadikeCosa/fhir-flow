@@ -1,8 +1,14 @@
 import React from "react";
 import Link from "next/link";
 import { SectionCard } from "@/app/patients/components/SectionCard";
-import { formatDate } from "@/lib/patient/formatters";
-import { formatEncounterDuration } from "@/lib/patient/formatters/encounter.formatters";
+import {
+  formatDateTime,
+  formatPlannedSchedule,
+} from "@/lib/patient/formatters";
+import {
+  formatEncounterDuration,
+  getEncounterRepresentativeStart,
+} from "@/lib/patient/formatters/encounter.formatters";
 import type { Encounter } from "@/domain/encounters/encounter";
 import type { Procedure } from "@/domain/procedures/procedure";
 import type { EvaAssessment } from "@/domain/assessments/eva-assessment";
@@ -30,6 +36,15 @@ export const LastEncounterSection: React.FC<Props> = ({
   evaRecords,
   vitalSigns,
 }) => {
+  const lastEncounterDisplayStart = lastEncounter
+    ? getEncounterRepresentativeStart(lastEncounter)
+    : undefined;
+
+  const nextPlannedSchedule = formatPlannedSchedule(
+    nextPlannedEncounter?.plannedDate,
+    nextPlannedEncounter?.plannedTime,
+  );
+
   // props are accepted for future UI enhancements; currently unused
   // empty state handled below
   if (!lastEncounter && !nextPlannedEncounter) {
@@ -67,7 +82,7 @@ export const LastEncounterSection: React.FC<Props> = ({
               showStatusBadge
             />
             <span className="text-sm font-semibold text-foreground ml-auto">
-              {formatDate(lastEncounter.periodStart) ?? ""}
+              {formatDateTime(lastEncounterDisplayStart) ?? ""}
             </span>
           </div>
 
@@ -137,11 +152,18 @@ export const LastEncounterSection: React.FC<Props> = ({
               showStatusBadge
             />
             <span className="text-sm font-semibold text-foreground ml-auto">
-              {formatDate(nextPlannedEncounter.periodStart) ?? ""}
+              {nextPlannedSchedule.plannedDateLabel ?? "Sin fecha planificada"}
             </span>
           </div>
 
           <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+            <>
+              <dt className="text-xs text-muted font-medium">Horario:</dt>
+              <dd className="text-sm text-foreground">
+                {nextPlannedSchedule.plannedTimeLabel ?? "Sin horario definido"}
+              </dd>
+            </>
+
             {nextPlannedEncounter.participant && (
               <>
                 <dt className="text-xs text-muted font-medium">Profesional:</dt>

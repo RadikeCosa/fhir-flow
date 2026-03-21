@@ -55,7 +55,7 @@ export interface EncounterRepository {
     /**
      * Create a new planned encounter.
      *
-     * @param input - CreateEncounterInput with patientId, episodeOfCareId, plannedAt, note
+    * @param input - CreateEncounterInput with patientId, episodeOfCareId, plannedDate, plannedTime?, note
      * @returns Promise<{ id: string }> - the ID of the created Encounter
      *
      * Throws:

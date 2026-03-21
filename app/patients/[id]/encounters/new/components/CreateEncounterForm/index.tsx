@@ -5,10 +5,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { CalendarPlus, User } from "lucide-react";
 import type { CreateEncounterFormInput } from "./create-encounter-form.schema";
+import type { CreateEncounterFormValues } from "./create-encounter-form.schema";
 import { createEncounterFormSchema } from "./create-encounter-form.schema";
 import { createEncounterAction } from "../../actions/create-encounter.action";
 import type { ActionResult } from "../../../../../../../domain/shared/action-result.types";
 import { formatEncounterVisitType } from "../../../../../../../lib/patient/formatters/encounter.formatters";
+import {
+  APP_TIME_ZONE,
+  formatCalendarDateInTimeZone,
+} from "@/lib/date-time/date-time.utils";
 
 /**
  * Props for the CreateEncounterForm component.
@@ -63,45 +68,35 @@ export function CreateEncounterForm({
    * Errors automatically populate form.formState.errors.
    *
    * defaultValues:
-   * - plannedAt: Today's date (Date object, not string)
+   * - plannedDate: Today's date in app timezone
+   * - plannedTime: Empty string (optional)
    * - note: Empty string (optional field)
    */
-  const form = useForm<CreateEncounterFormInput>({
+  const now = new Date();
+  const todayDate = formatCalendarDateInTimeZone(now, APP_TIME_ZONE);
+  const maxDate = new Date(now.getTime());
+  maxDate.setDate(maxDate.getDate() + 10);
+  const maxDateValue = formatCalendarDateInTimeZone(maxDate, APP_TIME_ZONE);
+
+  const form = useForm<
+    CreateEncounterFormInput,
+    unknown,
+    CreateEncounterFormValues
+  >({
     resolver: zodResolver(createEncounterFormSchema),
     defaultValues: {
-      plannedAt: new Date(),
+      plannedDate: todayDate,
+      plannedTime: "",
       visitType: "follow-up",
       reasonDisplay: "",
       note: "",
     },
   });
 
-  // Date/time restrictions for the datetime-local input.
-  // `datetime-local` expects a value in the format `YYYY-MM-DDTHH:mm`.
-  const pad2 = (value: number) => String(value).padStart(2, "0");
-  const formatLocalDateTime = (date: Date) => {
-    const year = date.getFullYear();
-    const month = pad2(date.getMonth() + 1);
-    const day = pad2(date.getDate());
-    const hours = pad2(date.getHours());
-    const minutes = pad2(date.getMinutes());
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-  };
-
-  const [minDateTime] = useState(() => {
-    return formatLocalDateTime(new Date());
-  });
-  const [maxDateTime] = useState(() => {
-    const now = new Date();
-    const maxDate = new Date(now);
-    maxDate.setDate(maxDate.getDate() + 10);
-    return formatLocalDateTime(maxDate);
-  });
-
   /**
    * Form submission handler.
    *
-   * Called with validated form values (Zod has already checked plannedAt is Date, note is clean).
+   * Called with validated form values (Zod has already checked plannedDate/plannedTime contract).
    *
    * Flow:
    * 1. Set isSubmitting = true (disable inputs, change button text)
@@ -114,7 +109,7 @@ export function CreateEncounterForm({
    * internally, so this setState never completes. But if there's any error
    * (validation, domain rule, or FHIR), the result is saved and displayed.
    */
-  const onSubmit = async (values: CreateEncounterFormInput) => {
+  const onSubmit = async (values: CreateEncounterFormValues) => {
     setIsSubmitting(true);
     setActionResult(null);
 
@@ -153,28 +148,48 @@ export function CreateEncounterForm({
         </div>
       )}
 
-      {/* Planned date/time field */}
+      {/* Planned date field */}
       <div>
         <label
-          htmlFor="plannedAt"
+          htmlFor="plannedDate"
           className="block text-sm font-medium text-foreground"
         >
-          Fecha y hora planificada
+          Fecha planificada
         </label>
         <input
-          type="datetime-local"
-          id="plannedAt"
-          min={minDateTime}
-          max={maxDateTime}
-          {...form.register("plannedAt", {
-            valueAsDate: true,
-          })}
+          type="date"
+          id="plannedDate"
+          min={todayDate}
+          max={maxDateValue}
+          {...form.register("plannedDate")}
           className="mt-1 block w-full rounded-md border border-border px-3 py-2 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm"
           disabled={isSubmitting}
         />
-        {form.formState.errors.plannedAt && (
+        {form.formState.errors.plannedDate && (
           <p className="mt-1 text-sm text-error">
-            {form.formState.errors.plannedAt.message}
+            {form.formState.errors.plannedDate.message}
+          </p>
+        )}
+      </div>
+
+      {/* Planned time field (optional) */}
+      <div>
+        <label
+          htmlFor="plannedTime"
+          className="block text-sm font-medium text-foreground"
+        >
+          Hora planificada (opcional)
+        </label>
+        <input
+          type="time"
+          id="plannedTime"
+          {...form.register("plannedTime")}
+          className="mt-1 block w-full rounded-md border border-border px-3 py-2 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm"
+          disabled={isSubmitting}
+        />
+        {form.formState.errors.plannedTime && (
+          <p className="mt-1 text-sm text-error">
+            {form.formState.errors.plannedTime.message}
           </p>
         )}
       </div>

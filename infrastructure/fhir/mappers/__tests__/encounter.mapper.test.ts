@@ -94,3 +94,73 @@ describe('mapFhirEncounterToEncounter – note[] fallback for clinicalNote', () 
         expect(result.clinicalNote).toBeUndefined();
     });
 });
+
+describe('mapFhirEncounterToEncounter – legacy temporal fallback', () => {
+    it('maps planned legacy with period.start datetime into plannedDate/plannedTime', () => {
+        const enc = makeEncounter({
+            status: 'planned',
+            period: { start: '2026-03-20T10:00:00.000Z' },
+        });
+
+        const result = mapFhirEncounterToEncounter(enc);
+        expect(result.plannedDate).toBe('2026-03-20');
+        expect(result.plannedTime).toBe('10:00');
+        expect(result.actualStartAt).toBeUndefined();
+        expect(result.actualEndAt).toBeUndefined();
+        expect(result.periodStart).toBe('2026-03-20T10:00:00.000Z');
+        expect(result.periodEnd).toBeUndefined();
+        expect(result.durationMinutes).toBeUndefined();
+    });
+
+    it('maps planned legacy with period.start date-only into plannedDate only', () => {
+        const enc = makeEncounter({
+            status: 'planned',
+            period: { start: '2026-03-20' },
+        });
+
+        const result = mapFhirEncounterToEncounter(enc);
+        expect(result.plannedDate).toBe('2026-03-20');
+        expect(result.plannedTime).toBeUndefined();
+        expect(result.actualStartAt).toBeUndefined();
+        expect(result.actualEndAt).toBeUndefined();
+        expect(result.periodStart).toBe('2026-03-20');
+        expect(result.periodEnd).toBeUndefined();
+        expect(result.durationMinutes).toBeUndefined();
+    });
+
+    it('maps finished legacy actual start/end and avoids planned fallback', () => {
+        const enc = makeEncounter({
+            status: 'finished',
+            period: {
+                start: '2026-03-20T10:00:00.000Z',
+                end: '2026-03-20T11:30:00.000Z',
+            },
+        });
+
+        const result = mapFhirEncounterToEncounter(enc);
+        expect(result.actualStartAt).toBe('2026-03-20T10:00:00.000Z');
+        expect(result.actualEndAt).toBe('2026-03-20T11:30:00.000Z');
+        expect(result.plannedDate).toBeUndefined();
+        expect(result.plannedTime).toBeUndefined();
+        expect(result.periodStart).toBe('2026-03-20T10:00:00.000Z');
+        expect(result.periodEnd).toBe('2026-03-20T11:30:00.000Z');
+        expect(result.durationMinutes).toBe(90);
+    });
+
+    it('maps finished legacy without period.end with undefined duration', () => {
+        const enc = makeEncounter({
+            status: 'finished',
+            period: {
+                start: '2026-03-20T10:00:00.000Z',
+                end: undefined,
+            },
+        });
+
+        const result = mapFhirEncounterToEncounter(enc);
+        expect(result.actualStartAt).toBe('2026-03-20T10:00:00.000Z');
+        expect(result.actualEndAt).toBeUndefined();
+        expect(result.periodStart).toBe('2026-03-20T10:00:00.000Z');
+        expect(result.periodEnd).toBeUndefined();
+        expect(result.durationMinutes).toBeUndefined();
+    });
+});

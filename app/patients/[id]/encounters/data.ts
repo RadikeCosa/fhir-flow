@@ -19,6 +19,7 @@ import {
     createNecpalAssessmentRepository,
     createEcogAssessmentRepository,
 } from "@/infrastructure/fhir/factories";
+import { getEncounterRepresentativeStart } from "../../../../lib/patient/formatters/encounter.formatters";
 
 import { PatientNotFoundError } from "../data";
 
@@ -82,9 +83,11 @@ export async function getEncountersPageData(
         activeEpisode.id
     );
 
-    // Sort encounters newest first
-    const encounters = [...encountersRaw].sort((a, b) =>
-        a.periodStart < b.periodStart ? 1 : a.periodStart > b.periodStart ? -1 : 0
+    // Sort encounters newest first using representative start semantics.
+    const encounters = [...encountersRaw].sort(
+        (a, b) =>
+            new Date(getEncounterRepresentativeStart(b)).getTime() -
+            new Date(getEncounterRepresentativeStart(a)).getTime()
     );
 
     const [

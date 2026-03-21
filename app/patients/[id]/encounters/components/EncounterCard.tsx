@@ -3,8 +3,14 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { SectionCard } from "../../../components/SectionCard";
-import { formatDateTime } from "../../../../../lib/patient/formatters";
-import { formatEncounterVisitType } from "../../../../../lib/patient/formatters/encounter.formatters";
+import {
+  formatDateTime,
+  formatPlannedSchedule,
+} from "../../../../../lib/patient/formatters";
+import {
+  formatEncounterVisitType,
+  getEncounterRepresentativeStart,
+} from "../../../../../lib/patient/formatters/encounter.formatters";
 import type { Encounter } from "../../../../../domain/encounters/encounter";
 import type { Procedure } from "../../../../../domain/procedures/procedure";
 import type { VitalSignRecord } from "../../../../../domain/vital-sign-record/vital-sign-record";
@@ -41,6 +47,7 @@ export default function EncounterCard({
   const [expanded, setExpanded] = useState(false);
 
   const isPlanned = encounter.status === "planned";
+  const isFinished = encounter.status === "finished";
 
   const hasAssessments =
     (encounter.visitType === "initial" ||
@@ -54,7 +61,15 @@ export default function EncounterCard({
     !isPlanned &&
     (!!encounter.clinicalNote || procedures.length > 0 || hasAssessments);
 
-  const formattedDate = formatDateTime(encounter.periodStart) ?? "";
+  const plannedSchedule = formatPlannedSchedule(
+    encounter.plannedDate,
+    encounter.plannedTime,
+  );
+  const representativeStart = getEncounterRepresentativeStart(encounter);
+
+  const formattedDate = isPlanned
+    ? `${plannedSchedule.plannedDateLabel ?? "Sin fecha planificada"} • ${plannedSchedule.plannedTimeLabel ?? "Sin horario definido"}`
+    : (formatDateTime(representativeStart) ?? representativeStart ?? "");
   const visitLabel = formatEncounterVisitType(encounter.visitType);
   const title = `${visitLabel} — ${formattedDate}`;
 

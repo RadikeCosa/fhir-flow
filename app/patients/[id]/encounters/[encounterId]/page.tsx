@@ -2,9 +2,16 @@ import Link from "next/link";
 import Breadcrumbs from "../../../../components/Breadcrumbs";
 import FinalizeEncounterForm from "./components/FinalizeEncounterForm";
 import { getEncounterDetailData, type EncounterDetailData } from "./data";
-import { formatDateTime, formatPatientName } from "@/lib/patient/formatters";
+import {
+  formatDateTime,
+  formatPatientName,
+  formatPlannedSchedule,
+} from "@/lib/patient/formatters";
 import {
   formatEncounterVisitType,
+  formatEncounterDuration,
+  getEncounterRepresentativeEnd,
+  getEncounterRepresentativeStart,
   getEncounterStatusBadge,
 } from "@/lib/patient/formatters/encounter.formatters";
 
@@ -68,6 +75,13 @@ export default async function EncounterDetailPage({ params }: PageProps) {
   const readOnly =
     encounter.status === "finished" || encounter.status === "cancelled";
   const encounterStatusBadge = getEncounterStatusBadge(encounter.status);
+  const plannedSchedule = formatPlannedSchedule(
+    encounter.plannedDate,
+    encounter.plannedTime,
+  );
+  const readOnlyStart = getEncounterRepresentativeStart(encounter);
+  const readOnlyEnd = getEncounterRepresentativeEnd(encounter);
+  const encounterDuration = formatEncounterDuration(encounter.durationMinutes);
 
   return (
     <div className="space-y-6">
@@ -102,15 +116,36 @@ export default async function EncounterDetailPage({ params }: PageProps) {
                   {formatEncounterVisitType(encounter.visitType)}
                 </dd>
               </div>
-              <div>
-                <dt className="font-medium text-foreground">
-                  Inicio del período
-                </dt>
-                <dd className="text-muted">
-                  {formatDateTime(encounter.periodStart) ??
-                    encounter.periodStart}
-                </dd>
-              </div>
+              {encounter.status === "planned" ? (
+                <>
+                  <div>
+                    <dt className="font-medium text-foreground">
+                      Fecha planificada
+                    </dt>
+                    <dd className="text-muted">
+                      {plannedSchedule.plannedDateLabel ??
+                        "Sin fecha planificada"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="font-medium text-foreground">Horario</dt>
+                    <dd className="text-muted">
+                      {plannedSchedule.plannedTimeLabel ??
+                        "Sin horario definido"}
+                    </dd>
+                  </div>
+                </>
+              ) : (
+                <div>
+                  <dt className="font-medium text-foreground">
+                    Inicio del período
+                  </dt>
+                  <dd className="text-muted">
+                    {formatDateTime(encounter.periodStart) ??
+                      encounter.periodStart}
+                  </dd>
+                </div>
+              )}
             </dl>
           </div>
 
@@ -126,10 +161,8 @@ export default async function EncounterDetailPage({ params }: PageProps) {
                 encounterId={encounterId}
                 patientName={patientName}
                 practitionerName={practitioner.displayName}
-                periodStart={encounter.periodStart}
-                periodStartFormatted={
-                  formatDateTime(encounter.periodStart) ?? encounter.periodStart
-                }
+                plannedDate={encounter.plannedDate}
+                plannedTime={encounter.plannedTime}
               />
             </div>
           </div>
@@ -169,22 +202,23 @@ export default async function EncounterDetailPage({ params }: PageProps) {
                   </dd>
                 </div>
                 <div>
-                  <dt className="font-medium text-foreground">
-                    Inicio del período
-                  </dt>
+                  <dt className="font-medium text-foreground">Inicio</dt>
                   <dd className="text-muted">
-                    {formatDateTime(encounter.periodStart) ??
-                      encounter.periodStart}
+                    {formatDateTime(readOnlyStart) ?? readOnlyStart}
                   </dd>
                 </div>
                 <div>
-                  <dt className="font-medium text-foreground">
-                    Fin del período
-                  </dt>
+                  <dt className="font-medium text-foreground">Fin</dt>
                   <dd className="text-muted">
-                    {formatDateTime(encounter.periodEnd) ??
-                      encounter.periodEnd ??
+                    {formatDateTime(readOnlyEnd) ??
+                      readOnlyEnd ??
                       "Sin registrar"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="font-medium text-foreground">Duración</dt>
+                  <dd className="text-muted">
+                    {encounterDuration ?? "Sin registrar"}
                   </dd>
                 </div>
                 <div className="md:col-span-2">

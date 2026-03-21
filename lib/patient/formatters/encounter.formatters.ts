@@ -1,5 +1,5 @@
 import { BadgeInfo } from "./shared.formatters";
-import type { EncounterStatus, EncounterVisitType } from "../../../domain/encounters/encounter";
+import type { Encounter, EncounterStatus, EncounterVisitType } from "../../../domain/encounters/encounter";
 
 /**
  * Translate a domain visit type into a human-readable Spanish label.
@@ -62,4 +62,32 @@ export function formatEncounterDuration(durationMinutes: number | undefined): st
         return `${durationMinutes} min`;
     }
     return null;
+}
+
+/**
+ * Returns the representative encounter start used by read surfaces.
+ * - finished: actualStartAt, with legacy fallback to periodStart
+ * - others: periodStart
+ */
+export function getEncounterRepresentativeStart(
+    encounter: Pick<Encounter, "status" | "actualStartAt" | "periodStart">
+): string {
+    if (encounter.status === "finished") {
+        return encounter.actualStartAt ?? encounter.periodStart;
+    }
+    return encounter.periodStart;
+}
+
+/**
+ * Returns the representative encounter end used by read surfaces.
+ * - finished: actualEndAt, with legacy fallback to periodEnd
+ * - others: periodEnd
+ */
+export function getEncounterRepresentativeEnd(
+    encounter: Pick<Encounter, "status" | "actualEndAt" | "periodEnd">
+): string | undefined {
+    if (encounter.status === "finished") {
+        return encounter.actualEndAt ?? encounter.periodEnd;
+    }
+    return encounter.periodEnd;
 }

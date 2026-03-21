@@ -56,6 +56,15 @@ export interface Encounter {
 
     participant: EncounterParticipant | null;
 
+    plannedDate?: string;
+    plannedTime?: string;
+    actualStartAt?: string;
+    actualEndAt?: string;
+
+    /**
+     * Compatibility aliases derived during read mapping.
+     * New code should prefer plannedDate/plannedTime and actualStartAt/actualEndAt.
+     */
     periodStart: string;
     periodEnd?: string;
     durationMinutes?: number;

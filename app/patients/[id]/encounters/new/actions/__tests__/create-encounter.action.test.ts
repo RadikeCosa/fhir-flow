@@ -49,7 +49,8 @@ describe("createEncounterAction", () => {
 
         await expect(
             createEncounterAction("patient-1", "episode-1", {
-                plannedAt: new Date("2026-03-20T10:00:00.000Z"),
+                plannedDate: "2026-03-20",
+                plannedTime: "10:00",
                 visitType: "follow-up",
                 reasonDisplay: "Control programado",
                 note: "Paciente estable",
@@ -61,6 +62,8 @@ describe("createEncounterAction", () => {
             expect.objectContaining({
                 practitionerName: "Lic. Ramiro Perez",
                 performerId: "kine-1",
+                plannedDate: "2026-03-20",
+                plannedTime: "10:00",
             })
         );
         expect(revalidatePathMock).toHaveBeenNthCalledWith(1, "/patients/patient-1");
@@ -85,7 +88,8 @@ describe("createEncounterAction", () => {
 
         await expect(
             createEncounterAction("patient-1", "episode-1", {
-                plannedAt: new Date("2026-03-20T10:00:00.000Z"),
+                plannedDate: "2026-03-20",
+                plannedTime: "10:00",
                 visitType: "follow-up",
                 reasonDisplay: "",
                 note: "",
@@ -132,7 +136,8 @@ describe("createEncounterAction", () => {
 
         await expect(
             createEncounterAction("patient-1", "episode-1", {
-                plannedAt: new Date("2026-03-20T10:00:00.000Z"),
+                plannedDate: "2026-03-20",
+                plannedTime: "10:00",
                 visitType: "follow-up",
                 reasonDisplay: "Control programado",
                 note: "Paciente estable",
@@ -148,12 +153,89 @@ describe("createEncounterAction", () => {
         });
     });
 
-    it("returns a validation error when plannedAt is earlier than the current datetime", async () => {
+    it("returns a validation error when planned datetime is earlier than now", async () => {
         const { createEncounterAction } = await import("../create-encounter.action");
 
         await expect(
             createEncounterAction("patient-1", "episode-1", {
-                plannedAt: new Date("2026-03-20T09:59:00.000Z"),
+                plannedDate: "2026-03-20",
+                plannedTime: "06:59",
+                visitType: "follow-up",
+                reasonDisplay: "Control programado",
+                note: "Paciente estable",
+            })
+        ).resolves.toMatchObject({
+            success: false,
+            error: {
+                layer: "validation",
+                code: "FORM_VALIDATION_FAILED",
+            },
+        });
+
+        expect(getCurrentPractitionerMock).not.toHaveBeenCalled();
+        expect(createMock).not.toHaveBeenCalled();
+    });
+
+    it("allows planned date without time when date is today", async () => {
+        getCurrentPractitionerMock.mockResolvedValue({
+            id: "kine-1",
+            displayName: "Lic. Ramiro Perez",
+        });
+        createMock.mockResolvedValue({ id: "enc-123" });
+        redirectMock.mockImplementation(() => {
+            throw new Error("NEXT_REDIRECT");
+        });
+
+        const { createEncounterAction } = await import("../create-encounter.action");
+
+        await expect(
+            createEncounterAction("patient-1", "episode-1", {
+                plannedDate: "2026-03-20",
+                plannedTime: "",
+                visitType: "follow-up",
+                reasonDisplay: "Control programado",
+                note: "Paciente estable",
+            })
+        ).rejects.toThrow("NEXT_REDIRECT");
+
+        expect(createMock).toHaveBeenCalledWith(
+            expect.objectContaining({
+                plannedDate: "2026-03-20",
+                plannedTime: undefined,
+            })
+        );
+    });
+
+    it("returns validation error when planned date without time is before today", async () => {
+        const { createEncounterAction } = await import("../create-encounter.action");
+
+        await expect(
+            createEncounterAction("patient-1", "episode-1", {
+                plannedDate: "2026-03-19",
+                plannedTime: "",
+                visitType: "follow-up",
+                reasonDisplay: "Control programado",
+                note: "Paciente estable",
+            })
+        ).resolves.toMatchObject({
+            success: false,
+            error: {
+                layer: "validation",
+                code: "FORM_VALIDATION_FAILED",
+            },
+        });
+
+        expect(getCurrentPractitionerMock).not.toHaveBeenCalled();
+        expect(createMock).not.toHaveBeenCalled();
+    });
+
+    it("returns validation error when planning window exceeds 10 days", async () => {
+        const { createEncounterAction } = await import("../create-encounter.action");
+
+        await expect(
+            createEncounterAction("patient-1", "episode-1", {
+                plannedDate: "2026-03-31",
+                plannedTime: "",
                 visitType: "follow-up",
                 reasonDisplay: "Control programado",
                 note: "Paciente estable",

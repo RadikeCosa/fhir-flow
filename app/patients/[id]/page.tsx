@@ -10,6 +10,7 @@ import { InitialEvaluationSection } from "./components/InitialEvaluationSection"
 import { LastEncounterSection } from "./components/LastEncounterSection";
 import ReAssessmentSection from "./components/ReAssessmentSection";
 import { formatPatientName } from "@/lib/patient/formatters";
+import { getEncounterRepresentativeStart } from "@/lib/patient/formatters/encounter.formatters";
 
 type Props = {
   params: Promise<{
@@ -105,7 +106,11 @@ export default async function Page({ params }: Props) {
         />
         <InitialEvaluationSection
           encounterId={data.initialEncounter?.id ?? null}
-          encounterDate={data.initialEncounter?.periodStart ?? null}
+          encounterDate={
+            data.initialEncounter
+              ? getEncounterRepresentativeStart(data.initialEncounter)
+              : null
+          }
           planOfCare={data.planOfCare}
           barthelAssessment={data.barthelAssessment}
           necpalAssessment={data.necpalAssessment}

@@ -21,7 +21,8 @@ function makeInput(overrides: Partial<CreateEncounterInput> = {}): CreateEncount
         practitionerName: "Lic. Ramiro Perez",
         performerId: "kine-1",
         episodeOfCareId: "episode-1",
-        plannedAt: "2026-03-20T10:00:00.000Z",
+        plannedDate: "2026-03-20",
+        plannedTime: "10:00",
         visitType: "follow-up",
         reasonDisplay: "Control programado",
         note: "Paciente estable",
@@ -36,6 +37,33 @@ describe("mapToFhirEncounter", () => {
         const result = mapToFhirEncounter(makeInput());
 
         expect(result.participant?.[0]?.individual?.display).toBe("Lic. Ramiro Perez");
+    });
+
+    it("writes period.start as UTC datetime when plannedTime is present", async () => {
+        const { mapToFhirEncounter } = await loadMapperModule();
+        const result = mapToFhirEncounter(
+            makeInput({ plannedDate: "2026-03-20", plannedTime: "10:00" })
+        );
+
+        expect(result.period?.start).toBe("2026-03-20T13:00:00.000Z");
+    });
+
+    it("writes period.start as date-only when plannedTime is missing", async () => {
+        const { mapToFhirEncounter } = await loadMapperModule();
+        const result = mapToFhirEncounter(
+            makeInput({ plannedDate: "2026-03-20", plannedTime: undefined })
+        );
+
+        expect(result.period?.start).toBe("2026-03-20");
+    });
+
+    it("writes period.start as date-only when plannedTime is empty string", async () => {
+        const { mapToFhirEncounter } = await loadMapperModule();
+        const result = mapToFhirEncounter(
+            makeInput({ plannedDate: "2026-03-20", plannedTime: "" })
+        );
+
+        expect(result.period?.start).toBe("2026-03-20");
     });
 
 

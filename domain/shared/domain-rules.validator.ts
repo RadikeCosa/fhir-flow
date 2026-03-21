@@ -3,6 +3,13 @@ import { DomainRuleError } from "./error-types";
 import type { CreateEncounterInput, FinalizeEncounterInput } from "../encounters/encounter.write-input";
 import type { EncounterVisitType } from "../encounters/encounter";
 import { PROCEDURE_CODES_BY_CATEGORY } from "../procedures/procedure-code-category.map";
+import {
+    APP_TIME_ZONE,
+    composeLocalDateTimeToUtcIso,
+    formatCalendarDateInTimeZone,
+    isDateOnly,
+    isValidLocalTimeString,
+} from "../../lib/date-time/date-time.utils";
 
 /**
  * Validates domain-level rules for creating an Encounter.
@@ -38,21 +45,68 @@ export function validateEncounterRules(input: CreateEncounterInput): void {
         throw new DomainRuleError("Episode of care ID is required", "MISSING_EPISODE_ID");
     }
 
-    // Ensure plannedAt is a valid ISO 8601 datetime.
-    try {
-        const date = new Date(input.plannedAt);
-        if (isNaN(date.getTime())) {
+    if (!isDateOnly(input.plannedDate)) {
+        throw new DomainRuleError(
+            "Planned date must be a valid YYYY-MM-DD date",
+            "INVALID_PLANNED_DATE"
+        );
+    }
+
+    if (input.plannedTime != null && input.plannedTime !== "" && !isValidLocalTimeString(input.plannedTime)) {
+        throw new DomainRuleError(
+            "Planned time must be a valid HH:mm value",
+            "INVALID_PLANNED_TIME"
+        );
+    }
+
+    const now = new Date();
+    const maxMoment = new Date(now.getTime());
+    maxMoment.setDate(maxMoment.getDate() + 10);
+
+    if (input.plannedTime) {
+        try {
+            const plannedAtIso = composeLocalDateTimeToUtcIso(
+                input.plannedDate,
+                input.plannedTime,
+                APP_TIME_ZONE
+            );
+            const plannedAt = new Date(plannedAtIso);
+            if (plannedAt.getTime() < now.getTime()) {
+                throw new DomainRuleError(
+                    "Planned datetime cannot be in the past",
+                    "PAST_PLANNED_DATETIME"
+                );
+            }
+            if (plannedAt.getTime() > maxMoment.getTime()) {
+                throw new DomainRuleError(
+                    "Visit cannot be scheduled more than 10 days ahead",
+                    "PLANNING_WINDOW_EXCEEDED"
+                );
+            }
+        } catch (err) {
+            if (err instanceof DomainRuleError) throw err;
             throw new DomainRuleError(
-                "Planned date must be a valid ISO 8601 datetime",
-                "INVALID_DATE"
+                "Planned datetime is invalid",
+                "INVALID_PLANNED_DATETIME"
             );
         }
-    } catch (err) {
-        if (err instanceof DomainRuleError) throw err;
-        throw new DomainRuleError(
-            "Planned date must be a valid ISO 8601 datetime",
-            "INVALID_DATE"
-        );
+    } else {
+        const today = formatCalendarDateInTimeZone(now, APP_TIME_ZONE);
+        const maxDate = formatCalendarDateInTimeZone(maxMoment, APP_TIME_ZONE);
+
+        if (input.plannedDate < today) {
+            throw new DomainRuleError(
+                "Planned date cannot be before today",
+                "PAST_PLANNED_DATE"
+            );
+        }
+
+        if (input.plannedDate > maxDate) {
+            throw new DomainRuleError(
+                "Visit cannot be scheduled more than 10 days ahead",
+                "PLANNING_WINDOW_EXCEEDED"
+            );
+        }
     }
 
     // Optional note must not be only whitespace.
@@ -81,24 +135,24 @@ export function validateFinalizeEncounterRules(input: FinalizeEncounterInput): v
         throw new DomainRuleError("El ID de paciente es requerido", "MISSING_PATIENT_ID");
     }
 
-    if (!input.periodEnd || typeof input.periodEnd !== "string" || !input.periodEnd.includes("T")) {
-        throw new DomainRuleError("periodEnd debe ser un datetime ISO con componente de tiempo", "INVALID_PERIOD_END");
+    if (!input.actualEndAt || typeof input.actualEndAt !== "string" || !input.actualEndAt.includes("T")) {
+        throw new DomainRuleError("actualEndAt debe ser un datetime ISO con componente de tiempo", "INVALID_ACTUAL_END");
     }
-    const periodEndDate = new Date(input.periodEnd);
-    if (isNaN(periodEndDate.getTime())) {
-        throw new DomainRuleError("periodEnd debe ser un datetime ISO válido", "INVALID_PERIOD_END");
-    }
-
-    if (!input.periodStart || typeof input.periodStart !== "string" || !input.periodStart.includes("T")) {
-        throw new DomainRuleError("periodStart debe ser un datetime ISO con componente de tiempo", "INVALID_PERIOD_START");
-    }
-    const periodStartDate = new Date(input.periodStart);
-    if (isNaN(periodStartDate.getTime())) {
-        throw new DomainRuleError("periodStart debe ser un datetime ISO válido", "INVALID_PERIOD_START");
+    const actualEndDate = new Date(input.actualEndAt);
+    if (isNaN(actualEndDate.getTime())) {
+        throw new DomainRuleError("actualEndAt debe ser un datetime ISO válido", "INVALID_ACTUAL_END");
     }
 
-    if (periodEndDate.getTime() <= periodStartDate.getTime()) {
-        throw new DomainRuleError("periodEnd debe ser posterior a periodStart", "PERIOD_END_BEFORE_START");
+    if (!input.actualStartAt || typeof input.actualStartAt !== "string" || !input.actualStartAt.includes("T")) {
+        throw new DomainRuleError("actualStartAt debe ser un datetime ISO con componente de tiempo", "INVALID_ACTUAL_START");
+    }
+    const actualStartDate = new Date(input.actualStartAt);
+    if (isNaN(actualStartDate.getTime())) {
+        throw new DomainRuleError("actualStartAt debe ser un datetime ISO válido", "INVALID_ACTUAL_START");
+    }
+
+    if (actualEndDate.getTime() <= actualStartDate.getTime()) {
+        throw new DomainRuleError("actualEndAt debe ser posterior a actualStartAt", "ACTUAL_END_BEFORE_START");
     }
 
     if (input.clinicalNote == null || input.clinicalNote.trim() === "") {

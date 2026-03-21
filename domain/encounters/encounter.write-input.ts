@@ -34,10 +34,15 @@ export interface CreateEncounterInput {
     episodeOfCareId: string;
 
     /**
-     * Planned date/time for the encounter.
-     * Expected to be an ISO 8601 string, e.g. "2026-03-17T10:00:00Z".
+     * Planned calendar date for the encounter in YYYY-MM-DD format.
      */
-    plannedAt: string;
+    plannedDate: string;
+
+    /**
+     * Optional planned local time in HH:mm format.
+     * When omitted, the encounter remains planned without explicit schedule time.
+     */
+    plannedTime?: string | null;
 
     /**
      * Visit type, used for the `Encounter.type` coding.
@@ -63,7 +68,7 @@ export interface CreateEncounterInput {
  * optional summary notes.
  *
  * Note: `patientId`, `episodeOfCareId`, `performerId`, `practitionerName`, and
- * `periodStart` are resolved by the Server Action from existing server-side
+ * `actualStartAt` are resolved by the Server Action from existing server-side
  * state and not supplied by the client form.
  *
  * `procedures` must always be an array; when no procedures apply it should be
@@ -76,9 +81,9 @@ export interface FinalizeEncounterInput {
     performerId: string;
     practitionerName: string;
     visitType: EncounterVisitType;
-    periodStart: string;
-    periodEnd: string;
-    clinicalNote?: string | null;
+    actualStartAt: string;
+    actualEndAt: string;
+    clinicalNote: string;
     reasonDisplay?: string | null;
     heartRate?: number;
     respiratoryRate?: number;
