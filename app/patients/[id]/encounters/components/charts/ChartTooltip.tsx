@@ -6,6 +6,9 @@ export interface ChartTooltipProps {
     name?: string | number;
     value?: number | string;
     color?: string;
+    payload?: {
+      rawValue?: number;
+    };
   }>;
   label?: string;
   labelFormatter?: (label: string) => string;
@@ -30,7 +33,9 @@ export default function ChartTooltip(
       </div>
       {payload.map((entry, index) => {
         const name = String(entry.name ?? "");
-        const rawValue = typeof entry.value === "number" ? entry.value : 0;
+        const rawValue =
+          entry.payload?.rawValue ??
+          (typeof entry.value === "number" ? entry.value : 0);
         const displayValue = valueFormatter
           ? valueFormatter(rawValue, name)
           : `${rawValue}${unit ? " " + unit : ""}`;

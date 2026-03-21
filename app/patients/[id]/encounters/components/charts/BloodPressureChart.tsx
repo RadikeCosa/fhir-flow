@@ -1,5 +1,9 @@
 "use client";
 
+import type {
+  ChartZone,
+  EnrichedChartDatum,
+} from "../../../../../../lib/patient/formatters/clinical-ranges.adapter";
 import {
   LineChart,
   Line,
@@ -14,24 +18,51 @@ import {
 import ChartTooltip from "./ChartTooltip";
 
 import {
-  adaptClinicalRangesToChartReferences,
   CLINICAL_CHART_COLORS,
   CLINICAL_CHART_RANGES,
   formatChartDate,
 } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
-import { getBloodPressureSingleValuePresentation } from "../../../../../../lib/patient/formatters/vital-sign.formatters";
-import { CLINICAL_RANGES } from "../../../../../../lib/patient/formatters/clinical-ranges";
 
-const BLOOD_PRESSURE_CHART_REFERENCES = adaptClinicalRangesToChartReferences(
-  CLINICAL_RANGES.bloodPressure,
-  { clampToDomain: CLINICAL_CHART_RANGES.bloodPressure },
-);
+type BloodPressureChartDatum = EnrichedChartDatum & {
+  systolic: number;
+  diastolic: number;
+};
 
 interface BloodPressureChartProps {
-  data: { date: string; systolic: number; diastolic: number }[];
+  data: BloodPressureChartDatum[];
+  zones?: ChartZone[];
 }
 
-export default function BloodPressureChart({ data }: BloodPressureChartProps) {
+function getSeverityColor(severity?: ChartZone["severity"]): string {
+  switch (severity) {
+    case "normal":
+      return CLINICAL_CHART_COLORS.normal;
+    case "warning":
+      return CLINICAL_CHART_COLORS.alert;
+    case "critical":
+      return CLINICAL_CHART_COLORS.critical;
+    default:
+      return CLINICAL_CHART_COLORS.neutral;
+  }
+}
+
+function getBadgeClass(severity?: ChartZone["severity"]): string {
+  switch (severity) {
+    case "normal":
+      return "bg-badge-success-bg text-badge-success-text";
+    case "warning":
+      return "bg-badge-warning-bg text-badge-warning-text";
+    case "critical":
+      return "bg-badge-error-bg text-badge-error-text";
+    default:
+      return "bg-badge-neutral-bg text-badge-neutral-text";
+  }
+}
+
+export default function BloodPressureChart({
+  data,
+  zones,
+}: BloodPressureChartProps) {
   if (!data || data.length === 0) {
     return (
       <div
@@ -45,21 +76,19 @@ export default function BloodPressureChart({ data }: BloodPressureChartProps) {
 
   if (data.length === 1) {
     const point = data[0];
-    const presentation = getBloodPressureSingleValuePresentation(
-      point.systolic,
-      point.diastolic,
-    );
+    const accentColor = point.zone?.color ?? getSeverityColor(point.severity);
+    const badgeClass = getBadgeClass(point.severity);
 
     return (
       <div
         role="status"
         className="flex flex-col items-center justify-center gap-2 py-16 px-8 text-center border-l-4 border-border bg-surface rounded-md"
-        style={{ borderLeftColor: presentation.accentColor }}
+        style={{ borderLeftColor: accentColor }}
       >
         <div className="text-sm font-semibold">Presión arterial</div>
         <div
           className="flex items-baseline gap-2 text-3xl font-bold"
-          style={{ color: presentation.accentColor }}
+          style={{ color: accentColor }}
         >
           <span>{point.systolic}</span>
           <span>/</span>
@@ -67,9 +96,9 @@ export default function BloodPressureChart({ data }: BloodPressureChartProps) {
           <span className="text-xl font-normal">mmHg</span>
         </div>
         <span
-          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${presentation.badge.colorClass}`}
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badgeClass}`}
         >
-          {presentation.badge.label}
+          {point.zone?.label ?? "Desconocido"}
         </span>
         <div className="text-sm text-muted">{formatChartDate(point.date)}</div>
         <div className="text-sm text-muted mt-2">
@@ -98,15 +127,7 @@ export default function BloodPressureChart({ data }: BloodPressureChartProps) {
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="date" tickFormatter={formatChartDate} />
           <YAxis domain={domain} />
-          {BLOOD_PRESSURE_CHART_REFERENCES.normalRange ? (
-            <ReferenceArea
-              y1={BLOOD_PRESSURE_CHART_REFERENCES.normalRange.y1}
-              y2={BLOOD_PRESSURE_CHART_REFERENCES.normalRange.y2}
-              fill={CLINICAL_CHART_COLORS.normal}
-              fillOpacity={0.08}
-            />
-          ) : null}
-          {BLOOD_PRESSURE_CHART_REFERENCES.referenceZones.map((zone, index) => (
+          {zones?.map((zone, index) => (
             <ReferenceArea
               key={index}
               y1={zone.y1}
@@ -124,17 +145,19 @@ export default function BloodPressureChart({ data }: BloodPressureChartProps) {
           <Legend />
           <Line
             type="monotone"
-            dataKey="systolic"
+            dataKey="chartValue"
             name="Sistólica"
             stroke={CLINICAL_CHART_COLORS.systolic}
-            dot={({ cx, cy, index }) =>
+            dot={({ cx, cy, index, payload }) =>
               index === lastIndex ? (
                 <circle
                   key={`systolic-dot-${index}`}
                   cx={cx}
                   cy={cy}
                   r={4}
-                  fill={CLINICAL_CHART_COLORS.systolic}
+                  fill={
+                    payload?.zone?.color ?? getSeverityColor(payload?.severity)
+                  }
                   stroke="white"
                   strokeWidth={2}
                 />

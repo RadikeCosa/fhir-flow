@@ -8,6 +8,7 @@ export interface BadgeInfo {
     label: string;
     // Tailwind CSS classes to apply to the badge span
     colorClass: string;
+    severity?: "normal" | "warning" | "critical";
 }
 
 /**

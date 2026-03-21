@@ -23,20 +23,24 @@ export function getVitalSignBadge(type: VitalSignType, value: number): BadgeInfo
         // for blood pressure we return a neutral badge; the caller is
         // expected to invoke getBloodPressureBadge if more detailed
         // classification is desired.
-        return { label: "Ver detalle", colorClass: "bg-badge-neutral-bg text-badge-neutral-text" };
+        return {
+            label: "Ver detalle",
+            colorClass: "bg-badge-neutral-bg text-badge-neutral-text",
+            severity: "normal",
+        };
     }
 
     const zone = getClinicalZoneForValue(getClinicalRanges(type), value);
 
     switch (zone?.severity) {
         case "normal":
-            return { label: zone.label, colorClass: "bg-badge-success-bg text-badge-success-text" };
+            return { label: zone.label, colorClass: "bg-badge-success-bg text-badge-success-text", severity: "normal" };
         case "warning":
-            return { label: zone.label, colorClass: "bg-badge-warning-bg text-badge-warning-text" };
+            return { label: zone.label, colorClass: "bg-badge-warning-bg text-badge-warning-text", severity: "warning" };
         case "critical":
-            return { label: zone.label, colorClass: "bg-badge-error-bg text-badge-error-text" };
+            return { label: zone.label, colorClass: "bg-badge-error-bg text-badge-error-text", severity: "critical" };
         default:
-            return { label: "Desconocido", colorClass: "bg-badge-neutral-bg text-badge-neutral-text" };
+            return { label: "Desconocido", colorClass: "bg-badge-neutral-bg text-badge-neutral-text", severity: "normal" };
     }
 }
 
@@ -192,12 +196,12 @@ export function getBloodPressureBadge(systolic: number, _diastolic: number): Bad
 
     switch (zone?.severity) {
         case "normal":
-            return { label: zone.label, colorClass: "bg-badge-success-bg text-badge-success-text" };
+            return { label: zone.label, colorClass: "bg-badge-success-bg text-badge-success-text", severity: "normal" };
         case "warning":
-            return { label: zone.label, colorClass: "bg-badge-warning-bg text-badge-warning-text" };
+            return { label: zone.label, colorClass: "bg-badge-warning-bg text-badge-warning-text", severity: "warning" };
         case "critical":
-            return { label: zone.label, colorClass: "bg-badge-error-bg text-badge-error-text" };
+            return { label: zone.label, colorClass: "bg-badge-error-bg text-badge-error-text", severity: "critical" };
         default:
-            return { label: "Desconocido", colorClass: "bg-badge-neutral-bg text-badge-neutral-text" };
+            return { label: "Desconocido", colorClass: "bg-badge-neutral-bg text-badge-neutral-text", severity: "normal" };
     }
 }

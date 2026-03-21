@@ -1,22 +1,14 @@
 "use client";
 
-import type { TimeValueDatum } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
-import type { VitalSignType } from "../../../../../../domain/vital-sign-record/vital-sign-record";
 import {
-  adaptClinicalRangesToChartReferences,
   CLINICAL_CHART_COLORS,
   CLINICAL_CHART_RANGES,
   formatChartDate,
 } from "../../../../../../lib/patient/formatters/encounter-charts.formatters";
-import {
-  getClinicalStateAccentColor,
-  getVitalSignSingleValuePresentation,
-} from "../../../../../../lib/patient/formatters/vital-sign.formatters";
-import { getEvaBadge } from "../../../../../../lib/patient/formatters/assessments/eva-assessment.formatters";
-import {
-  getClinicalRanges,
-  getEvaClinicalRanges,
-} from "../../../../../../lib/patient/formatters/clinical-ranges";
+import type {
+  EnrichedChartDatum,
+  ChartZone,
+} from "../../../../../../lib/patient/formatters/clinical-ranges.adapter";
 import {
   LineChart,
   Line,
@@ -30,52 +22,45 @@ import {
 } from "recharts";
 import ChartTooltip from "./ChartTooltip";
 
-const HEART_RATE_CHART_REFERENCES = adaptClinicalRangesToChartReferences(
-  getClinicalRanges("heart-rate"),
-  { clampToDomain: CLINICAL_CHART_RANGES.heartRate },
-);
-const RESPIRATORY_RATE_CHART_REFERENCES = adaptClinicalRangesToChartReferences(
-  getClinicalRanges("respiratory-rate"),
-  { clampToDomain: CLINICAL_CHART_RANGES.respiratoryRate },
-);
-const OXYGEN_SATURATION_CHART_REFERENCES = adaptClinicalRangesToChartReferences(
-  getClinicalRanges("oxygen-saturation"),
-  { clampToDomain: CLINICAL_CHART_RANGES.oxygenSaturation },
-);
-const BODY_TEMPERATURE_CHART_REFERENCES = adaptClinicalRangesToChartReferences(
-  getClinicalRanges("body-temperature"),
-  { clampToDomain: CLINICAL_CHART_RANGES.bodyTemperature },
-);
-const EVA_CHART_REFERENCES = adaptClinicalRangesToChartReferences(
-  getEvaClinicalRanges(),
-  {
-    includeNormalRange: false,
-    includeNormalReferenceZones: true,
-    clampToDomain: CLINICAL_CHART_RANGES.eva,
-  },
-);
-
-export interface NormalRange {
-  y1: number;
-  y2: number;
+function getSeverityColor(severity?: ChartZone["severity"]): string {
+  switch (severity) {
+    case "normal":
+      return CLINICAL_CHART_COLORS.normal;
+    case "warning":
+      return CLINICAL_CHART_COLORS.alert;
+    case "critical":
+      return CLINICAL_CHART_COLORS.critical;
+    default:
+      return CLINICAL_CHART_COLORS.neutral;
+  }
 }
 
-export interface ReferenceZone {
-  y1: number;
-  y2: number;
-  fill: string;
+function getBadgeClass(severity?: ChartZone["severity"]): string {
+  switch (severity) {
+    case "normal":
+      return "bg-badge-success-bg text-badge-success-text";
+    case "warning":
+      return "bg-badge-warning-bg text-badge-warning-text";
+    case "critical":
+      return "bg-badge-error-bg text-badge-error-text";
+    default:
+      return "bg-badge-neutral-bg text-badge-neutral-text";
+  }
 }
 
 export interface SingleSeriesChartProps {
-  data: TimeValueDatum[];
+  data: EnrichedChartDatum[];
   label: string;
   unit: string;
   color: string;
   domain: [number, number];
-  fallbackKind: "vital-sign" | "eva";
-  vitalSignType?: VitalSignType;
-  normalRange?: NormalRange;
-  referenceZones?: ReferenceZone[];
+  zones?: ChartZone[];
+  showSubtleDots?: boolean;
+  zoneOpacity?: {
+    normal?: number;
+    warning?: number;
+    critical?: number;
+  };
   ticks?: number[];
   emptyMessage: string;
   tooltipValueFormatter?: (value: number) => string;
@@ -87,10 +72,9 @@ export default function SingleSeriesChart({
   unit,
   color,
   domain,
-  fallbackKind,
-  vitalSignType,
-  normalRange,
-  referenceZones,
+  zones,
+  showSubtleDots,
+  zoneOpacity,
   ticks,
   emptyMessage,
   tooltipValueFormatter,
@@ -109,34 +93,25 @@ export default function SingleSeriesChart({
   if (data.length === 1) {
     const point = data[0];
     const formattedValue = tooltipValueFormatter
-      ? tooltipValueFormatter(point.value)
-      : `${point.value} ${unit}`;
-    const evaBadge = getEvaBadge(point.value);
-    const presentation =
-      fallbackKind === "vital-sign" && vitalSignType
-        ? getVitalSignSingleValuePresentation(vitalSignType, point.value)
-        : {
-            badge: evaBadge,
-            accentColor: getClinicalStateAccentColor(evaBadge),
-          };
+      ? tooltipValueFormatter(point.rawValue)
+      : `${point.rawValue} ${unit}`;
+    const badgeClass = getBadgeClass(point.severity);
+    const accentColor = point.zone?.color ?? getSeverityColor(point.severity);
 
     return (
       <div
         role="status"
         className="flex flex-col items-center justify-center gap-2 py-16 px-8 text-center border-l-4 border-border bg-surface rounded-md"
-        style={{ borderLeftColor: presentation.accentColor }}
+        style={{ borderLeftColor: accentColor }}
       >
         <div className="text-sm font-semibold">{label}</div>
-        <div
-          className="text-3xl font-bold"
-          style={{ color: presentation.accentColor }}
-        >
+        <div className="text-3xl font-bold" style={{ color: accentColor }}>
           {formattedValue}
         </div>
         <span
-          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${presentation.badge.colorClass}`}
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badgeClass}`}
         >
-          {presentation.badge.label}
+          {point.zone?.label ?? "Desconocido"}
         </span>
         <div className="text-sm text-muted">{formatChartDate(point.date)}</div>
         <div className="text-sm text-muted mt-2">
@@ -163,21 +138,13 @@ export default function SingleSeriesChart({
           ) : (
             <YAxis domain={domain} />
           )}
-          {normalRange ? (
-            <ReferenceArea
-              y1={normalRange.y1}
-              y2={normalRange.y2}
-              fill="#16a34a"
-              fillOpacity={0.08}
-            />
-          ) : null}
-          {referenceZones?.map((zone, index) => (
+          {zones?.map((zone, index) => (
             <ReferenceArea
               key={index}
               y1={zone.y1}
               y2={zone.y2}
               fill={zone.fill}
-              fillOpacity={0.08}
+              fillOpacity={zoneOpacity?.[zone.severity] ?? 0.08}
             />
           ))}
           <Tooltip
@@ -193,19 +160,31 @@ export default function SingleSeriesChart({
           <Legend />
           <Line
             type="monotone"
-            dataKey="value"
+            dataKey="chartValue"
             name={label}
             stroke={color}
-            dot={({ cx, cy, index }) =>
+            dot={({ cx, cy, index, payload }) =>
               index === lastIndex ? (
                 <circle
                   key={`dot-${index}`}
                   cx={cx}
                   cy={cy}
                   r={4}
-                  fill={color}
+                  fill={
+                    payload?.zone?.color ?? getSeverityColor(payload?.severity)
+                  }
                   stroke="white"
                   strokeWidth={2}
+                />
+              ) : showSubtleDots ? (
+                <circle
+                  key={`dot-${index}`}
+                  cx={cx}
+                  cy={cy}
+                  r={2}
+                  fill={
+                    payload?.zone?.color ?? getSeverityColor(payload?.severity)
+                  }
                 />
               ) : null
             }
@@ -221,62 +200,48 @@ export const SINGLE_SERIES_CHART_CONFIGS = {
     label: "FC (lpm)",
     unit: "lpm",
     color: CLINICAL_CHART_COLORS.heartRate,
-    fallbackKind: "vital-sign",
-    vitalSignType: "heart-rate",
     domain: [
       CLINICAL_CHART_RANGES.heartRate.min,
       CLINICAL_CHART_RANGES.heartRate.max,
     ],
-    ...HEART_RATE_CHART_REFERENCES,
     emptyMessage: "No hay datos de frecuencia cardíaca",
   },
   respiratoryRate: {
     label: "FR (rpm)",
     unit: "rpm",
     color: CLINICAL_CHART_COLORS.respiratoryRate,
-    fallbackKind: "vital-sign",
-    vitalSignType: "respiratory-rate",
     domain: [
       CLINICAL_CHART_RANGES.respiratoryRate.min,
       CLINICAL_CHART_RANGES.respiratoryRate.max,
     ],
-    ...RESPIRATORY_RATE_CHART_REFERENCES,
     emptyMessage: "No hay datos de frecuencia respiratoria",
   },
   oxygenSaturation: {
     label: "SpO₂ (%)",
     unit: "%",
     color: CLINICAL_CHART_COLORS.oxygenSaturation,
-    fallbackKind: "vital-sign",
-    vitalSignType: "oxygen-saturation",
     domain: [
       CLINICAL_CHART_RANGES.oxygenSaturation.min,
       CLINICAL_CHART_RANGES.oxygenSaturation.max,
     ],
-    ...OXYGEN_SATURATION_CHART_REFERENCES,
     emptyMessage: "No hay datos de saturación de oxígeno",
   },
   bodyTemperature: {
     label: "Temp (°C)",
     unit: "°C",
     color: CLINICAL_CHART_COLORS.bodyTemperature,
-    fallbackKind: "vital-sign",
-    vitalSignType: "body-temperature",
     domain: [
       CLINICAL_CHART_RANGES.bodyTemperature.min,
       CLINICAL_CHART_RANGES.bodyTemperature.max,
     ],
-    ...BODY_TEMPERATURE_CHART_REFERENCES,
     emptyMessage: "No hay datos de temperatura corporal",
   },
   eva: {
     label: "EVA",
     unit: "",
     color: CLINICAL_CHART_COLORS.neutral,
-    fallbackKind: "eva",
     domain: [CLINICAL_CHART_RANGES.eva.min, CLINICAL_CHART_RANGES.eva.max],
     ticks: [0, 2, 4, 6, 8, 10],
-    referenceZones: EVA_CHART_REFERENCES.referenceZones,
     tooltipValueFormatter: (v) => `Dolor: ${v} / 10`,
     emptyMessage: "No hay datos de EVA",
   },
