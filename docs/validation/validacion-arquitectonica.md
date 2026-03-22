@@ -1,5 +1,7 @@
 # Validación Arquitectónica Vigente (estado real)
 
+Este documento describe el estado real del sistema en relación a la arquitectura definida en los documentos de autoridad. No introduce nuevas reglas.
+
 ## Rol del documento
 
 Este documento ofrece una validación honesta del estado real de la arquitectura: distingue lo válido hoy, lo transicional y la deuda conocida sin presentar el estado actual como cierre definitivo.

@@ -4,6 +4,11 @@
 
 Este documento describe el modelo clínico actual que hoy consumen lectura, formatters y visualización longitudinal. Se limita a decisiones verificables en código y documentación vigente del repositorio; cuando una conexión no puede verificarse completamente, se marca como inferencia o pendiente de verificación.
 
+## Relación con otros documentos
+
+- Ver [`internal-clinical-charts-subsystem.md`](./internal-clinical-charts-subsystem.md) como estado actual del subsistema de charts clínicos.
+- Ver [`encounters-and-clinical-evolution.md`](../../evolution/encounters-and-clinical-evolution.md) para entender cómo se llegó a este modelo.
+
 ## Fuentes utilizadas
 
 - `domain/vital-sign-record/vital-sign-record.ts`

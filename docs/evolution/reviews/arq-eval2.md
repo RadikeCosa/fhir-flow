@@ -1,3 +1,5 @@
+> **Nota:** Este documento es una revisión histórica. No refleja necesariamente el estado actual del sistema. Ver [`guia-rapida.md`](../../guia-rapida.md) para navegar la documentación vigente.
+
 > **Nota de revisión histórica**
 > 
 > Este documento es un informe de revisión puntual (artefacto de evaluación), no una fuente de verdad operativa ni técnica.

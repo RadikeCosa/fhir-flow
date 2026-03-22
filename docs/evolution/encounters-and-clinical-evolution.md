@@ -4,6 +4,11 @@
 
 Este documento registra la evolución y las decisiones ya tomadas sobre encounters, endurecimiento del input clínico y semántica visual longitudinal. No es un documento de estado actual exhaustivo ni una hoja de ruta futura: consolida cambios verificables y sus trade-offs.
 
+## Relación con otros documentos
+
+- Ver [`../architecture/current/clinical-model.md`](../architecture/current/clinical-model.md) para el modelo clínico vigente que resulta de esta evolución.
+- Ver [`../architecture/current/app-architecture-checkpoint-2026-03.md`](../architecture/current/app-architecture-checkpoint-2026-03.md) para el estado actual de la reorganización de `app/`.
+
 ## Alcance y fuentes
 
 Documento base principal:
