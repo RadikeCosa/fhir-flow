@@ -1,120 +1,44 @@
-# Guia Rapida - Navegacion de Documentacion
+# Guía rápida de documentación
 
-Esta guia resume como navegar la documentacion vigente del proyecto.
+Esta guía es el punto de entrada principal para navegar la documentación vigente del proyecto.
 
-## Jerarquia Documental
+## Autoridad (source of truth)
 
-La lectura recomendada es esta:
+- [`docs/adr/ADR-001-encounter-lifecycle-and-write-architecture.md`](./adr/ADR-001-encounter-lifecycle-and-write-architecture.md): autoridad para lifecycle de `Encounter`, canonical read y reglas estructurales del write flow. Leer cuando la duda sea normativa o de diseño aceptado.
+- [`docs/write-phase-architecture.md`](./write-phase-architecture.md): autoridad operativa del write flow actual. Leer cuando la duda sea cómo debe comportarse la escritura hoy dentro del marco definido por el ADR.
+- [`.github/instructions/copilot.instructions.md`](../.github/instructions/copilot.instructions.md): autoridad externa del repositorio para reglas globales, límites de capas y convenciones transversales. Leer cuando el tema exceda un flujo puntual.
 
-```text
-1. .github/instructions/copilot.instructions.md
-   Reglas globales de arquitectura y desarrollo
+## Estado actual (cómo está implementado hoy)
 
-2. docs/adr/ADR-001-encounter-lifecycle-and-write-architecture.md
-   Autoridad para lifecycle, write behavior transitorio,
-   practitioner responsibility y canonical read
+- [`docs/architecture/current/app-architecture-checkpoint-2026-03.md`](./architecture/current/app-architecture-checkpoint-2026-03.md): checkpoint de la estructura real de `app/` y de los loaders actuales. Leer cuando necesites entender la organización vigente de rutas y contratos de carga.
+- [`docs/architecture/current/internal-clinical-charts-subsystem.md`](./architecture/current/internal-clinical-charts-subsystem.md): estado verificable del subsistema de charts clínicos. Leer cuando necesites saber cómo se implementa hoy la visualización longitudinal.
+- [`docs/architecture/current/clinical-model.md`](./architecture/current/clinical-model.md): modelo clínico actual consumido por lectura, formatters y charts. Leer cuando necesites entender el shape clínico reutilizado hoy por el sistema.
 
-3. docs/write-phase-architecture.md
-   Referencia operativa del write flow actual
-```
+## Evolución (cómo llegamos a este diseño)
 
-Si dos documentos hablan del mismo tema:
+- [`docs/evolution/encounters-and-clinical-evolution.md`](./evolution/encounters-and-clinical-evolution.md): resume la evolución de encounters, endurecimiento clínico y semántica longitudinal. Leer cuando necesites contexto de decisiones y trade-offs ya consolidados.
+- [`docs/evolution/clinical-visualization-and-encounter-evolution.md`](./evolution/clinical-visualization-and-encounter-evolution.md): antecedente detallado de la evolución funcional y visual. Leer cuando necesites más contexto histórico sobre cómo se llegó al diseño vigente.
 
-- el ADR manda sobre lifecycle, canonical read y direccion del write flow
-- `copilot.instructions.md` manda sobre reglas globales del repositorio
-- `write-phase-architecture.md` manda sobre la operativa concreta del write flow, siempre alineada con el ADR
+## Validación (estado real vs arquitectura)
 
-## Que Archivo Manda en Cada Tema
+- [`docs/validation/validacion-arquitectonica.md`](./validation/validacion-arquitectonica.md): contrasta autoridad y estado real, distinguiendo lo válido hoy, lo transicional y la deuda conocida. Leer cuando necesites validar si algo ya está alineado o sigue pendiente.
 
-| Tema | Archivo autoridad |
-|---|---|
-| Reglas globales de arquitectura | `.github/instructions/copilot.instructions.md` |
-| Terminologia Encounter vs Visit | `.github/instructions/copilot.instructions.md` |
-| Validation architecture | `.github/instructions/copilot.instructions.md` |
-| Lifecycle oficial de Encounter | `docs/adr/ADR-001-encounter-lifecycle-and-write-architecture.md` |
-| `planned -> finished` como compatibilidad transitoria | `docs/adr/ADR-001-encounter-lifecycle-and-write-architecture.md` |
-| Practitioner responsibility | `docs/adr/ADR-001-encounter-lifecycle-and-write-architecture.md` |
-| Canonical read de encounter detail | `docs/adr/ADR-001-encounter-lifecycle-and-write-architecture.md` |
-| Write flow operativo actual | `docs/write-phase-architecture.md` |
-| Responsabilidades de Server Action / repository / inverse mapper / FHIR client | `docs/write-phase-architecture.md` |
-| `ActionResult` y `ActionError` en writes | `docs/write-phase-architecture.md` |
+## Documentos históricos
 
-## Donde Buscar Cada Cosa
+- [`docs/evolution/reviews/*`](./evolution/reviews/): revisiones puntuales e informes de evaluación ya históricos. Leer solo para reconstruir contexto de análisis anteriores, no para definir reglas vigentes.
+- [`docs/archive/*`](./archive/): material archivado y planes previos preservados como referencia histórica. Leer solo cuando necesites rastrear decisiones o planes ya superados.
 
-### Reglas globales
+## Orden de lectura sugerido
 
-Busca en `.github/instructions/copilot.instructions.md`.
+1. **Autoridad** para saber qué documento manda.
+2. **Estado actual** para ver cómo está implementado hoy.
+3. **Evolución** para entender por qué se llegó a ese diseño.
+4. **Validación** para contrastar arquitectura definida contra sistema real.
+5. **Históricos** solo si hace falta contexto adicional.
 
-Usalo para:
+## Regla práctica
 
-- limites de capas
-- reglas no negociables
-- terminologia
-- validacion multicapa
-- reglas generales de write
-
-### Lifecycle
-
-Busca en `docs/adr/ADR-001-encounter-lifecycle-and-write-architecture.md`.
-
-Usalo para:
-
-- estados oficiales de `Encounter`
-- transiciones aceptadas
-- compatibilidad transitoria actual
-- direccion futura aceptada
-
-### Practitioner Responsibility
-
-Busca en `docs/adr/ADR-001-encounter-lifecycle-and-write-architecture.md`.
-
-Usalo para confirmar que:
-
-- el practitioner se resuelve en Server Action
-- el write input debe cargar `performerId` y `practitionerName`
-- los inverse mappers no leen identidad desde config
-
-### Write Flow
-
-Busca en `docs/write-phase-architecture.md`.
-
-Usalo para:
-
-- flujo operativo actual de write
-- responsabilidades por capa
-- modelo implementado hoy
-- deuda tecnica y comportamiento transitorio
-
-### Canonical Read
-
-Busca primero en `docs/adr/ADR-001-encounter-lifecycle-and-write-architecture.md`.
-
-Luego usa `docs/write-phase-architecture.md` para ver como se aplica despues de una write.
-
-### ActionResult / ActionError
-
-Busca en `docs/write-phase-architecture.md`.
-
-Usalo para:
-
-- contrato estable de Server Actions
-- capas de error: `validation`, `domain`, `fhir`
-- direccion futura de `details`
-
-## Regla Practica de Lectura
-
-Si la duda es sobre una regla global del repo, lee `copilot.instructions.md`.
-
-Si la duda es sobre una decision de arquitectura del lifecycle o del write flow, lee el ADR.
-
-Si la duda es sobre como implementar u operar una write hoy, lee `write-phase-architecture.md`.
-
-## Nota Importante
-
-El archivo ADR vigente en el repo hoy se llama:
-
-`docs/adr/ADR-001-encounter-lifecycle-and-write-architecture.md`
-
-Ese es el documento que debe tratarse como autoridad arquitectonica, aunque su nombre de archivo todavia conserve un typo historico.
-
-- `docs/architecture/current/app-architecture-checkpoint-2026-03.md`: estado actual y refactors recientes de la capa `app/` en patients/encounters
+- Si dos documentos discrepan, prevalece **Autoridad**.
+- **Estado actual** describe implementación verificable, pero no reemplaza autoridad.
+- **Evolución** explica decisiones pasadas y transiciones, pero no redefine reglas vigentes.
+- **Validación** compara realidad contra autoridad, pero no introduce nuevas reglas.

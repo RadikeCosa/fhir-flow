@@ -4,6 +4,10 @@
 
 Este documento describe el estado actual del subsistema de charts clínicos implementado en el repositorio y documenta sus límites, responsabilidades y simplificaciones verificables.
 
+## Relación con otros documentos
+
+- Ver [`clinical-model.md`](./clinical-model.md) para el modelo clínico actual que alimenta lectura, formatters y charts.
+
 ## Propósito y alcance
 
 Este documento describe el subsistema de charts clínicos tal como está implementado hoy en el repositorio. El objetivo es dejar una base técnica verificable para escritura posterior de material externo.
