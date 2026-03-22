@@ -1,5 +1,9 @@
 # Subsistema de charts clínicos
 
+## Rol del documento
+
+Este documento describe el estado actual del subsistema de charts clínicos implementado en el repositorio y documenta sus límites, responsabilidades y simplificaciones verificables.
+
 ## Propósito y alcance
 
 Este documento describe el subsistema de charts clínicos tal como está implementado hoy en el repositorio. El objetivo es dejar una base técnica verificable para escritura posterior de material externo.

@@ -14,7 +14,7 @@ Este documento era un "recorrido paso a paso" del estado inicial del proyecto, c
 ## ¿Qué documentos lo reemplazan?
 - `docs/adr/ADR-001-encounter-lifecycle-and-write-architecture.md` (arquitectura autorizada de encuentro y fases de escritura)
 - `docs/write-phase-architecture.md` (flujo de validación y normativas concretas)
-- `docs/validacion-arquitectonica.md` (normas de validación transversales)
+- `docs/validation/validacion-arquitectonica.md` (normas de validación transversales)
 
 ## Recomendación de acción
 - Mantenerlo en `docs/archive/` como registro histórico.

@@ -1,7 +1,7 @@
 > **Nota de revisión histórica**
 > 
 > Este documento es un informe de revisión puntual (artefacto de evaluación), no una fuente de verdad operativa ni técnica.
-> La documentación de autoridad actual está en `docs/adr/ADR-001-encounter-lifecycle-and-write-architecture.md`, `docs/write-phase-architecture.md`, y `docs/validacion-arquitectonica.md`.
+> La documentación de autoridad actual está en `docs/adr/ADR-001-encounter-lifecycle-and-write-architecture.md`, `docs/write-phase-architecture.md`, y `docs/validation/validacion-arquitectonica.md`.
 > 
 Informe de Arquitectura y Calidad — FHIR Flow
 

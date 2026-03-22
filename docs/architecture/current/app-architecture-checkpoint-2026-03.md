@@ -268,7 +268,7 @@ When changing route-level UI in the patients/encounters area:
 For authoritative architectural rules and lifecycle decisions, see:
 
 - `guia-rapida.md`
-- `validacion-arquitectonica.md`
+- `docs/validation/validacion-arquitectonica.md`
 - `write-phase-architecture.md`
 - `ADR-001-encounter-lifecycle-and-write-architecture.md`
 
