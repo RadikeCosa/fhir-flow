@@ -1,5 +1,9 @@
 # Validación Arquitectónica Vigente (estado real)
 
+## Rol del documento
+
+Este documento ofrece una validación honesta del estado real de la arquitectura: distingue lo válido hoy, lo transicional y la deuda conocida sin presentar el estado actual como cierre definitivo.
+
 Fecha: 2026-03-19
 
 Este documento reemplaza el enfoque de "aprobado total" por una validación honesta del estado actual.
@@ -107,4 +111,4 @@ La arquitectura **no está “todo aprobado”**.
 
 El sistema tiene bases sólidas en boundaries y responsabilidades, pero mantiene deuda explícita en lifecycle operativo, canonical read y cierre del contrato de errores tipados. La validación correcta hoy es: **base válida + transición activa + deuda reconocida + pendientes concretos del ADR**.
 
-Nota: los últimos refactors de la capa `app/` (loaders, contratos y convención de rutas en patients/encounters) están resumidos en `app-architecture-checkpoint-2026-03.md`.
+Nota: los últimos refactors de la capa `app/` (loaders, contratos y convención de rutas en patients/encounters) están resumidos en `docs/architecture/current/app-architecture-checkpoint-2026-03.md`.

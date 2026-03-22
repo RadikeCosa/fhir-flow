@@ -24,7 +24,7 @@ The active architecture and write behavior are now documented in:
 - `.github/instructions/copilot.instructions.md`
 - `docs/write-phase-architecture.md`
 - `docs/adr/ADR-001-encounter-lifecycle-and-write-architecture.md`
-- `docs/validacion-arquitectonica.md`
+- `docs/validation/validacion-arquitectonica.md`
 
 ## Decision
 
