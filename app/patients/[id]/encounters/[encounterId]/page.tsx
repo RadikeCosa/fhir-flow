@@ -14,6 +14,10 @@ import {
   getEncounterRepresentativeStart,
   getEncounterStatusBadge,
 } from "@/lib/patient/formatters/encounter.formatters";
+import EncounterClinicalNote from "../components/EncounterClinicalNote";
+import EncounterVitalSignsSection from "../components/EncounterVitalSignsSection";
+import EncounterEvaSection from "../components/EncounterEvaSection";
+import EncounterProcedures from "../components/EncounterProcedures";
 
 type PageProps = {
   params: Promise<{
@@ -30,7 +34,7 @@ export default async function EncounterDetailPage({ params }: PageProps) {
     encounterId,
   );
 
-  const { encounter, patient, practitioner } = data;
+  const { encounter, patient, practitioner, vitalSigns, evaRecords, procedures } = data;
   const backHref = `/patients/${patientId}/encounters`;
 
   if (!encounter) {
@@ -74,6 +78,7 @@ export default async function EncounterDetailPage({ params }: PageProps) {
     encounter.status === "planned" || encounter.status === "in-progress";
   const readOnly =
     encounter.status === "finished" || encounter.status === "cancelled";
+  const isFinished = encounter.status === "finished";
   const encounterStatusBadge = getEncounterStatusBadge(encounter.status);
   const plannedSchedule = formatPlannedSchedule(
     encounter.plannedDate,
@@ -222,12 +227,6 @@ export default async function EncounterDetailPage({ params }: PageProps) {
                   </dd>
                 </div>
                 <div className="md:col-span-2">
-                  <dt className="font-medium text-foreground">Nota clínica</dt>
-                  <dd className="text-muted whitespace-pre-wrap">
-                    {encounter.clinicalNote || "Sin registrar"}
-                  </dd>
-                </div>
-                <div className="md:col-span-2">
                   <dt className="font-medium text-foreground">
                     Motivo de la visita
                   </dt>
@@ -238,9 +237,26 @@ export default async function EncounterDetailPage({ params }: PageProps) {
               </dl>
             </div>
           </div>
+
+          {/* Render clinical blocks only for finished encounters */}
+          {isFinished && (
+            <>
+              {typeof encounter.clinicalNote === "string" && encounter.clinicalNote.trim() !== "" && (
+                <EncounterClinicalNote note={encounter.clinicalNote} />
+              )}
+              {vitalSigns.length > 0 && (
+                <EncounterVitalSignsSection records={vitalSigns} />
+              )}
+              {evaRecords.length > 0 && (
+                <EncounterEvaSection records={evaRecords} />
+              )}
+              {procedures.length > 0 && (
+                <EncounterProcedures procedures={procedures} />
+              )}
+            </>
+          )}
         </div>
       )}
-
       {!editable && !readOnly && (
         <div className="rounded-md border border-border bg-surface p-4 text-sm text-muted">
           Estado de encuentro no reconocido: <strong>{encounter.status}</strong>

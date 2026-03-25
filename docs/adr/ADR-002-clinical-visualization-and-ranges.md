@@ -34,6 +34,14 @@ Este ADR fija la dirección arquitectónica para evitar que la visualización cl
 
 ## 2. Decisión
 
+## Reglas de arquitectura
+
+- La UI no debe contener lógica clínica ni definir umbrales.
+- El adapter es la única capa autorizada a traducir semántica clínica a representación visual.
+- Los componentes de UI no deben importar CLINICAL_RANGES ni EVA_RANGES.
+- La clasificación clínica (severity) debe ser consistente en badges, charts y tooltips.
+- severity ∈ { normal, warning, critical }
+
 ### A. Fuente de verdad única
 
 Se establece una fuente de verdad única para la semántica clínica reutilizable.
