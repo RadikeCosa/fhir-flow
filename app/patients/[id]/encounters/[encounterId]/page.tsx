@@ -34,7 +34,14 @@ export default async function EncounterDetailPage({ params }: PageProps) {
     encounterId,
   );
 
-  const { encounter, patient, practitioner, vitalSigns, evaRecords, procedures } = data;
+  const {
+    encounter,
+    patient,
+    practitioner,
+    vitalSigns,
+    evaRecords,
+    procedures,
+  } = data;
   const backHref = `/patients/${patientId}/encounters`;
 
   if (!encounter) {
@@ -241,9 +248,10 @@ export default async function EncounterDetailPage({ params }: PageProps) {
           {/* Render clinical blocks only for finished encounters */}
           {isFinished && (
             <>
-              {typeof encounter.clinicalNote === "string" && encounter.clinicalNote.trim() !== "" && (
-                <EncounterClinicalNote note={encounter.clinicalNote} />
-              )}
+              {typeof encounter.clinicalNote === "string" &&
+                encounter.clinicalNote.trim() !== "" && (
+                  <EncounterClinicalNote note={encounter.clinicalNote} />
+                )}
               {vitalSigns.length > 0 && (
                 <EncounterVitalSignsSection records={vitalSigns} />
               )}

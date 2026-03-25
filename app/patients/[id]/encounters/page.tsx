@@ -57,9 +57,6 @@ export default async function Page({ params }: Props) {
     proceduresByEncounterId,
     vitalsByEncounterId,
     evaByEncounterId,
-    barthelByEncounterId,
-    necpalByEncounterId,
-    ecogByEncounterId,
   } = data;
 
   const fullName = formatPatientName(patient.name);
@@ -79,9 +76,6 @@ export default async function Page({ params }: Props) {
         proceduresByEncounterId={proceduresByEncounterId}
         vitalsByEncounterId={vitalsByEncounterId}
         evaByEncounterId={evaByEncounterId}
-        barthelByEncounterId={barthelByEncounterId}
-        necpalByEncounterId={necpalByEncounterId}
-        ecogByEncounterId={ecogByEncounterId}
       />
     </>
   );

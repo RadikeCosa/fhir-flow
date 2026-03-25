@@ -1,5 +1,52 @@
 import { BadgeInfo } from "./shared.formatters";
 import type { Encounter, EncounterStatus, EncounterVisitType } from "../../../domain/encounters/encounter";
+import type { Procedure } from "../../../domain/procedures/procedure";
+import type { VitalSignRecord } from "../../../domain/vital-sign-record/vital-sign-record";
+import type { EvaAssessment } from "../../../domain/assessments/eva-assessment";
+
+export interface EncounterHistorySummary {
+    preview: string | null;
+    hasVitalSigns: boolean;
+    hasEvaRecords: boolean;
+    hasProcedures: boolean;
+}
+
+function normalizeSummaryText(value?: string): string | null {
+    if (typeof value !== "string") {
+        return null;
+    }
+
+    const normalized = value.trim().replace(/\s+/g, " ");
+
+    return normalized.length > 0 ? normalized : null;
+}
+
+function truncateSummaryText(value: string, maxLength: number): string {
+    if (value.length <= maxLength) {
+        return value;
+    }
+
+    return `${value.slice(0, Math.max(0, maxLength - 3)).trimEnd()}...`;
+}
+
+export function getEncounterHistorySummary(
+    encounter: Pick<Encounter, "reasonDisplay" | "clinicalNote">,
+    vitalSigns: VitalSignRecord[],
+    evaRecords: EvaAssessment[],
+    procedures: Procedure[]
+): EncounterHistorySummary {
+    const reasonSummary = normalizeSummaryText(encounter.reasonDisplay);
+    const noteSummary = normalizeSummaryText(encounter.clinicalNote);
+
+    const previewSource = reasonSummary ?? noteSummary;
+
+    return {
+        preview: previewSource ? truncateSummaryText(previewSource, 120) : null,
+        hasVitalSigns: vitalSigns.length > 0,
+        hasEvaRecords: evaRecords.length > 0,
+        hasProcedures: procedures.length > 0,
+    };
+}
 
 /**
  * Translate a domain visit type into a human-readable Spanish label.
