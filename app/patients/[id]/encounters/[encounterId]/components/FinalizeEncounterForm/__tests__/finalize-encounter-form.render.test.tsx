@@ -14,7 +14,6 @@ describe("FinalizeEncounterForm render", () => {
       React.createElement(FinalizeEncounterForm, {
         patientId: "patient-1",
         encounterId: "encounter-1",
-        patientName: "Pacient",
         practitionerName: "Doc",
         plannedDate: "2026-03-20",
         plannedTime: "10:00",
@@ -35,7 +34,6 @@ describe("FinalizeEncounterForm render", () => {
       React.createElement(FinalizeEncounterForm, {
         patientId: "patient-1",
         encounterId: "encounter-1",
-        patientName: "Pacient",
         practitionerName: "Doc",
         plannedDate: "2026-03-20",
         plannedTime: "10:00",

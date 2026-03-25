@@ -113,41 +113,73 @@ export default async function EncounterDetailPage({ params }: PageProps) {
 
       {editable && (
         <div className="space-y-4">
-          <div className="rounded-lg border border-border bg-surface p-4">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-              Resumen de la visita
-            </h2>
-            <dl className="mt-3 grid grid-cols-1 gap-3 text-sm md:grid-cols-2">
-              <div>
-                <dt className="font-medium text-foreground">Estado</dt>
-                <dd className="text-muted">{encounter.status}</dd>
+          {encounter.status === "planned" ? (
+            <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
+                    Resumen de la visita
+                  </h2>
+                  <p className="mt-1 text-base font-medium text-foreground">
+                    Visita planificada
+                  </p>
+                </div>
+                <span
+                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${encounterStatusBadge.colorClass}`}
+                >
+                  {encounterStatusBadge.label}
+                </span>
               </div>
-              <div>
-                <dt className="font-medium text-foreground">Tipo de visita</dt>
-                <dd className="text-muted">
-                  {formatEncounterVisitType(encounter.visitType)}
-                </dd>
-              </div>
-              {encounter.status === "planned" ? (
-                <>
-                  <div>
-                    <dt className="font-medium text-foreground">
-                      Fecha planificada
-                    </dt>
-                    <dd className="text-muted">
-                      {plannedSchedule.plannedDateLabel ??
-                        "Sin fecha planificada"}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="font-medium text-foreground">Horario</dt>
-                    <dd className="text-muted">
-                      {plannedSchedule.plannedTimeLabel ??
-                        "Sin horario definido"}
-                    </dd>
-                  </div>
-                </>
-              ) : (
+
+              <dl className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div className="rounded-lg border border-border/70 bg-background/60 p-4">
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-muted">
+                    Fecha planificada
+                  </dt>
+                  <dd className="mt-2 text-xl font-semibold text-foreground">
+                    {plannedSchedule.plannedDateLabel ??
+                      "Sin fecha planificada"}
+                  </dd>
+                </div>
+                <div className="rounded-lg border border-border/70 bg-background/60 p-4">
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-muted">
+                    Horario
+                  </dt>
+                  <dd className="mt-2 text-xl font-semibold text-foreground">
+                    {plannedSchedule.plannedTimeLabel ?? "Sin horario definido"}
+                  </dd>
+                </div>
+                <div className="rounded-lg border border-border/70 bg-background/60 p-4">
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-muted">
+                    Tipo de visita
+                  </dt>
+                  <dd className="mt-2 text-lg font-medium text-foreground">
+                    {formatEncounterVisitType(encounter.visitType)}
+                  </dd>
+                  <p className="mt-3 text-sm text-muted">
+                    Paciente: {patientName}
+                  </p>
+                </div>
+              </dl>
+            </div>
+          ) : (
+            <div className="rounded-lg border border-border bg-surface p-4">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
+                Resumen de la visita
+              </h2>
+              <dl className="mt-3 grid grid-cols-1 gap-3 text-sm md:grid-cols-2">
+                <div>
+                  <dt className="font-medium text-foreground">Estado</dt>
+                  <dd className="text-muted">{encounter.status}</dd>
+                </div>
+                <div>
+                  <dt className="font-medium text-foreground">
+                    Tipo de visita
+                  </dt>
+                  <dd className="text-muted">
+                    {formatEncounterVisitType(encounter.visitType)}
+                  </dd>
+                </div>
                 <div>
                   <dt className="font-medium text-foreground">
                     Inicio del período
@@ -157,21 +189,23 @@ export default async function EncounterDetailPage({ params }: PageProps) {
                       encounter.periodStart}
                   </dd>
                 </div>
-              )}
-            </dl>
-          </div>
+              </dl>
+            </div>
+          )}
 
           <div className="rounded-lg border border-border bg-surface shadow-sm">
-            <div className="border-b border-border px-6 pt-6 pb-4">
+            <div className="border-b border-border px-6 pt-5 pb-3">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
                 Finalizar visita
               </h2>
+              <p className="mt-1 text-sm text-muted">
+                Completa los datos para registrar el cierre clínico.
+              </p>
             </div>
             <div className="p-6">
               <FinalizeEncounterForm
                 patientId={patientId}
                 encounterId={encounterId}
-                patientName={patientName}
                 practitionerName={practitioner.displayName}
                 plannedDate={encounter.plannedDate}
                 plannedTime={encounter.plannedTime}

@@ -12,6 +12,8 @@ import {
 import {
     ProcedureCategoryValues,
     ProcedureCodeValues,
+    type ProcedureCategory,
+    type ProcedureCode,
 } from "../../../../../../../domain/procedures/procedure";
 import { PROCEDURE_CODES_BY_CATEGORY } from "../../../../../../../domain/procedures/procedure-code-category.map";
 
@@ -89,13 +91,13 @@ export const finalizeEncounterFormSchema = z
                         .refine((value) => value !== "", {
                             message: "Seleccionar categoría",
                         })
-                        .transform((value) => value as ProcedureCategoryValues[number]),
+                        .transform((value) => value as ProcedureCategory),
                     code: z
                         .union([z.literal(""), z.enum(ProcedureCodeValues)])
                         .refine((value) => value !== "", {
                             message: "Seleccionar procedimiento",
                         })
-                        .transform((value) => value as ProcedureCodeValues[number]),
+                        .transform((value) => value as ProcedureCode),
                     bodySite: z.string().optional(),
                     note: z.string().optional(),
                 })

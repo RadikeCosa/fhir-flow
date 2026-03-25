@@ -32,7 +32,6 @@ interface FinalizeEncounterFormProps {
   patientId: string;
   encounterId: string;
   // Display props
-  patientName: string;
   practitionerName: string;
   plannedDate?: string;
   plannedTime?: string;
@@ -65,7 +64,6 @@ export function createDefaultProcedure(): {
 export default function FinalizeEncounterForm({
   patientId,
   encounterId,
-  patientName,
   practitionerName,
   plannedDate,
   plannedTime,
@@ -132,13 +130,16 @@ export default function FinalizeEncounterForm({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-lg border border-border bg-surface p-4">
-        <div className="text-sm text-muted">Paciente: {patientName}</div>
-        <div className="text-sm text-muted">
-          Profesional: {practitionerName}
-        </div>
-        <div className="text-sm text-muted">
-          Planificada: {formatPlannedContext(plannedDate, plannedTime)}
+      <div className="rounded-lg border border-border bg-surface p-4 text-sm text-muted">
+        <div className="flex flex-col gap-1">
+          <div>
+            <span className="font-medium text-foreground">Profesional:</span>{" "}
+            {practitionerName}
+          </div>
+          <div>
+            <span className="font-medium text-foreground">Planificada:</span>{" "}
+            {formatPlannedContext(plannedDate, plannedTime)}
+          </div>
         </div>
       </div>
 
