@@ -272,4 +272,26 @@ describe('getPatientDetailData re-assessment filtering', () => {
             excludedByActualStart.id
         );
     });
+
+    it('prioritizes an in-progress encounter as the current visit', async () => {
+        const finishedLast = makeEncounter({
+            id: 'enc-finished-last',
+            status: 'finished',
+            periodStart: '2026-03-12T09:00:00.000Z',
+        });
+        const inProgress = makeEncounter({
+            id: 'enc-in-progress-current',
+            status: 'in-progress',
+            periodStart: '2026-03-10T09:00:00.000Z',
+            actualStartAt: '2026-03-18T11:30:00.000Z',
+        });
+
+        repositories.encounterRepo.findLastByPatientIdAndPractitionerId.mockResolvedValue(finishedLast);
+        repositories.encounterRepo.findAllByEpisodeOfCareId.mockResolvedValue([inProgress]);
+
+        const result = await getPatientDetailData(patientFixture.id);
+
+        expect(result.inProgressEncounter?.id).toBe(inProgress.id);
+        expect(result.lastEncounter?.id).toBe(inProgress.id);
+    });
 });

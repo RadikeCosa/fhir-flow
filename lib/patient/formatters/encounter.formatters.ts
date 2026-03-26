@@ -119,10 +119,16 @@ export function formatEncounterDuration(durationMinutes: number | undefined): st
 export function getEncounterRepresentativeStart(
     encounter: Pick<Encounter, "status" | "actualStartAt" | "periodStart">
 ): string {
-    if (encounter.status === "finished") {
-        return encounter.actualStartAt ?? encounter.periodStart;
+    switch (encounter.status) {
+        case "in-progress":
+            return encounter.actualStartAt ?? encounter.periodStart;
+        case "finished":
+            return encounter.actualStartAt ?? encounter.periodStart;
+        case "planned":
+        case "cancelled":
+        default:
+            return encounter.periodStart;
     }
-    return encounter.periodStart;
 }
 
 /**

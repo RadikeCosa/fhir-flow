@@ -54,6 +54,7 @@ export default async function Page({ params }: Props) {
   const hasActiveEpisode = data.episodes.some(
     (episode) => episode.status === "active",
   );
+  const encounterCtaTarget = data.inProgressEncounter ?? data.nextPlannedEncounter;
 
   return (
     <>
@@ -62,9 +63,9 @@ export default async function Page({ params }: Props) {
           <Breadcrumbs patientName={patientFullName} />
         </div>
         {hasActiveEpisode &&
-          (data.nextPlannedEncounter ? (
+          (encounterCtaTarget ? (
             <Link
-              href={`/patients/${id}/encounters/${data.nextPlannedEncounter.id}`}
+              href={`/patients/${id}/encounters/${encounterCtaTarget.id}`}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-hover transition-colors duration-150"
             >
               Registrar Visita

@@ -72,4 +72,35 @@ describe("EncounterList finished sorting", () => {
         expect(newerIdx).toBeLessThan(fallbackIdx);
         expect(fallbackIdx).toBeLessThan(olderIdx);
     });
+
+    it("renders in-progress encounters in their own bucket", () => {
+        const inProgress = makeEncounter({
+            id: "enc-in-progress",
+            status: "in-progress",
+            actualStartAt: "2026-03-16T08:00:00.000Z",
+            periodStart: "2026-03-16T08:00:00.000Z",
+        });
+        const finished = makeEncounter({
+            id: "enc-finished",
+            status: "finished",
+            actualStartAt: "2026-03-15T08:00:00.000Z",
+            periodStart: "2026-03-15T08:00:00.000Z",
+        });
+
+        const html = renderToStaticMarkup(
+            React.createElement(EncounterList, {
+                encounters: [finished, inProgress],
+                proceduresByEncounterId: {},
+                vitalsByEncounterId: {},
+                evaByEncounterId: {},
+                barthelByEncounterId: {},
+                necpalByEncounterId: {},
+                ecogByEncounterId: {},
+            })
+        );
+
+        expect(html).toContain("En curso");
+        expect(html).toContain("Sesiones anteriores");
+        expect(html.indexOf("En curso")).toBeLessThan(html.indexOf("Sesiones anteriores"));
+    });
 });

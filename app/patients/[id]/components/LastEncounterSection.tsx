@@ -39,6 +39,8 @@ export const LastEncounterSection: React.FC<Props> = ({
   const lastEncounterDisplayStart = lastEncounter
     ? getEncounterRepresentativeStart(lastEncounter)
     : undefined;
+  const lastEncounterTitle =
+    lastEncounter?.status === "in-progress" ? "VISITA EN CURSO" : "ÚLTIMA VISITA";
 
   const nextPlannedSchedule = formatPlannedSchedule(
     nextPlannedEncounter?.plannedDate,
@@ -73,7 +75,7 @@ export const LastEncounterSection: React.FC<Props> = ({
       {lastEncounter && (
         <>
           <div className="text-xs font-semibold uppercase tracking-wide text-muted mb-2">
-            ÚLTIMA VISITA
+            {lastEncounterTitle}
           </div>
           <div className="flex items-center gap-2 mb-2">
             <EncounterBadgesRow
