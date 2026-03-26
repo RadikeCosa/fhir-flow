@@ -11,6 +11,11 @@ import {
     validateStartEncounterStatus,
 } from "../../../../../../domain/shared/domain-rules.validator";
 import { FhirMapperError, FhirWriteError } from "../../../../../../domain/shared/error-types";
+import {
+    composeLocalDateTimeToUtcIso,
+    isDateOnly,
+    isValidLocalTimeString,
+} from "../../../../../../lib/date-time/date-time.utils";
 import { createEncounterRepository } from "../../../../../../infrastructure/fhir/factories/encounter.factory";
 
 function isOperationOutcomeError(
@@ -35,7 +40,9 @@ function isHttpError(error: unknown): error is { message: string; data?: unknown
 
 export async function startEncounterAction(
     patientId: string,
-    encounterId: string
+    encounterId: string,
+    actualStartDate: string,
+    actualStartTime: string
 ): Promise<ActionResult<void>> {
     const repo = createEncounterRepository();
 
@@ -150,7 +157,29 @@ export async function startEncounterAction(
     }
 
     try {
-        const actualStartAt = new Date().toISOString();
+        if (!isDateOnly(actualStartDate)) {
+            return {
+                success: false,
+                error: {
+                    layer: "validation",
+                    message: "La fecha real debe tener formato YYYY-MM-DD",
+                    code: "ACTUAL_START_DATE_INVALID",
+                } satisfies ActionError,
+            };
+        }
+
+        if (!isValidLocalTimeString(actualStartTime)) {
+            return {
+                success: false,
+                error: {
+                    layer: "validation",
+                    message: "La hora real debe tener formato HH:mm",
+                    code: "ACTUAL_START_TIME_INVALID",
+                } satisfies ActionError,
+            };
+        }
+
+        const actualStartAt = composeLocalDateTimeToUtcIso(actualStartDate, actualStartTime);
         await repo.startEncounter(encounter.id, actualStartAt);
 
         revalidatePath(`/patients/${patientId}`);
