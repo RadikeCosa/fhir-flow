@@ -209,12 +209,28 @@ UI -> Server Action -> Zod -> Domain Rules Validator -> Write Repository -> Inve
 6. Infraestructura construye el recurso o bundle FHIR y lo envía al servidor.
 7. La Server Action devuelve `ActionResult` o redirige/revalida en éxito.
 
-**Dos operaciones visibles hoy**
+**Entradas principales del sistema**
+
+El sistema soporta dos entry points de escritura:
+
+- **planning**: crea una visita planificada
+- **direct registration**: registra una visita de manera directa sin pasar primero por el estado planificado
+
+**Operaciones visibles hoy y dirección futura**
 
 - `createEncounterAction`: crea un `Encounter` en `planned`
+- `startEncounterAction` (future): transiciona `planned -> in-progress`
 - `finalizeEncounterAction`: cierra el `Encounter` y persiste datos clínicos soportados en el write actual
+- `registerEncounterAction` (conceptual): crea un `Encounter` directamente en `in-progress` o `finished`
+
+La direct registration puede resolver en dos resultados iniciales:
+
+- `in-progress` cuando la visita se abre con partial save
+- `finished` cuando la visita se registra con finalización inmediata
 
 El modelo de runtime implementado hoy sigue siendo transicional: `planned -> finished`. La dirección oficial documentada sigue siendo `planned -> in-progress -> finished`.
+
+Las transiciones de lifecycle siguen aplicando después de la creación. La creación directa no reemplaza el modelo de lifecycle; solo define el estado inicial del Encounter.
 
 ---
 

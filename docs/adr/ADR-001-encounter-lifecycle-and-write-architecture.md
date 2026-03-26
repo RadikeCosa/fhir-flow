@@ -478,3 +478,55 @@ This ADR should be referenced from and aligned with:
 - shared action result types under `domain/shared/action-result.types.ts`
 
 ---
+
+## 9. Encounter creation modes
+
+This ADR distinguishes two different concepts that must not be conflated:
+
+- **Lifecycle** describes the state transitions of an existing Encounter
+- **Creation modes** describe how an Encounter is initially created
+
+Creation modes do not replace lifecycle rules. They only define the initial state at the moment of creation. After creation, the normal lifecycle transitions still apply.
+
+### Valid creation modes
+
+The system supports three valid creation modes:
+
+- **create planned**: used through the plan visit flow to create an Encounter in `planned`
+- **create in-progress**: used through the register visit flow when the visit is opened with partial save semantics
+- **create finished**: used through the register visit flow when the visit is created and finalized immediately
+
+These creation modes define the first persisted state of the Encounter. They do not change the lifecycle model once the Encounter exists.
+
+### Model update
+
+The Encounter model explicitly allows direct creation in the following states:
+
+- `planned`
+- `in-progress`
+- `finished`
+
+This means an Encounter may be created directly as `in-progress` or directly as `finished` when the register visit flow requires it.
+
+### Interaction with lifecycle
+
+The canonical lifecycle remains:
+
+`planned -> in-progress -> finished`
+
+The lifecycle still governs state transitions after creation.
+
+- `startEncounterAction` is still required only for Encounters that were created as `planned`
+- `finalizeEncounterAction` should eventually require `in-progress`, except for the temporary compatibility path described below
+
+Creation mode only determines the initial state. Once the Encounter has been created, lifecycle rules decide which transitions are valid next.
+
+### Transitional compatibility
+
+The current compatibility rule remains in place:
+
+- `planned -> finished` is still temporarily allowed
+
+At the same time, the register visit flow may create an Encounter directly as `finished`.
+
+This compatibility behavior does not replace the canonical lifecycle. It only preserves the existing temporary path while direct creation modes are introduced.
