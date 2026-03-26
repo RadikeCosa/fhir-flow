@@ -218,6 +218,7 @@ export default async function EncounterDetailPage({ params }: PageProps) {
                   practitionerName={practitioner.displayName}
                   plannedDate={encounter.plannedDate}
                   plannedTime={encounter.plannedTime}
+                  actualStartAt={encounter.actualStartAt}
                 />
               </div>
             </div>

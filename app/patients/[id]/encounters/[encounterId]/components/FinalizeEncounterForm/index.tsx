@@ -24,7 +24,7 @@ import {
 } from "@/lib/patient/formatters/procedure.formatters";
 import {
   formatPlannedContext,
-  resolveInitialActualDate,
+  resolveInitialActualTiming,
 } from "./finalize-encounter-form.defaults";
 
 interface FinalizeEncounterFormProps {
@@ -35,6 +35,7 @@ interface FinalizeEncounterFormProps {
   practitionerName: string;
   plannedDate?: string;
   plannedTime?: string;
+  actualStartAt?: string;
 }
 
 const getProcedureCodes = (
@@ -67,6 +68,7 @@ export default function FinalizeEncounterForm({
   practitionerName,
   plannedDate,
   plannedTime,
+  actualStartAt,
 }: FinalizeEncounterFormProps) {
   const [serverResult, setServerResult] = useState<ActionResult<void> | null>(
     null,
@@ -75,6 +77,10 @@ export default function FinalizeEncounterForm({
   const [showVitals, setShowVitals] = useState(true);
   const [showEva, setShowEva] = useState(true);
   const [showProcedures, setShowProcedures] = useState(true);
+  const initialActualTiming = resolveInitialActualTiming(
+    actualStartAt,
+    plannedDate,
+  );
 
   const form = useForm<
     FinalizeEncounterFormInput,
@@ -83,8 +89,8 @@ export default function FinalizeEncounterForm({
   >({
     resolver: zodResolver(finalizeEncounterFormSchema),
     defaultValues: {
-      actualDate: resolveInitialActualDate(plannedDate),
-      actualStartTime: "",
+      actualDate: initialActualTiming.actualDate,
+      actualStartTime: initialActualTiming.actualStartTime,
       actualEndTime: "",
       clinicalNote: "",
       reasonDisplay: "",
