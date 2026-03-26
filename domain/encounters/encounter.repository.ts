@@ -83,4 +83,10 @@ export interface EncounterRepository {
      * repository as a learning-lab simplification (see write-phase-architecture.md).
      */
     finalize(input: FinalizeEncounterInput): Promise<void>;
+
+    /**
+     * Starts a planned encounter by transitioning status to in-progress and
+     * setting the actual start datetime.
+     */
+    startEncounter(encounterId: string, actualStartAt: string): Promise<void>;
 }

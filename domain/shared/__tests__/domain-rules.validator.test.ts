@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
     validateEncounterRules,
     validateFinalizeEncounterRules,
+    validateStartEncounterStatus,
 } from "../domain-rules.validator";
 import { DomainRuleError } from "../error-types";
 import type {
@@ -73,7 +74,6 @@ describe("validateFinalizeEncounterRules", () => {
             actualEndAt: "2026-03-20T11:00:00.000Z",
             clinicalNote: "Nota clínica",
             evaScore: 5,
-            practices: [] as unknown as any,
             procedures: [],
             ...overrides,
         } as FinalizeEncounterInput;
@@ -111,5 +111,23 @@ describe("validateFinalizeEncounterRules", () => {
         expect(() =>
             validateFinalizeEncounterRules(makeFinalize({ bloodPressureSystolic: 120, bloodPressureDiastolic: 80, evaScore: 3 }))
         ).not.toThrow();
+    });
+});
+
+describe("validateStartEncounterStatus", () => {
+    it("accepts planned encounters", () => {
+        expect(() => validateStartEncounterStatus("planned")).not.toThrow();
+    });
+
+    it("rejects in-progress encounters with a specific message", () => {
+        expect(() => validateStartEncounterStatus("in-progress")).toThrowError(
+            "Encounter is already in progress"
+        );
+    });
+
+    it("rejects non-planned statuses", () => {
+        expect(() => validateStartEncounterStatus("finished")).toThrowError(
+            "Only planned encounters can be started"
+        );
     });
 });
