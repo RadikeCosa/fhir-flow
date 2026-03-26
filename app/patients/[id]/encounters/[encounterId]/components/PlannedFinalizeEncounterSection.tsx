@@ -1,25 +1,39 @@
 "use client";
 
 import { useState } from "react";
+import { formatCalendarDateInTimeZone } from "../../../../../../lib/date-time/date-time.utils";
 import { startEncounterAction } from "../actions/start-encounter.action";
 
 interface PlannedFinalizeEncounterSectionProps {
   patientId: string;
   encounterId: string;
+  plannedDate?: string;
+  plannedTime?: string;
 }
 
 export default function PlannedFinalizeEncounterSection({
   patientId,
   encounterId,
+  plannedDate,
+  plannedTime,
 }: PlannedFinalizeEncounterSectionProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isStarting, setIsStarting] = useState(false);
+  const [actualStartDate, setActualStartDate] = useState(
+    plannedDate || formatCalendarDateInTimeZone(new Date()),
+  );
+  const [actualStartTime, setActualStartTime] = useState(plannedTime || "");
 
   const handleStartEncounter = async () => {
     setErrorMessage(null);
     setIsStarting(true);
 
-    const result = await startEncounterAction(patientId, encounterId);
+    const result = await startEncounterAction(
+      patientId,
+      encounterId,
+      actualStartDate,
+      actualStartTime,
+    );
     if (!result.success) {
       setErrorMessage(result.error.message);
       setIsStarting(false);
@@ -46,11 +60,45 @@ export default function PlannedFinalizeEncounterSection({
                 Visita pendiente
               </p>
               <p className="text-sm text-muted">
-                Al iniciar la visita se registrará el comienzo real en la
-                historia clínica.
+                Confirmá o ajustá el inicio real antes de iniciar la visita.
               </p>
             </div>
 
+            <div className="grid w-full max-w-sm grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label
+                  htmlFor="actualStartDate"
+                  className="block text-xs font-medium text-muted"
+                >
+                  Fecha real
+                </label>
+                <input
+                  id="actualStartDate"
+                  type="date"
+                  value={actualStartDate}
+                  onChange={(event) => setActualStartDate(event.target.value)}
+                  className="mt-1 block w-full rounded-md border border-border px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="actualStartTime"
+                  className="block text-xs font-medium text-muted"
+                >
+                  Hora real
+                </label>
+                <input
+                  id="actualStartTime"
+                  type="time"
+                  value={actualStartTime}
+                  onChange={(event) => setActualStartTime(event.target.value)}
+                  className="mt-1 block w-full rounded-md border border-border px-3 py-2 text-sm"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4">
             <button
               type="button"
               onClick={handleStartEncounter}

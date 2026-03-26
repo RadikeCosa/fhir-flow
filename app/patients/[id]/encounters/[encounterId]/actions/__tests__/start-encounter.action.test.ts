@@ -51,7 +51,7 @@ describe("startEncounterAction", () => {
 
         const { startEncounterAction } = await import("../start-encounter.action");
 
-        await expect(startEncounterAction("patient-1", "enc-404")).resolves.toEqual({
+        await expect(startEncounterAction("patient-1", "enc-404", "2026-03-20", "10:00")).resolves.toEqual({
             success: false,
             error: {
                 layer: "fhir",
@@ -72,7 +72,7 @@ describe("startEncounterAction", () => {
 
         const { startEncounterAction } = await import("../start-encounter.action");
 
-        await expect(startEncounterAction("patient-1", "enc-123")).resolves.toEqual({
+        await expect(startEncounterAction("patient-1", "enc-123", "2026-03-20", "10:00")).resolves.toEqual({
             success: false,
             error: {
                 layer: "fhir",
@@ -93,7 +93,7 @@ describe("startEncounterAction", () => {
 
         const { startEncounterAction } = await import("../start-encounter.action");
 
-        await expect(startEncounterAction("patient-1", "enc-123")).resolves.toEqual({
+        await expect(startEncounterAction("patient-1", "enc-123", "2026-03-20", "10:00")).resolves.toEqual({
             success: false,
             error: {
                 layer: "domain",
@@ -113,7 +113,7 @@ describe("startEncounterAction", () => {
 
         const { startEncounterAction } = await import("../start-encounter.action");
 
-        await expect(startEncounterAction("patient-1", "enc-123")).resolves.toEqual({
+        await expect(startEncounterAction("patient-1", "enc-123", "2026-03-20", "10:00")).resolves.toEqual({
             success: false,
             error: {
                 layer: "domain",
@@ -126,9 +126,6 @@ describe("startEncounterAction", () => {
     });
 
     it("updates encounter start time and redirects on success", async () => {
-        vi.useFakeTimers();
-        vi.setSystemTime(new Date("2026-03-21T12:30:00.000Z"));
-
         findByIdMock.mockResolvedValue(baseEncounter);
         startEncounterMock.mockResolvedValue(undefined);
         redirectMock.mockImplementation(() => {
@@ -137,13 +134,13 @@ describe("startEncounterAction", () => {
 
         const { startEncounterAction } = await import("../start-encounter.action");
 
-        await expect(startEncounterAction("patient-1", "enc-123")).rejects.toThrow(
+        await expect(startEncounterAction("patient-1", "enc-123", "2026-03-20", "10:00")).rejects.toThrow(
             "NEXT_REDIRECT"
         );
 
         expect(startEncounterMock).toHaveBeenCalledWith(
             "enc-123",
-            "2026-03-21T12:30:00.000Z"
+            "2026-03-20T13:00:00.000Z"
         );
         expect(revalidatePathMock).toHaveBeenNthCalledWith(1, "/patients/patient-1");
         expect(revalidatePathMock).toHaveBeenNthCalledWith(
@@ -179,7 +176,7 @@ describe("startEncounterAction", () => {
 
         const { startEncounterAction } = await import("../start-encounter.action");
 
-        await expect(startEncounterAction("patient-1", "enc-123")).resolves.toEqual({
+        await expect(startEncounterAction("patient-1", "enc-123", "2026-03-20", "10:00")).resolves.toEqual({
             success: false,
             error: {
                 layer: "fhir",
@@ -196,7 +193,7 @@ describe("startEncounterAction", () => {
 
         const { startEncounterAction } = await import("../start-encounter.action");
 
-        await expect(startEncounterAction("patient-1", "enc-123")).resolves.toEqual({
+        await expect(startEncounterAction("patient-1", "enc-123", "2026-03-20", "10:00")).resolves.toEqual({
             success: false,
             error: {
                 layer: "fhir",
@@ -204,5 +201,39 @@ describe("startEncounterAction", () => {
                 code: "ENCOUNTER_START_FAILED",
             },
         });
+    });
+
+    it("returns validation-layer error when provided date is invalid", async () => {
+        findByIdMock.mockResolvedValue(baseEncounter);
+
+        const { startEncounterAction } = await import("../start-encounter.action");
+
+        await expect(startEncounterAction("patient-1", "enc-123", "20-03-2026", "10:00")).resolves.toEqual({
+            success: false,
+            error: {
+                layer: "validation",
+                message: "La fecha real debe tener formato YYYY-MM-DD",
+                code: "ACTUAL_START_DATE_INVALID",
+            },
+        });
+
+        expect(startEncounterMock).not.toHaveBeenCalled();
+    });
+
+    it("returns validation-layer error when provided time is invalid", async () => {
+        findByIdMock.mockResolvedValue(baseEncounter);
+
+        const { startEncounterAction } = await import("../start-encounter.action");
+
+        await expect(startEncounterAction("patient-1", "enc-123", "2026-03-20", "99:77")).resolves.toEqual({
+            success: false,
+            error: {
+                layer: "validation",
+                message: "La hora real debe tener formato HH:mm",
+                code: "ACTUAL_START_TIME_INVALID",
+            },
+        });
+
+        expect(startEncounterMock).not.toHaveBeenCalled();
     });
 });

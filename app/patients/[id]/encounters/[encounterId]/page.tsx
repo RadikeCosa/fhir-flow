@@ -198,6 +198,8 @@ export default async function EncounterDetailPage({ params }: PageProps) {
             <PlannedFinalizeEncounterSection
               patientId={patientId}
               encounterId={encounterId}
+              plannedDate={encounter.plannedDate}
+              plannedTime={encounter.plannedTime}
             />
           ) : (
             <div className="rounded-lg border border-border bg-surface shadow-sm">

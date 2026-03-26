@@ -6,23 +6,26 @@ vi.mock("../FinalizeEncounterForm", () => ({
   default: () => React.createElement("div", null, "Finalize form mock"),
 }));
 
+vi.mock("../../actions/start-encounter.action", () => ({
+  startEncounterAction: vi.fn(),
+}));
+
 import PlannedFinalizeEncounterSection from "../PlannedFinalizeEncounterSection";
 
 describe("PlannedFinalizeEncounterSection render", () => {
-  it("shows the primary action and keeps the form hidden by default", () => {
+  it("shows editable real start date/time and the primary action", () => {
     const html = renderToStaticMarkup(
       React.createElement(PlannedFinalizeEncounterSection, {
         patientId: "patient-1",
         encounterId: "encounter-1",
-        practitionerName: "Doc",
         plannedDate: "2026-03-20",
         plannedTime: "10:00",
       }),
     );
 
     expect(html).toContain("Visita pendiente");
-    expect(html).toContain("Completar cierre");
-    expect(html).not.toContain("Finalize form mock");
-    expect(html).not.toContain("Formulario de finalización desplegado.");
+    expect(html).toContain("Fecha real");
+    expect(html).toContain("Hora real");
+    expect(html).toContain("Iniciar visita");
   });
 });
