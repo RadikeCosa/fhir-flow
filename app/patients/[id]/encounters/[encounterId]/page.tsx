@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Breadcrumbs from "../../../../components/Breadcrumbs";
 import FinalizeEncounterForm from "./components/FinalizeEncounterForm";
+import PlannedFinalizeEncounterSection from "./components/PlannedFinalizeEncounterSection";
 import { getEncounterDetailData, type EncounterDetailData } from "./data";
 import {
   formatDateTime,
@@ -193,25 +194,35 @@ export default async function EncounterDetailPage({ params }: PageProps) {
             </div>
           )}
 
-          <div className="rounded-lg border border-border bg-surface shadow-sm">
-            <div className="border-b border-border px-6 pt-5 pb-3">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-                Finalizar visita
-              </h2>
-              <p className="mt-1 text-sm text-muted">
-                Completa los datos para registrar el cierre clínico.
-              </p>
+          {encounter.status === "planned" ? (
+            <PlannedFinalizeEncounterSection
+              patientId={patientId}
+              encounterId={encounterId}
+              practitionerName={practitioner.displayName}
+              plannedDate={encounter.plannedDate}
+              plannedTime={encounter.plannedTime}
+            />
+          ) : (
+            <div className="rounded-lg border border-border bg-surface shadow-sm">
+              <div className="border-b border-border px-6 pt-5 pb-3">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
+                  Finalizar visita
+                </h2>
+                <p className="mt-1 text-sm text-muted">
+                  Completa los datos para registrar el cierre clínico.
+                </p>
+              </div>
+              <div className="p-6">
+                <FinalizeEncounterForm
+                  patientId={patientId}
+                  encounterId={encounterId}
+                  practitionerName={practitioner.displayName}
+                  plannedDate={encounter.plannedDate}
+                  plannedTime={encounter.plannedTime}
+                />
+              </div>
             </div>
-            <div className="p-6">
-              <FinalizeEncounterForm
-                patientId={patientId}
-                encounterId={encounterId}
-                practitionerName={practitioner.displayName}
-                plannedDate={encounter.plannedDate}
-                plannedTime={encounter.plannedTime}
-              />
-            </div>
-          </div>
+          )}
         </div>
       )}
 
