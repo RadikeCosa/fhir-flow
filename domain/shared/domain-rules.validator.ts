@@ -209,3 +209,18 @@ export function validateFinalizeEncounterRules(input: FinalizeEncounterInput): v
     }
 }
 
+export function validateStartEncounterStatus(status: string): void {
+    if (status === "planned") return;
+
+    if (status === "in-progress") {
+        throw new DomainRuleError(
+            "Encounter is already in progress",
+            "ENCOUNTER_ALREADY_IN_PROGRESS"
+        );
+    }
+
+    throw new DomainRuleError(
+        "Only planned encounters can be started",
+        "ENCOUNTER_NOT_STARTABLE"
+    );
+}

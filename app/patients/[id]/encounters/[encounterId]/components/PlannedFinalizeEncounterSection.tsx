@@ -1,24 +1,30 @@
 "use client";
 
 import { useState } from "react";
-import FinalizeEncounterForm from "./FinalizeEncounterForm";
+import { startEncounterAction } from "../actions/start-encounter.action";
 
 interface PlannedFinalizeEncounterSectionProps {
   patientId: string;
   encounterId: string;
-  practitionerName: string;
-  plannedDate?: string;
-  plannedTime?: string;
 }
 
 export default function PlannedFinalizeEncounterSection({
   patientId,
   encounterId,
-  practitionerName,
-  plannedDate,
-  plannedTime,
 }: PlannedFinalizeEncounterSectionProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isStarting, setIsStarting] = useState(false);
+
+  const handleStartEncounter = async () => {
+    setErrorMessage(null);
+    setIsStarting(true);
+
+    const result = await startEncounterAction(patientId, encounterId);
+    if (!result.success) {
+      setErrorMessage(result.error.message);
+      setIsStarting(false);
+    }
+  };
 
   return (
     <div className="rounded-lg border border-border bg-surface shadow-sm">
@@ -27,8 +33,8 @@ export default function PlannedFinalizeEncounterSection({
           Próximo paso
         </h2>
         <p className="mt-1 text-sm text-muted">
-          La visita está planificada. Expandí el formulario para registrar el
-          cierre clínico.
+          La visita está planificada. Iniciá la visita para habilitar el cierre
+          clínico.
         </p>
       </div>
 
@@ -40,45 +46,25 @@ export default function PlannedFinalizeEncounterSection({
                 Visita pendiente
               </p>
               <p className="text-sm text-muted">
-                Cuando completes el cierre, se guardarán los datos clínicos de
-                esta visita.
+                Al iniciar la visita se registrará el comienzo real en la
+                historia clínica.
               </p>
             </div>
 
-            {!isExpanded ? (
-              <button
-                type="button"
-                onClick={() => setIsExpanded(true)}
-                className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors duration-150 hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-              >
-                Completar cierre
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setIsExpanded(false)}
-                className="inline-flex items-center justify-center rounded-md border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors duration-150 hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-              >
-                Ocultar formulario
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={handleStartEncounter}
+              disabled={isStarting}
+              className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors duration-150 hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isStarting ? "Iniciando..." : "Iniciar visita"}
+            </button>
           </div>
         </div>
-
-        {isExpanded && (
-          <div className="mt-5 space-y-4 border-t border-border pt-5">
-            <div className="rounded-md border border-border bg-background/60 px-4 py-3 text-sm text-muted">
-              Formulario de finalización desplegado.
-            </div>
-
-            <FinalizeEncounterForm
-              patientId={patientId}
-              encounterId={encounterId}
-              practitionerName={practitionerName}
-              plannedDate={plannedDate}
-              plannedTime={plannedTime}
-            />
-          </div>
+        {errorMessage && (
+          <p className="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {errorMessage}
+          </p>
         )}
       </div>
     </div>
