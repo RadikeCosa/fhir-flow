@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
     validateEncounterRules,
     validateFinalizeEncounterRules,
+    validateFinalizeEncounterStatus,
     validateStartEncounterStatus,
 } from "../domain-rules.validator";
 import { DomainRuleError } from "../error-types";
@@ -112,6 +113,21 @@ describe("validateFinalizeEncounterRules", () => {
             validateFinalizeEncounterRules(makeFinalize({ bloodPressureSystolic: 120, bloodPressureDiastolic: 80, evaScore: 3 }))
         ).not.toThrow();
     });
+});
+
+describe("validateFinalizeEncounterStatus", () => {
+    it("accepts in-progress encounters", () => {
+        expect(() => validateFinalizeEncounterStatus("in-progress")).not.toThrow();
+    });
+
+    it.each(["planned", "finished", "cancelled"] as const)(
+        "rejects %s encounters",
+        (status) => {
+            expect(() => validateFinalizeEncounterStatus(status)).toThrowError(
+                "Solo se puede finalizar un encuentro en curso"
+            );
+        }
+    );
 });
 
 describe("validateStartEncounterStatus", () => {

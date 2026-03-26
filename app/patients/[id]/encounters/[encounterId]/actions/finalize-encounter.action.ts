@@ -7,7 +7,11 @@ import type {
     ActionResult,
 } from "../../../../../../domain/shared/action-result.types";
 import type { FinalizeEncounterInput } from "../../../../../../domain/encounters/encounter.write-input";
-import { validateFinalizeEncounterRules, DomainRuleError } from "../../../../../../domain/shared/domain-rules.validator";
+import {
+    validateFinalizeEncounterRules,
+    validateFinalizeEncounterStatus,
+    DomainRuleError,
+} from "../../../../../../domain/shared/domain-rules.validator";
 import { FhirMapperError, FhirWriteError } from "../../../../../../domain/shared/error-types";
 import { createEncounterRepository } from "../../../../../../infrastructure/fhir/factories/encounter.factory";
 import { getCurrentPractitioner } from "../../../../../../lib/server/current-practitioner";
@@ -57,13 +61,30 @@ export async function finalizeEncounterAction(
         };
     }
 
-    if (encounter.status === "finished" || encounter.status === "cancelled") {
+    try {
+        validateFinalizeEncounterStatus(encounter.status);
+    } catch (error: unknown) {
+        if (error instanceof DomainRuleError) {
+            return {
+                success: false,
+                error: {
+                    layer: "domain",
+                    message: error.message,
+                    code: error.code,
+                } satisfies ActionError,
+            };
+        }
+
+        throw error;
+    }
+
+    if (!encounter.actualStartAt) {
         return {
             success: false,
             error: {
                 layer: "domain",
-                message: "No es posible finalizar un encuentro finalizado o cancelado",
-                code: "ENCOUNTER_NOT_EDITABLE",
+                message: "El encuentro no tiene registrada la hora real de inicio",
+                code: "ENCOUNTER_MISSING_ACTUAL_START",
             } satisfies ActionError,
         };
     }
@@ -92,10 +113,7 @@ export async function finalizeEncounterAction(
         performerId: practitioner.id,
         practitionerName: practitioner.displayName,
         visitType: encounter.visitType,
-        actualStartAt: composeLocalDateTimeToUtcIso(
-            parseResult.data.actualDate,
-            parseResult.data.actualStartTime
-        ),
+        actualStartAt: encounter.actualStartAt,
         actualEndAt: composeLocalDateTimeToUtcIso(
             parseResult.data.actualDate,
             parseResult.data.actualEndTime

@@ -28,14 +28,14 @@ vi.mock("next/navigation", () => ({
 
 const baseEncounter = {
     id: "enc-123",
-    status: "planned" as const,
+    status: "in-progress" as const,
     episodeOfCareId: "episode-1",
     patientId: "patient-1",
     visitType: "follow-up" as const,
     participant: null,
     plannedDate: "2026-03-20",
     plannedTime: "10:00",
-    actualStartAt: undefined,
+    actualStartAt: "2026-03-20T09:15:00.000Z",
     actualEndAt: undefined,
     periodStart: "2026-03-20T10:00:00.000Z",
     periodEnd: undefined,
@@ -176,10 +176,14 @@ describe("finalizeEncounterAction", () => {
         expect(finalizeMock).not.toHaveBeenCalled();
     });
 
-    it("returns a domain-layer error when the encounter is cancelled", async () => {
+    it.each([
+        ["planned", "Solo se puede finalizar un encuentro en curso"],
+        ["finished", "Solo se puede finalizar un encuentro en curso"],
+        ["cancelled", "Solo se puede finalizar un encuentro en curso"],
+    ] as const)("rejects %s encounters with a controlled domain error", async (status, message) => {
         findByIdMock.mockResolvedValue({
             ...baseEncounter,
-            status: "cancelled" as const,
+            status,
         });
 
         const { finalizeEncounterAction } = await import("../finalize-encounter.action");
@@ -190,71 +194,17 @@ describe("finalizeEncounterAction", () => {
             success: false,
             error: {
                 layer: "domain",
-                message: "No es posible finalizar un encuentro finalizado o cancelado",
-                code: "ENCOUNTER_NOT_EDITABLE",
+                message,
+                code: "ENCOUNTER_NOT_FINALIZABLE",
             },
         });
 
         expect(getCurrentPractitionerMock).not.toHaveBeenCalled();
         expect(finalizeMock).not.toHaveBeenCalled();
-    });
-
-    it("returns a domain-layer error when the encounter is not editable", async () => {
-        findByIdMock.mockResolvedValue({
-            ...baseEncounter,
-            status: "finished" as const,
-        });
-
-        const { finalizeEncounterAction } = await import("../finalize-encounter.action");
-
-        await expect(
-            finalizeEncounterAction("patient-1", "enc-123", validFormData)
-        ).resolves.toEqual({
-            success: false,
-            error: {
-                layer: "domain",
-                message: "No es posible finalizar un encuentro finalizado o cancelado",
-                code: "ENCOUNTER_NOT_EDITABLE",
-            },
-        });
-
-        expect(getCurrentPractitionerMock).not.toHaveBeenCalled();
-        expect(finalizeMock).not.toHaveBeenCalled();
-    });
-
-    it("keeps allowing planned encounters during the transitional lifecycle", async () => {
-        findByIdMock.mockResolvedValue(baseEncounter);
-        getCurrentPractitionerMock.mockResolvedValue({
-            id: "prac-1",
-            displayName: "Lic. Ramiro Perez",
-        });
-        finalizeMock.mockResolvedValue(undefined);
-        redirectMock.mockImplementation(() => {
-            throw new Error("NEXT_REDIRECT");
-        });
-
-        const { finalizeEncounterAction } = await import("../finalize-encounter.action");
-
-        await expect(
-            finalizeEncounterAction("patient-1", "enc-123", validFormData)
-        ).rejects.toThrow("NEXT_REDIRECT");
-
-        expect(finalizeMock).toHaveBeenCalledWith(
-            expect.objectContaining({
-                encounterId: "enc-123",
-                patientId: "patient-1",
-                visitType: "follow-up",
-                actualStartAt: "2026-03-20T13:00:00.000Z",
-                actualEndAt: "2026-03-20T14:00:00.000Z",
-            })
-        );
     });
 
     it("redirects to the encounter detail page when finalization succeeds", async () => {
-        findByIdMock.mockResolvedValue({
-            ...baseEncounter,
-            status: "in-progress" as const,
-        });
+        findByIdMock.mockResolvedValue(baseEncounter);
         getCurrentPractitionerMock.mockResolvedValue({
             id: "prac-1",
             displayName: "Lic. Ramiro Perez",
@@ -278,7 +228,7 @@ describe("finalizeEncounterAction", () => {
                 performerId: "prac-1",
                 practitionerName: "Lic. Ramiro Perez",
                 visitType: "follow-up",
-                actualStartAt: "2026-03-20T13:00:00.000Z",
+                actualStartAt: "2026-03-20T09:15:00.000Z",
                 actualEndAt: "2026-03-20T14:00:00.000Z",
                 clinicalNote: "Paciente estable. Se realiza cierre de visita.",
                 reasonDisplay: "Control programado",
@@ -325,18 +275,17 @@ describe("finalizeEncounterAction", () => {
                 encounterId: "enc-123",
                 patientId: "patient-1",
                 visitType: "discharge",
+                actualStartAt: "2026-03-20T09:15:00.000Z",
                 clinicalNote: "Paciente estable. Se realiza cierre de visita.",
                 reasonDisplay: "Motivo original",
             })
         );
     });
 
-    it("allows finalize for planned encounters created without planned time", async () => {
+    it("reuses the persisted real start when finalizing", async () => {
         findByIdMock.mockResolvedValue({
             ...baseEncounter,
-            plannedDate: "2026-03-20",
-            plannedTime: undefined,
-            periodStart: "2026-03-20",
+            actualStartAt: "2026-03-20T08:45:00.000Z",
         });
         getCurrentPractitionerMock.mockResolvedValue({
             id: "prac-1",
@@ -355,7 +304,7 @@ describe("finalizeEncounterAction", () => {
 
         expect(finalizeMock).toHaveBeenCalledWith(
             expect.objectContaining({
-                actualStartAt: "2026-03-20T13:00:00.000Z",
+                actualStartAt: "2026-03-20T08:45:00.000Z",
                 actualEndAt: "2026-03-20T14:00:00.000Z",
             })
         );

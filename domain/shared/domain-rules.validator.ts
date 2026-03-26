@@ -1,7 +1,7 @@
 export { DomainRuleError } from "./error-types";
 import { DomainRuleError } from "./error-types";
 import type { CreateEncounterInput, FinalizeEncounterInput } from "../encounters/encounter.write-input";
-import type { EncounterVisitType } from "../encounters/encounter";
+import type { EncounterStatus, EncounterVisitType } from "../encounters/encounter";
 import { PROCEDURE_CODES_BY_CATEGORY } from "../procedures/procedure-code-category.map";
 import {
     APP_TIME_ZONE,
@@ -207,6 +207,17 @@ export function validateFinalizeEncounterRules(input: FinalizeEncounterInput): v
             throw new DomainRuleError("El código del procedimiento no coincide con la categoría", "PROCEDURE_CODE_CATEGORY_MISMATCH");
         }
     }
+}
+
+export function validateFinalizeEncounterStatus(status: EncounterStatus): void {
+    if (status === "in-progress") {
+        return;
+    }
+
+    throw new DomainRuleError(
+        "Solo se puede finalizar un encuentro en curso",
+        "ENCOUNTER_NOT_FINALIZABLE"
+    );
 }
 
 export function validateStartEncounterStatus(status: string): void {
