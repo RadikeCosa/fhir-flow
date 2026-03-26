@@ -37,6 +37,7 @@ export interface PatientDetailData {
     patient: Patient;
     episodes: EpisodeOfCare[];
     lastEncounter: Encounter | null;
+    inProgressEncounter: Encounter | null;
     nextPlannedEncounter: Encounter | null;
     initialEncounter: Encounter | null;
     lastEncounterProcedures: Procedure[];
@@ -79,7 +80,7 @@ export async function getPatientDetailData(
 
     const activeEpisode = episodes.find((episode) => episode.status === "active");
 
-    const [lastEncounter, nextPlannedEncounter, initialEncounter] = await Promise.all([
+    const [lastEncounter, nextPlannedEncounter, initialEncounter, activeEpisodeEncounters] = await Promise.all([
         encounterRepo.findLastByPatientIdAndPractitionerId(
             patientId,
             currentPractitionerId
@@ -91,7 +92,14 @@ export async function getPatientDetailData(
         activeEpisode
             ? encounterRepo.findInitialByEpisodeOfCareId(activeEpisode.id)
             : Promise.resolve<Encounter | null>(null),
+        activeEpisode
+            ? encounterRepo.findAllByEpisodeOfCareId(activeEpisode.id)
+            : Promise.resolve<Encounter[]>([]),
     ]);
+
+    const inProgressEncounter = activeEpisodeEncounters.find(
+        (encounter) => encounter.status === "in-progress"
+    ) ?? null;
 
     const [
         lastEncounterProcedures,
@@ -165,7 +173,8 @@ export async function getPatientDetailData(
     return {
         patient,
         episodes,
-        lastEncounter,
+        lastEncounter: inProgressEncounter ?? lastEncounter,
+        inProgressEncounter,
         nextPlannedEncounter,
         initialEncounter,
         lastEncounterProcedures,

@@ -22,9 +22,11 @@ export default function EncounterList({
     return <p className="text-xs text-muted">No hay encuentros registrados</p>;
   }
 
-  // split the list by status so we can render planned encounters first
+  // split by lifecycle bucket to keep rendering explicit and stable
   const planned = encounters.filter((e) => e.status === "planned");
-  const others = encounters.filter((e) => e.status !== "planned");
+  const inProgress = encounters.filter((e) => e.status === "in-progress");
+  const finished = encounters.filter((e) => e.status === "finished");
+  const cancelled = encounters.filter((e) => e.status === "cancelled");
 
   // Ensure we always sort planned encounters ascending (nearest first)
   const plannedSortedByStartAsc = [...planned].sort(
@@ -32,8 +34,13 @@ export default function EncounterList({
       new Date(a.periodStart).getTime() - new Date(b.periodStart).getTime(),
   );
 
-  // Ensure others are always sorted descending (most recent first)
-  const othersSortedByStartDesc = [...others].sort(
+  const inProgressSortedByStartDesc = [...inProgress].sort(
+    (a, b) =>
+      new Date(getEncounterRepresentativeStart(b)).getTime() -
+      new Date(getEncounterRepresentativeStart(a)).getTime(),
+  );
+  // Ensure historical sessions are always sorted descending (most recent first)
+  const pastSessionsSortedByStartDesc = [...finished, ...cancelled].sort(
     (a, b) =>
       new Date(getEncounterRepresentativeStart(b)).getTime() -
       new Date(getEncounterRepresentativeStart(a)).getTime(),
@@ -92,7 +99,8 @@ export default function EncounterList({
         </>
       )}
 
-      {renderGroup("Sesiones anteriores", othersSortedByStartDesc)}
+      {renderGroup("En curso", inProgressSortedByStartDesc)}
+      {renderGroup("Sesiones anteriores", pastSessionsSortedByStartDesc)}
     </div>
   );
 }
