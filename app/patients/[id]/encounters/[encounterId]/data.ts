@@ -3,7 +3,6 @@ import type { EvaAssessment } from "@/domain/assessments/eva-assessment";
 import type { Procedure } from "@/domain/procedures/procedure";
 import type { Encounter } from "@/domain/encounters/encounter";
 import type { Patient } from "@/domain/patients/patient";
-import type { Practitioner } from "@/domain/practitioners/practitioner";
 
 import {
     createEncounterRepository,
@@ -18,7 +17,7 @@ import { getCurrentPractitioner } from "@/lib/server/current-practitioner";
 export interface EncounterDetailData {
     encounter: Encounter | null;
     patient: Patient | null;
-    practitioner: Practitioner;
+    practitionerName: string | null;
     vitalSigns: VitalSignRecord[];
     evaRecords: EvaAssessment[];
     procedures: Procedure[];
@@ -31,10 +30,9 @@ export async function getEncounterDetailData(
     const encounterRepo = createEncounterRepository();
     const patientRepo = createPatientRepository();
 
-    const [encounter, patient, practitioner] = await Promise.all([
+    const [encounter, patient] = await Promise.all([
         encounterRepo.findById(encounterId),
         patientRepo.findById(patientId),
-        getCurrentPractitioner(),
     ]);
 
     // Evita rendering de encounters de otro paciente: ruta inconsistente
@@ -45,12 +43,17 @@ export async function getEncounterDetailData(
         return {
             encounter: null,
             patient,
-            practitioner,
+            practitionerName: null,
             vitalSigns: [],
             evaRecords: [],
             procedures: [],
         };
     }
+
+    const practitionerName =
+        normalizedEncounter.status === "in-progress"
+            ? (await getCurrentPractitioner()).displayName
+            : null;
 
     let vitalSigns: VitalSignRecord[] = [];
     let evaRecords: EvaAssessment[] = [];
@@ -71,7 +74,7 @@ export async function getEncounterDetailData(
     return {
         encounter: normalizedEncounter,
         patient,
-        practitioner,
+        practitionerName,
         vitalSigns,
         evaRecords,
         procedures,
