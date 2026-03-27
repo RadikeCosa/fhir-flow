@@ -111,6 +111,9 @@ describe("clinical-ranges", () => {
         });
 
         expect(evaRanges.kind).toBe("ordinal");
+        if (evaRanges.kind !== "ordinal") {
+            throw new Error("Expected EVA ranges to be ordinal");
+        }
         expect(evaRanges.zones).toHaveLength(5);
         expect(chartReferences.normalRange).toBeUndefined();
         expect(chartReferences.referenceZones).toEqual([
