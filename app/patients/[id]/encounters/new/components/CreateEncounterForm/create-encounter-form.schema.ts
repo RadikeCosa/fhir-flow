@@ -1,8 +1,5 @@
 import { z } from "zod";
 import {
-    APP_TIME_ZONE,
-    composeLocalDateTimeToUtcIso,
-    formatCalendarDateInTimeZone,
     isDateOnly,
     isValidLocalTimeString,
 } from "../../../../../../../lib/date-time/date-time.utils";
@@ -83,66 +80,6 @@ export const createEncounterFormSchema = z.object({
             (value) => !value || value.trim() !== "",
             { message: "El motivo no puede ser solo espacios en blanco" }
         ),
-}).superRefine((value, ctx) => {
-    const now = new Date();
-    const maxMoment = new Date(now.getTime());
-    maxMoment.setDate(maxMoment.getDate() + 10);
-
-    const today = formatCalendarDateInTimeZone(now, APP_TIME_ZONE);
-    const maxDateCalendar = formatCalendarDateInTimeZone(maxMoment, APP_TIME_ZONE);
-
-    if (value.plannedTime) {
-        try {
-            const plannedAtIso = composeLocalDateTimeToUtcIso(
-                value.plannedDate,
-                value.plannedTime,
-                APP_TIME_ZONE
-            );
-
-            const plannedAt = new Date(plannedAtIso);
-
-            if (plannedAt.getTime() < now.getTime()) {
-                ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
-                    path: ["plannedTime"],
-                    message:
-                        "La fecha y hora planificadas no pueden ser anteriores al momento actual",
-                });
-            }
-
-            if (plannedAt.getTime() > maxMoment.getTime()) {
-                ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
-                    path: ["plannedDate"],
-                    message:
-                        "La visita no puede planificarse con más de 10 días de anticipación",
-                });
-            }
-        } catch {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ["plannedTime"],
-                message: "La fecha y hora planificadas son inválidas",
-            });
-        }
-        return;
-    }
-
-    if (value.plannedDate < today) {
-        ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ["plannedDate"],
-            message: "La fecha planificada no puede ser anterior a hoy",
-        });
-    }
-
-    if (value.plannedDate > maxDateCalendar) {
-        ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ["plannedDate"],
-            message: "La visita no puede planificarse con más de 10 días de anticipación",
-        });
-    }
 });
 
 /**

@@ -161,7 +161,11 @@ describe("createEncounterAction", () => {
         });
     });
 
-    it("returns a validation error when planned datetime is earlier than now", async () => {
+    it("returns a domain error when planned datetime is earlier than now", async () => {
+        getCurrentPractitionerMock.mockResolvedValue({
+            id: "kine-1",
+            displayName: "Lic. Ramiro Perez",
+        });
         const { createEncounterAction } = await import("../create-encounter.action");
 
         await expect(
@@ -175,12 +179,12 @@ describe("createEncounterAction", () => {
         ).resolves.toMatchObject({
             success: false,
             error: {
-                layer: "validation",
-                code: "FORM_VALIDATION_FAILED",
+                layer: "domain",
+                code: "PAST_PLANNED_DATETIME",
             },
         });
 
-        expect(getCurrentPractitionerMock).not.toHaveBeenCalled();
+        expect(getCurrentPractitionerMock).toHaveBeenCalledTimes(1);
         expect(createMock).not.toHaveBeenCalled();
     });
 
@@ -216,7 +220,11 @@ describe("createEncounterAction", () => {
         );
     });
 
-    it("returns validation error when planned date without time is before today", async () => {
+    it("returns domain error when planned date without time is before today", async () => {
+        getCurrentPractitionerMock.mockResolvedValue({
+            id: "kine-1",
+            displayName: "Lic. Ramiro Perez",
+        });
         const { createEncounterAction } = await import("../create-encounter.action");
 
         await expect(
@@ -230,16 +238,20 @@ describe("createEncounterAction", () => {
         ).resolves.toMatchObject({
             success: false,
             error: {
-                layer: "validation",
-                code: "FORM_VALIDATION_FAILED",
+                layer: "domain",
+                code: "PAST_PLANNED_DATE",
             },
         });
 
-        expect(getCurrentPractitionerMock).not.toHaveBeenCalled();
+        expect(getCurrentPractitionerMock).toHaveBeenCalledTimes(1);
         expect(createMock).not.toHaveBeenCalled();
     });
 
-    it("returns validation error when planning window exceeds 10 days", async () => {
+    it("returns domain error when planning window exceeds 10 days", async () => {
+        getCurrentPractitionerMock.mockResolvedValue({
+            id: "kine-1",
+            displayName: "Lic. Ramiro Perez",
+        });
         const { createEncounterAction } = await import("../create-encounter.action");
 
         await expect(
@@ -253,12 +265,12 @@ describe("createEncounterAction", () => {
         ).resolves.toMatchObject({
             success: false,
             error: {
-                layer: "validation",
-                code: "FORM_VALIDATION_FAILED",
+                layer: "domain",
+                code: "PLANNING_WINDOW_EXCEEDED",
             },
         });
 
-        expect(getCurrentPractitionerMock).not.toHaveBeenCalled();
+        expect(getCurrentPractitionerMock).toHaveBeenCalledTimes(1);
         expect(createMock).not.toHaveBeenCalled();
     });
 });
