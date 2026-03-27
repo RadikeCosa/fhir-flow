@@ -87,6 +87,7 @@ export async function createEncounterAction(
         const encounterDetailPath = `/patients/${patientId}/encounters/${result.id}`;
 
         revalidatePath(`/patients/${patientId}`);
+        revalidatePath(`/patients/${patientId}/encounters`);
         revalidatePath(encounterDetailPath);
         redirect(encounterDetailPath);
 
