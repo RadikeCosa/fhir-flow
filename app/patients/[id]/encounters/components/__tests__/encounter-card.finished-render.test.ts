@@ -34,9 +34,6 @@ describe("EncounterCard finished render", () => {
                 procedures: [],
                 vitalSigns: [],
                 evaRecords: [],
-                barthelAssessment: null,
-                necpalAssessment: null,
-                ecogAssessment: null,
             })
         );
 
@@ -54,9 +51,6 @@ describe("EncounterCard finished render", () => {
                 procedures: [],
                 vitalSigns: [],
                 evaRecords: [],
-                barthelAssessment: null,
-                necpalAssessment: null,
-                ecogAssessment: null,
             })
         );
 
