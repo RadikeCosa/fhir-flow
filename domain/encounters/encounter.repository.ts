@@ -6,7 +6,11 @@
  * dependencies are referenced here.
  */
 
-import type { CreateEncounterInput, FinalizeEncounterInput } from "./encounter.write-input";
+import type {
+    CreateEncounterInput,
+    FinalizeEncounterInput,
+    StartEncounterInput,
+} from "./encounter.write-input";
 import type { Encounter } from "./encounter";
 
 export interface EncounterRepository {
@@ -88,5 +92,5 @@ export interface EncounterRepository {
      * Starts a planned encounter by transitioning status to in-progress and
      * setting the actual start datetime.
      */
-    startEncounter(encounterId: string, actualStartAt: string): Promise<void>;
+    startEncounter(input: StartEncounterInput): Promise<void>;
 }

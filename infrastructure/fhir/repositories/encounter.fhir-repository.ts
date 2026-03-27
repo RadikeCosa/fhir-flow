@@ -13,6 +13,7 @@ import { FhirMapperError } from "../../../domain/shared/error-types";
 import type {
     CreateEncounterInput,
     FinalizeEncounterInput,
+    StartEncounterInput,
 } from "../../../domain/encounters/encounter.write-input";
 import type { EncounterRepository } from "../../../domain/encounters/encounter.repository";
 import type { Encounter } from "../../../domain/encounters/encounter";
@@ -177,15 +178,15 @@ export class EncounterFhirRepository implements EncounterRepository {
         await this.client.postBundle(bundle);
     }
 
-    public async startEncounter(encounterId: string, actualStartAt: string): Promise<void> {
-        const existing = await this.client.read<FhirResource>("Encounter", encounterId, { cache: "no-store" });
+    public async startEncounter(input: StartEncounterInput): Promise<void> {
+        const existing = await this.client.read<FhirResource>("Encounter", input.encounterId, { cache: "no-store" });
         const encounter = this.parseEncounter(existing);
 
         if (!encounter) {
             throw new FhirMapperError("Encounter resource is invalid", "INVALID_ENCOUNTER_RESOURCE");
         }
 
-        const updatedEncounter = mapToStartedEncounterUpdate(encounter, actualStartAt);
-        await this.client.update("Encounter", encounterId, updatedEncounter);
+        const updatedEncounter = mapToStartedEncounterUpdate(encounter, input.actualStartAt);
+        await this.client.update("Encounter", input.encounterId, updatedEncounter);
     }
 }
