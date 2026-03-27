@@ -151,7 +151,7 @@ export function CreateEncounterForm({
       {/* Temporal planning fields */}
       <fieldset className="space-y-4">
         <legend className="text-sm font-medium text-foreground">
-          Planificación temporal
+          Agenda de la visita
         </legend>
 
         <div>
@@ -159,10 +159,10 @@ export function CreateEncounterForm({
             htmlFor="plannedDate"
             className="block text-sm font-medium text-foreground"
           >
-            Fecha de la visita
+            Fecha programada
           </label>
           <p id="plannedDateHint" className="mt-1 text-xs text-muted-foreground">
-            Entre hoy y los próximos 10 días.
+            Se usa para planificar la agenda (entre hoy y los próximos 10 días).
           </p>
           <input
             type="date"
@@ -186,10 +186,10 @@ export function CreateEncounterForm({
             htmlFor="plannedTime"
             className="block text-sm font-medium text-foreground"
           >
-            Hora de la visita (opcional)
+            Hora programada (opcional)
           </label>
           <p id="plannedTimeHint" className="mt-1 text-xs text-muted-foreground">
-            Si queda vacía, se planifica solo con fecha.
+            Si queda vacía, la visita queda planificada solo con fecha.
           </p>
           <input
             type="time"

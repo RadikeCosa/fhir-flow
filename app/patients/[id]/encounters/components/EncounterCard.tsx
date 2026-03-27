@@ -54,6 +54,7 @@ export default function EncounterCard({
   const formattedDate = isPlanned
     ? `${plannedSchedule.plannedDateLabel ?? "Sin fecha planificada"} • ${plannedSchedule.plannedTimeLabel ?? "Sin horario definido"}`
     : (formatDateTime(representativeStart) ?? representativeStart ?? "");
+  const temporalSummaryLabel = isPlanned ? "Programada" : "Inicio real";
   const visitLabel = formatEncounterVisitType(encounter.visitType);
   const detailHref = `/patients/${encounter.patientId}/encounters/${encounter.id}`;
   const summaryPreview = summary.preview ?? encounter.reasonDisplay?.trim();
@@ -82,7 +83,9 @@ export default function EncounterCard({
                   status={encounter.status}
                   visitType={encounter.visitType}
                 />
-                <span className="text-xs text-muted">{formattedDate}</span>
+                <span className="text-xs text-muted">
+                  {temporalSummaryLabel}: {formattedDate}
+                </span>
               </div>
 
               <p className="text-sm text-foreground">
@@ -172,18 +175,18 @@ export default function EncounterCard({
               </div>
 
               <div>
-                <dt className="text-xs font-semibold uppercase tracking-wide text-muted">
-                  Inicio
-                </dt>
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-muted">
+                  Inicio real
+                  </dt>
                 <dd className="text-muted">
                   {formatDateTime(representativeStart) ?? representativeStart}
                 </dd>
               </div>
 
               <div>
-                <dt className="text-xs font-semibold uppercase tracking-wide text-muted">
-                  Fin
-                </dt>
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-muted">
+                  Fin real
+                  </dt>
                 <dd className="text-muted">
                   {representativeEnd
                     ? (formatDateTime(representativeEnd) ?? representativeEnd)

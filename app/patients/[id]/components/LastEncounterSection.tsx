@@ -84,7 +84,7 @@ export const LastEncounterSection: React.FC<Props> = ({
               showStatusBadge
             />
             <span className="text-sm font-semibold text-foreground ml-auto">
-              {formatDateTime(lastEncounterDisplayStart) ?? ""}
+              Inicio real: {formatDateTime(lastEncounterDisplayStart) ?? "Sin registrar"}
             </span>
           </div>
 
@@ -154,13 +154,13 @@ export const LastEncounterSection: React.FC<Props> = ({
               showStatusBadge
             />
             <span className="text-sm font-semibold text-foreground ml-auto">
-              {nextPlannedSchedule.plannedDateLabel ?? "Sin fecha planificada"}
+              Fecha programada: {nextPlannedSchedule.plannedDateLabel ?? "Sin fecha planificada"}
             </span>
           </div>
 
           <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
             <>
-              <dt className="text-xs text-muted font-medium">Horario:</dt>
+              <dt className="text-xs text-muted font-medium">Hora programada:</dt>
               <dd className="text-sm text-foreground">
                 {nextPlannedSchedule.plannedTimeLabel ?? "Sin horario definido"}
               </dd>

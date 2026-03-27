@@ -144,7 +144,7 @@ export default async function EncounterDetailPage({ params }: PageProps) {
                 </div>
                 <div className="rounded-lg border border-border/70 bg-background/60 p-4">
                   <dt className="text-xs font-semibold uppercase tracking-wide text-muted">
-                    Horario
+                    Hora programada
                   </dt>
                   <dd className="mt-2 text-xl font-semibold text-foreground">
                     {plannedSchedule.plannedTimeLabel ?? "Sin horario definido"}
@@ -183,7 +183,7 @@ export default async function EncounterDetailPage({ params }: PageProps) {
                 </div>
                 <div>
                   <dt className="font-medium text-foreground">
-                    Inicio del período
+                    Inicio real (referencia)
                   </dt>
                   <dd className="text-muted">
                     {formatDateTime(encounter.periodStart) ??
@@ -259,13 +259,13 @@ export default async function EncounterDetailPage({ params }: PageProps) {
                   </dd>
                 </div>
                 <div>
-                  <dt className="font-medium text-foreground">Inicio</dt>
+                  <dt className="font-medium text-foreground">Inicio real</dt>
                   <dd className="text-muted">
                     {formatDateTime(readOnlyStart) ?? readOnlyStart}
                   </dd>
                 </div>
                 <div>
-                  <dt className="font-medium text-foreground">Fin</dt>
+                  <dt className="font-medium text-foreground">Fin real</dt>
                   <dd className="text-muted">
                     {formatDateTime(readOnlyEnd) ??
                       readOnlyEnd ??
