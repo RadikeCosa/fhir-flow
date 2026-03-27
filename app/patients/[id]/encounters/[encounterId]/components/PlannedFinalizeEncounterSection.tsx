@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { formatCalendarDateInTimeZone } from "../../../../../../lib/date-time/date-time.utils";
+import {
+  APP_TIME_ZONE,
+  formatCalendarDateInTimeZone,
+} from "../../../../../../lib/date-time/date-time.utils";
 import { startEncounterAction } from "../actions/start-encounter.action";
 
 interface PlannedFinalizeEncounterSectionProps {
@@ -9,6 +12,15 @@ interface PlannedFinalizeEncounterSectionProps {
   encounterId: string;
   plannedDate?: string;
   plannedTime?: string;
+}
+
+function getCurrentLocalTimeLabel(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: APP_TIME_ZONE,
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).format(now);
 }
 
 export default function PlannedFinalizeEncounterSection({
@@ -22,7 +34,9 @@ export default function PlannedFinalizeEncounterSection({
   const [actualStartDate, setActualStartDate] = useState(
     plannedDate || formatCalendarDateInTimeZone(new Date()),
   );
-  const [actualStartTime, setActualStartTime] = useState(plannedTime || "");
+  const [actualStartTime, setActualStartTime] = useState(
+    plannedTime || getCurrentLocalTimeLabel(),
+  );
 
   const handleStartEncounter = async () => {
     setErrorMessage(null);
