@@ -143,10 +143,8 @@ describe("startEncounterAction", () => {
             "2026-03-20T13:00:00.000Z"
         );
         expect(revalidatePathMock).toHaveBeenNthCalledWith(1, "/patients/patient-1");
-        expect(revalidatePathMock).toHaveBeenNthCalledWith(
-            2,
-            "/patients/patient-1/encounters/enc-123"
-        );
+        expect(revalidatePathMock).toHaveBeenNthCalledWith(2, "/patients/patient-1/encounters");
+        expect(revalidatePathMock).toHaveBeenNthCalledWith(3, "/patients/patient-1/encounters/enc-123");
         expect(redirectMock).toHaveBeenCalledWith(
             "/patients/patient-1/encounters/enc-123"
         );

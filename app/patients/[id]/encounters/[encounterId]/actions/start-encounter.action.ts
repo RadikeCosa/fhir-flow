@@ -183,6 +183,7 @@ export async function startEncounterAction(
         await repo.startEncounter(encounter.id, actualStartAt);
 
         revalidatePath(`/patients/${patientId}`);
+        revalidatePath(`/patients/${patientId}/encounters`);
         revalidatePath(`/patients/${patientId}/encounters/${encounterId}`);
         redirect(`/patients/${patientId}/encounters/${encounterId}`);
 

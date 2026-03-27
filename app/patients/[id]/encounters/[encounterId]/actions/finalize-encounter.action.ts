@@ -150,6 +150,7 @@ export async function finalizeEncounterAction(
         await repo.finalize(input);
 
         revalidatePath(`/patients/${patientId}`);
+        revalidatePath(`/patients/${patientId}/encounters`);
         revalidatePath(`/patients/${patientId}/encounters/${encounterId}`);
         redirect(`/patients/${patientId}/encounters/${encounterId}`);
 
