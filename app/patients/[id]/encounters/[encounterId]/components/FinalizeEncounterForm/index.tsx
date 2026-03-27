@@ -143,7 +143,7 @@ export default function FinalizeEncounterForm({
             {practitionerName}
           </div>
           <div>
-            <span className="font-medium text-foreground">Planificada:</span>{" "}
+            <span className="font-medium text-foreground">Agenda planificada:</span>{" "}
             {formatPlannedContext(plannedDate, plannedTime)}
           </div>
         </div>
@@ -170,7 +170,7 @@ export default function FinalizeEncounterForm({
 
           <fieldset className="mt-3 space-y-4">
             <legend className="text-sm font-medium text-foreground">
-              Planificación temporal
+              Ejecución real de la visita
             </legend>
             <p
               id="actualTimingHint"
@@ -185,7 +185,7 @@ export default function FinalizeEncounterForm({
                   htmlFor="actualDate"
                   className="block text-sm font-medium text-foreground"
                 >
-                  Fecha de la visita
+                  Fecha real
                 </label>
                 <input
                   type="date"
@@ -206,7 +206,7 @@ export default function FinalizeEncounterForm({
                   htmlFor="actualStartTime"
                   className="block text-sm font-medium text-foreground"
                 >
-                  Hora de inicio
+                  Hora real de inicio
                 </label>
                 <input
                   type="time"
@@ -228,7 +228,7 @@ export default function FinalizeEncounterForm({
                   htmlFor="actualEndTime"
                   className="block text-sm font-medium text-foreground"
                 >
-                  Hora de fin
+                  Hora real de fin
                 </label>
                 <input
                   type="time"

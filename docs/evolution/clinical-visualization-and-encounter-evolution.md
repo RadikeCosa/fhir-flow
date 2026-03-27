@@ -544,6 +544,14 @@
 - La cobertura directa sobre componentes visuales es menor que la cobertura sobre formatters y adapter.
 - No se encontró en las fuentes prioritarias un ADR específico para charts; la justificación de diseño visual se infiere principalmente de la implementación y de los tests. **Inferencia**.
 
+### Nota de cierre — fase 1B del temporal model (UI + copy)
+
+- `PlannedSchedule` sigue modelando la planificación vigente de la visita (`plannedDate`, `plannedTime`).
+- La UI diferencia explícitamente planificación (agenda) de ejecución real (inicio/fin reales) en create/finalize e historial/detalle.
+- Esta separación es conceptual y de presentación: el lifecycle operativo completo todavía no está implementado.
+- El siguiente paso natural, cuando se habilite la transición operacional correspondiente, es separar de forma más explícita `actual.start` (inicio) y `actual.end` (cierre) durante el flujo clínico.
+- Esa evolución futura no forma parte de esta implementación y no modifica las reglas de lifecycle actuales.
+
 ### Próximos pasos recomendables
 
 - Cuando exista `startEncounterAction`, endurecer `finalizeEncounterAction` para requerir `in-progress`, tal como anticipa el ADR.
