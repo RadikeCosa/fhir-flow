@@ -7,7 +7,7 @@ import {
 } from "./encounter-charts.formatters";
 import { CLINICAL_RANGES } from "./clinical-ranges";
 
-type ChartMetricType = VitalSignType | "eva";
+export type ChartMetricType = VitalSignType | "eva";
 
 export type EnrichedChartDatum = {
     date: string;
@@ -98,17 +98,6 @@ function getBandsForMetric(metricType: ChartMetricType): ClinicalBand[] {
 
     const ranges = CLINICAL_RANGES[VITAL_SIGN_RANGE_MAP[metricType]];
 
-    if (ranges.kind === "ordinal") {
-        return [...ranges.zones]
-            .sort((left, right) => left.min - right.min)
-            .map((zone) => ({
-                min: zone.min,
-                max: zone.max,
-                label: zone.label,
-                severity: zone.severity,
-            }));
-    }
-
     return [
         ...(ranges.critical ?? []),
         ...(ranges.warning ?? []),
@@ -157,17 +146,10 @@ export function resolveZoneBounds(
     };
 }
 
-export function getValueSeverity(value: number, metricType: VitalSignType): "normal" | "warning" | "critical";
-export function getValueSeverity(value: number, metricType: "eva"): "normal" | "warning" | "critical";
-export function getValueSeverity(
-    value: number,
-    metricType: ChartMetricType,
-): "normal" | "warning" | "critical" {
+export function getValueSeverity(value: number, metricType: ChartMetricType): "normal" | "warning" | "critical" {
     return getMatchingBand(value, metricType)?.severity ?? "normal";
 }
 
-export function toChartZones(metricType: VitalSignType): ChartZone[];
-export function toChartZones(metricType: "eva"): ChartZone[];
 export function toChartZones(metricType: ChartMetricType): ChartZone[] {
     const chartDomain = getChartDomain(metricType);
 
@@ -178,8 +160,6 @@ export function toChartZones(metricType: ChartMetricType): ChartZone[] {
     }));
 }
 
-export function enrichChartData(data: TimeValueDatum[], metricType: VitalSignType): EnrichedChartDatum[];
-export function enrichChartData(data: TimeValueDatum[], metricType: "eva"): EnrichedChartDatum[];
 export function enrichChartData(data: TimeValueDatum[], metricType: ChartMetricType): EnrichedChartDatum[] {
     const chartDomain = getChartDomain(metricType);
     const zones = getBandsWithExclusiveMax(metricType);

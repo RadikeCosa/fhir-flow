@@ -3,13 +3,14 @@ import { getBloodPressureBadge, getVitalSignBadge } from "../vital-sign.formatte
 import { CLINICAL_CHART_RANGES, type TimeValueDatum } from "../encounter-charts.formatters";
 import { CLINICAL_RANGES } from "../clinical-ranges";
 import {
+    type ChartMetricType,
     enrichChartData,
     getValueSeverity,
     resolveZoneBounds,
     toChartZones,
 } from "../clinical-ranges.adapter";
 
-function expectSeverity(metricType: "heart-rate" | "respiratory-rate" | "oxygen-saturation" | "body-temperature" | "blood-pressure" | "eva", value: number, expected: "normal" | "warning" | "critical") {
+function expectSeverity(metricType: ChartMetricType, value: number, expected: "normal" | "warning" | "critical") {
     if (metricType === "eva") {
         expect(getValueSeverity(value, "eva")).toBe(expected);
         return;
@@ -147,7 +148,7 @@ describe("clinical-ranges.adapter", () => {
         });
 
         it("populates severity for all metrics", () => {
-            const cases: Array<["heart-rate" | "respiratory-rate" | "oxygen-saturation" | "body-temperature" | "blood-pressure" | "eva", number]> = [
+            const cases: Array<[ChartMetricType, number]> = [
                 ["heart-rate", 80],
                 ["respiratory-rate", 16],
                 ["oxygen-saturation", 97],
