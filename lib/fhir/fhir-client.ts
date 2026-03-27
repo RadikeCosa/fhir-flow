@@ -67,6 +67,7 @@ export interface RequestOptions {
     headers?: Record<string, string>;
     params?: Record<string, string | number | boolean | Array<string | number | boolean>>;
     body?: unknown;
+    cache?: RequestCache;
     // optional AbortSignal to allow callers to cancel
     signal?: AbortSignal | null;
 }
@@ -148,7 +149,14 @@ export class FhirClient {
      * when server returns a FHIR OperationOutcome.
      */
     public async request<T = unknown>(path: string, options: RequestOptions = {}): Promise<T> {
-        const { method = "GET", headers = {}, params, body, signal = null } = options;
+        const {
+            method = "GET",
+            headers = {},
+            params,
+            body,
+            cache,
+            signal = null,
+        } = options;
 
         const url = this.buildUrl(path, params);
 
@@ -157,6 +165,7 @@ export class FhirClient {
         const fetchOptions: RequestInit = {
             method,
             headers: mergedHeaders,
+            cache,
             signal: signal ?? undefined,
         };
 
@@ -199,15 +208,23 @@ export class FhirClient {
     // Convenience CRUD-style methods -------------------------------------------------
 
     /** Read a resource by type and id */
-    public async read<T extends FhirResource = FhirResource>(resourceType: string, id: string): Promise<T> {
+    public async read<T extends FhirResource = FhirResource>(
+        resourceType: string,
+        id: string,
+        options: Pick<RequestOptions, "cache"> = {}
+    ): Promise<T> {
         const path = `/${encodeURIComponent(resourceType)}/${encodeURIComponent(id)}`;
-        return this.request<T>(path, { method: "GET" });
+        return this.request<T>(path, { method: "GET", ...options });
     }
 
     /** Search for resources using query params. Returns the parsed Bundle or raw result. */
-    public async search<T = unknown>(resourceType: string, searchParams: RequestOptions["params"] = {}): Promise<T> {
+    public async search<T = unknown>(
+        resourceType: string,
+        searchParams: RequestOptions["params"] = {},
+        options: Pick<RequestOptions, "cache"> = {}
+    ): Promise<T> {
         const path = `/${encodeURIComponent(resourceType)}`;
-        return this.request<T>(path, { method: "GET", params: searchParams });
+        return this.request<T>(path, { method: "GET", params: searchParams, ...options });
     }
 
     /**

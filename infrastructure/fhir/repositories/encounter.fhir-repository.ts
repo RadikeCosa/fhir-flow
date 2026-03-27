@@ -51,7 +51,7 @@ export class EncounterFhirRepository implements EncounterRepository {
         const bundle = await this.client.search<unknown>("Encounter", {
             "episode-of-care": `EpisodeOfCare/${episodeOfCareId}`,
             _sort: "-date",
-        });
+        }, { cache: "no-store" });
 
         const resources = safeGetResources(bundle);
         const results: Encounter[] = [];
@@ -68,7 +68,7 @@ export class EncounterFhirRepository implements EncounterRepository {
 
     public async findById(id: string): Promise<Encounter | null> {
         try {
-            const res = await this.client.read<FhirEncounter>("Encounter", id);
+            const res = await this.client.read<FhirEncounter>("Encounter", id, { cache: "no-store" });
             const enc = this.parseEncounter(res);
             return enc ? mapFhirEncounterToEncounter(enc) : null;
         } catch (err: unknown) {
@@ -89,7 +89,7 @@ export class EncounterFhirRepository implements EncounterRepository {
             status: "finished",
             _sort: "-date",
             _count: "1",
-        });
+        }, { cache: "no-store" });
 
         const resources = safeGetResources(bundle);
         if (resources.length === 0) {
@@ -111,7 +111,7 @@ export class EncounterFhirRepository implements EncounterRepository {
             status: "planned",
             _sort: "date",
             _count: "1",
-        });
+        }, { cache: "no-store" });
 
         const resources = safeGetResources(bundle);
         if (resources.length === 0) {
@@ -132,7 +132,7 @@ export class EncounterFhirRepository implements EncounterRepository {
                 type: "initial",
                 _sort: "date",
                 _count: "1",
-            });
+            }, { cache: "no-store" });
 
             const resources = safeGetResources(bundle);
             for (const res of resources) {
@@ -177,7 +177,7 @@ export class EncounterFhirRepository implements EncounterRepository {
     }
 
     public async startEncounter(encounterId: string, actualStartAt: string): Promise<void> {
-        const existing = await this.client.read<unknown>("Encounter", encounterId);
+        const existing = await this.client.read<unknown>("Encounter", encounterId, { cache: "no-store" });
         const encounter = this.parseEncounter(existing);
 
         if (!encounter) {
