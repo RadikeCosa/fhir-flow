@@ -1,4 +1,5 @@
 import { HttpError, FhirClient } from "../../../lib/fhir/fhir-client";
+import type { FhirResource } from "../../../lib/fhir/fhir-client";
 import { Logger, defaultLogger } from "../../../lib/logger";
 import { safeGetResources } from "../../../lib/fhir/bundle-utils";
 import type { FhirEncounter } from "../schemas/encounter.schema";
@@ -177,7 +178,7 @@ export class EncounterFhirRepository implements EncounterRepository {
     }
 
     public async startEncounter(encounterId: string, actualStartAt: string): Promise<void> {
-        const existing = await this.client.read<unknown>("Encounter", encounterId, { cache: "no-store" });
+        const existing = await this.client.read<FhirResource>("Encounter", encounterId, { cache: "no-store" });
         const encounter = this.parseEncounter(existing);
 
         if (!encounter) {
