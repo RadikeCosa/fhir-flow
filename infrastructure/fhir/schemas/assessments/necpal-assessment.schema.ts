@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { codingSchema, codeableConceptSchema, referenceSchema } from "../shared.schema";
+import { codeableConceptSchema, referenceSchema } from "../shared.schema";
 
 /**
  * LOINC 96779-8 — Palliative care screening [NECPAL]

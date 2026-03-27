@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { codingSchema, codeableConceptSchema } from "../shared.schema";
+import { codeableConceptSchema } from "../shared.schema";
 
 // main observation schema ------------------------------------------------
 

@@ -1,6 +1,5 @@
 import { z } from "zod";
 import {
-    codingSchema,
     codeableConceptSchema,
     referenceSchema,
 } from "../shared.schema";
