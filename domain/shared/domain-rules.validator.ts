@@ -1,6 +1,10 @@
 export { DomainRuleError } from "./error-types";
 import { DomainRuleError } from "./error-types";
-import type { CreateEncounterInput, FinalizeEncounterInput } from "../encounters/encounter.write-input";
+import type {
+    CreateEncounterInput,
+    FinalizeEncounterInput,
+    StartEncounterInput,
+} from "../encounters/encounter.write-input";
 import type { EncounterStatus, EncounterVisitType } from "../encounters/encounter";
 import { PROCEDURE_CODES_BY_CATEGORY } from "../procedures/procedure-code-category.map";
 import {
@@ -210,4 +214,21 @@ export function validateStartEncounterStatus(status: string): void {
         "Only planned encounters can be started",
         "ENCOUNTER_NOT_STARTABLE"
     );
+}
+
+export function validateStartEncounterRules(input: StartEncounterInput): void {
+    if (!input.actualStartAt || typeof input.actualStartAt !== "string" || !input.actualStartAt.includes("T")) {
+        throw new DomainRuleError(
+            "actualStartAt debe ser un datetime ISO con componente de tiempo",
+            "INVALID_ACTUAL_START"
+        );
+    }
+
+    const actualStartDate = new Date(input.actualStartAt);
+    if (isNaN(actualStartDate.getTime())) {
+        throw new DomainRuleError(
+            "actualStartAt debe ser un datetime ISO válido",
+            "INVALID_ACTUAL_START"
+        );
+    }
 }
