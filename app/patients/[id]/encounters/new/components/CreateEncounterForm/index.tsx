@@ -148,51 +148,65 @@ export function CreateEncounterForm({
         </div>
       )}
 
-      {/* Planned date field */}
-      <div>
-        <label
-          htmlFor="plannedDate"
-          className="block text-sm font-medium text-foreground"
-        >
-          Fecha planificada
-        </label>
-        <input
-          type="date"
-          id="plannedDate"
-          min={todayDate}
-          max={maxDateValue}
-          {...form.register("plannedDate")}
-          className="mt-1 block w-full rounded-md border border-border px-3 py-2 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm"
-          disabled={isSubmitting}
-        />
-        {form.formState.errors.plannedDate && (
-          <p className="mt-1 text-sm text-error">
-            {form.formState.errors.plannedDate.message}
-          </p>
-        )}
-      </div>
+      {/* Temporal planning fields */}
+      <fieldset className="space-y-4">
+        <legend className="text-sm font-medium text-foreground">
+          Planificación temporal
+        </legend>
 
-      {/* Planned time field (optional) */}
-      <div>
-        <label
-          htmlFor="plannedTime"
-          className="block text-sm font-medium text-foreground"
-        >
-          Hora planificada (opcional)
-        </label>
-        <input
-          type="time"
-          id="plannedTime"
-          {...form.register("plannedTime")}
-          className="mt-1 block w-full rounded-md border border-border px-3 py-2 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm"
-          disabled={isSubmitting}
-        />
-        {form.formState.errors.plannedTime && (
-          <p className="mt-1 text-sm text-error">
-            {form.formState.errors.plannedTime.message}
+        <div>
+          <label
+            htmlFor="plannedDate"
+            className="block text-sm font-medium text-foreground"
+          >
+            Fecha de la visita
+          </label>
+          <p id="plannedDateHint" className="mt-1 text-xs text-muted-foreground">
+            Elegí una fecha entre hoy y los próximos 10 días.
           </p>
-        )}
-      </div>
+          <input
+            type="date"
+            id="plannedDate"
+            min={todayDate}
+            max={maxDateValue}
+            aria-describedby="plannedDateHint"
+            {...form.register("plannedDate")}
+            className="mt-1 block w-full rounded-md border border-border px-3 py-2 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm"
+            disabled={isSubmitting}
+          />
+          {form.formState.errors.plannedDate && (
+            <p className="mt-1 text-sm text-error">
+              {form.formState.errors.plannedDate.message}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label
+            htmlFor="plannedTime"
+            className="block text-sm font-medium text-foreground"
+          >
+            Hora de la visita (opcional)
+          </label>
+          <p id="plannedTimeHint" className="mt-1 text-xs text-muted-foreground">
+            Si la dejás vacía, la visita se planifica solo con fecha.
+          </p>
+          <input
+            type="time"
+            id="plannedTime"
+            step={300}
+            aria-describedby="plannedTimeHint"
+            {...form.register("plannedTime")}
+            className="mt-1 block w-full rounded-md border border-border px-3 py-2 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm"
+            disabled={isSubmitting}
+          />
+          {form.formState.errors.plannedTime && (
+            <p className="mt-1 text-sm text-error">
+              {form.formState.errors.plannedTime.message}
+            </p>
+          )}
+        </div>
+      </fieldset>
 
       {/* Practitioner (read-only) */}
       <div>
