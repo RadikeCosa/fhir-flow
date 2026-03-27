@@ -4,6 +4,7 @@ import {
     composeLocalDateTimeToUtcIso,
     hasTimeComponent,
     isDateOnly,
+    isValidLocalTimeString,
 } from "../date-time.utils";
 
 describe("date-time utilities", () => {
@@ -26,5 +27,18 @@ describe("date-time utilities", () => {
     it("throws on invalid date/time input", () => {
         expect(() => composeLocalDateTimeToUtcIso("invalid", "10:00")).toThrow();
         expect(() => composeLocalDateTimeToUtcIso("2026-07-01", "invalid")).toThrow();
+        expect(() => composeLocalDateTimeToUtcIso("2026-07-01", "25:00")).toThrow();
+    });
+
+    it("accepts any valid minute in HH:mm format", () => {
+        expect(isValidLocalTimeString("13:01")).toBe(true);
+        expect(isValidLocalTimeString("13:07")).toBe(true);
+        expect(isValidLocalTimeString("13:59")).toBe(true);
+    });
+
+    it("rejects invalid HH:mm values", () => {
+        expect(isValidLocalTimeString("25:00")).toBe(false);
+        expect(isValidLocalTimeString("aa:bb")).toBe(false);
+        expect(isValidLocalTimeString("")).toBe(false);
     });
 });

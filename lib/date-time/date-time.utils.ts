@@ -82,6 +82,10 @@ function parseLocalDateTime(date: string, time: string): DateTimeParts {
         throw new Error(`Invalid date-only value: ${date}`);
     }
 
+    if (!isValidLocalTimeString(time)) {
+        throw new Error(`Invalid local time value: ${time}`);
+    }
+
     const timeMatch = /^([0-9]{2}):([0-9]{2})$/.exec(time);
     if (!timeMatch) {
         throw new Error(`Invalid local time value: ${time}`);
