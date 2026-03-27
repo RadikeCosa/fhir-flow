@@ -4,9 +4,6 @@ import type { Encounter } from "@/domain/encounters/encounter";
 import type { Procedure } from "@/domain/procedures/procedure";
 import type { EvaAssessment } from "@/domain/assessments/eva-assessment";
 import type { VitalSignRecord } from "@/domain/vital-sign-record/vital-sign-record";
-import type { BarthelAssessment } from "@/domain/assessments/barthel-assessment";
-import type { NecpalAssessment } from "@/domain/assessments/necpal-assessment";
-import type { EcogAssessment } from "@/domain/assessments/ecog-assessment";
 
 import {
     createPatientRepository,
@@ -15,9 +12,6 @@ import {
     createVitalSignRecordRepository,
     createAssessmentRepository,
     createProcedureRepository,
-    createBarthelAssessmentRepository,
-    createNecpalAssessmentRepository,
-    createEcogAssessmentRepository,
 } from "@/infrastructure/fhir/factories";
 import { getEncounterRepresentativeStart } from "../../../../lib/patient/formatters/encounter.formatters";
 
@@ -33,9 +27,6 @@ export interface EncountersPageData {
     evaRecords: EvaAssessment[];
     vitalsByEncounterId: Record<string, VitalSignRecord[]>;
     evaByEncounterId: Record<string, EvaAssessment[]>;
-    barthelByEncounterId: Record<string, BarthelAssessment | null>;
-    necpalByEncounterId: Record<string, NecpalAssessment | null>;
-    ecogByEncounterId: Record<string, EcogAssessment | null>;
     proceduresByEncounterId: Record<string, Procedure[]>;
 }
 
@@ -48,9 +39,6 @@ export async function getEncountersPageData(
     const vitalRepo = createVitalSignRecordRepository();
     const assessmentRepo = createAssessmentRepository();
     const procedureRepo = createProcedureRepository();
-    const barthelRepo = createBarthelAssessmentRepository();
-    const necpalRepo = createNecpalAssessmentRepository();
-    const ecogRepo = createEcogAssessmentRepository();
 
     const [patient, episodes] = await Promise.all([
         patientRepo.findById(patientId),
@@ -72,9 +60,6 @@ export async function getEncountersPageData(
             evaRecords: [],
             vitalsByEncounterId: {},
             evaByEncounterId: {},
-            barthelByEncounterId: {},
-            necpalByEncounterId: {},
-            ecogByEncounterId: {},
             proceduresByEncounterId: {},
         };
     }
@@ -90,41 +75,52 @@ export async function getEncountersPageData(
             new Date(getEncounterRepresentativeStart(a)).getTime()
     );
 
-    const [
-        vitalArrays,
-        evaArrays,
-        procedureArrays,
-        barthelArrays,
-        necpalArrays,
-        ecogArrays,
-    ] = await Promise.all([
-        Promise.all(encounters.map((e) => vitalRepo.findAllByEncounterId(e.id))),
-        Promise.all(encounters.map((e) => assessmentRepo.findEvaByEncounterId(e.id))),
-        Promise.all(encounters.map((e) => procedureRepo.findAllByEncounterId(e.id))),
-        Promise.all(encounters.map((e) => barthelRepo.findByEncounterId(e.id))),
-        Promise.all(encounters.map((e) => necpalRepo.findByEncounterId(e.id))),
-        Promise.all(encounters.map((e) => ecogRepo.findByEncounterId(e.id))),
+    const [episodeVitalSigns, episodeEvaRecords, episodeProcedures] = await Promise.all([
+        vitalRepo.findAllByPatientId(patientId),
+        assessmentRepo.findEvaByPatientId(patientId),
+        procedureRepo.findAllByPatientId(patientId),
     ]);
 
-    // Longitudinal series for the episode charts panel
-    const vitalSigns = vitalArrays.flat();
-    const evaRecords = evaArrays.flat();
+    const encounterIds = new Set(encounters.map((encounter) => encounter.id));
+
+    // Longitudinal series for the episode charts panel (active episode only).
+    const vitalSigns = episodeVitalSigns.filter(
+        (record) =>
+            typeof record.encounterId === "string" &&
+            encounterIds.has(record.encounterId)
+    );
+    const evaRecords = episodeEvaRecords.filter(
+        (record) =>
+            typeof record.encounterId === "string" &&
+            encounterIds.has(record.encounterId)
+    );
+    const procedures = episodeProcedures.filter((procedure) =>
+        encounterIds.has(procedure.encounterId)
+    );
 
     // Per-encounter maps
     const vitalsByEncounterId: Record<string, VitalSignRecord[]> = {};
     const evaByEncounterId: Record<string, EvaAssessment[]> = {};
-    const barthelByEncounterId: Record<string, BarthelAssessment | null> = {};
-    const necpalByEncounterId: Record<string, NecpalAssessment | null> = {};
-    const ecogByEncounterId: Record<string, EcogAssessment | null> = {};
     const proceduresByEncounterId: Record<string, Procedure[]> = {};
 
-    encounters.forEach((enc, i) => {
-        vitalsByEncounterId[enc.id] = vitalArrays[i];
-        evaByEncounterId[enc.id] = evaArrays[i];
-        barthelByEncounterId[enc.id] = barthelArrays[i];
-        necpalByEncounterId[enc.id] = necpalArrays[i];
-        ecogByEncounterId[enc.id] = ecogArrays[i];
-        proceduresByEncounterId[enc.id] = procedureArrays[i];
+    encounters.forEach((encounter) => {
+        vitalsByEncounterId[encounter.id] = [];
+        evaByEncounterId[encounter.id] = [];
+        proceduresByEncounterId[encounter.id] = [];
+    });
+
+    vitalSigns.forEach((record) => {
+        if (!record.encounterId) return;
+        vitalsByEncounterId[record.encounterId]?.push(record);
+    });
+
+    evaRecords.forEach((record) => {
+        if (!record.encounterId) return;
+        evaByEncounterId[record.encounterId]?.push(record);
+    });
+
+    procedures.forEach((procedure) => {
+        proceduresByEncounterId[procedure.encounterId]?.push(procedure);
     });
 
     return {
@@ -135,9 +131,6 @@ export async function getEncountersPageData(
         evaRecords,
         vitalsByEncounterId,
         evaByEncounterId,
-        barthelByEncounterId,
-        necpalByEncounterId,
-        ecogByEncounterId,
         proceduresByEncounterId,
     };
 }

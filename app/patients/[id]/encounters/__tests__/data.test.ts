@@ -15,22 +15,16 @@ const repositories = vi.hoisted(() => ({
         findAllByEpisodeOfCareId: vi.fn(),
     },
     vitalRepo: {
+        findAllByPatientId: vi.fn(),
         findAllByEncounterId: vi.fn(),
     },
     assessmentRepo: {
+        findEvaByPatientId: vi.fn(),
         findEvaByEncounterId: vi.fn(),
     },
     procedureRepo: {
+        findAllByPatientId: vi.fn(),
         findAllByEncounterId: vi.fn(),
-    },
-    barthelRepo: {
-        findByEncounterId: vi.fn(),
-    },
-    necpalRepo: {
-        findByEncounterId: vi.fn(),
-    },
-    ecogRepo: {
-        findByEncounterId: vi.fn(),
     },
 }));
 
@@ -41,9 +35,6 @@ vi.mock("@/infrastructure/fhir/factories", () => ({
     createVitalSignRecordRepository: () => repositories.vitalRepo,
     createAssessmentRepository: () => repositories.assessmentRepo,
     createProcedureRepository: () => repositories.procedureRepo,
-    createBarthelAssessmentRepository: () => repositories.barthelRepo,
-    createNecpalAssessmentRepository: () => repositories.necpalRepo,
-    createEcogAssessmentRepository: () => repositories.ecogRepo,
 }));
 
 vi.mock("../../data", () => ({
@@ -102,12 +93,9 @@ describe("getEncountersPageData sorting", () => {
         repositories.episodeRepo.findAllByPatientId.mockResolvedValue([
             activeEpisodeFixture,
         ]);
-        repositories.vitalRepo.findAllByEncounterId.mockResolvedValue([]);
-        repositories.assessmentRepo.findEvaByEncounterId.mockResolvedValue([]);
-        repositories.procedureRepo.findAllByEncounterId.mockResolvedValue([]);
-        repositories.barthelRepo.findByEncounterId.mockResolvedValue(null);
-        repositories.necpalRepo.findByEncounterId.mockResolvedValue(null);
-        repositories.ecogRepo.findByEncounterId.mockResolvedValue(null);
+        repositories.vitalRepo.findAllByPatientId.mockResolvedValue([]);
+        repositories.assessmentRepo.findEvaByPatientId.mockResolvedValue([]);
+        repositories.procedureRepo.findAllByPatientId.mockResolvedValue([]);
     });
 
     it("sorts finished encounters by actualStartAt with fallback compatibility", async () => {
