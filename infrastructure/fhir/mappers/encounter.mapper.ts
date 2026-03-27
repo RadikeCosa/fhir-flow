@@ -8,7 +8,6 @@ import type {
 import {
     composeLocalDateTimeToUtcIso,
     parsePlannedDateAndTime,
-    isDateOnly,
 } from "../../../lib/date-time/date-time.utils";
 import { extractId } from "./shared/extract-helpers";
 

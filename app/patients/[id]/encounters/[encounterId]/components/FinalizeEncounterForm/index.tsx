@@ -42,9 +42,6 @@ const getProcedureCodes = (
   category: ProcedureCategory,
 ): readonly ProcedureCode[] => PROCEDURE_CODES_BY_CATEGORY[category];
 
-const getDefaultProcedureCode = (category: ProcedureCategory): ProcedureCode =>
-  getProcedureCodes(category)[0];
-
 const isProcedureCategory = (value: string): value is ProcedureCategory =>
   ProcedureCategoryValues.includes(value as ProcedureCategory);
 
@@ -527,8 +524,6 @@ export default function FinalizeEncounterForm({
                         <select
                           {...categoryField}
                           onChange={(event) => {
-                            const nextCategory = event.currentTarget.value;
-
                             categoryField.onChange(event);
                             setValue(`procedures.${index}.code`, "", {
                               shouldDirty: true,
