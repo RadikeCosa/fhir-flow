@@ -4,12 +4,14 @@ import {
     validateEncounterRules,
     validateFinalizeEncounterRules,
     validateFinalizeEncounterStatus,
+    validateStartEncounterRules,
     validateStartEncounterStatus,
 } from "../domain-rules.validator";
 import { DomainRuleError } from "../error-types";
 import type {
     CreateEncounterInput,
     FinalizeEncounterInput,
+    StartEncounterInput,
 } from "../../encounters/encounter.write-input";
 
 function makeInput(overrides: Partial<CreateEncounterInput> = {}): CreateEncounterInput {
@@ -165,5 +167,38 @@ describe("validateStartEncounterStatus", () => {
         expect(() => validateStartEncounterStatus("finished")).toThrowError(
             "Only planned encounters can be started"
         );
+    });
+});
+
+describe("validateStartEncounterRules", () => {
+    function makeStartInput(overrides: Partial<StartEncounterInput> = {}): StartEncounterInput {
+        return {
+            encounterId: "enc-1",
+            patientId: "pat-1",
+            actualStartAt: "2026-03-20T10:00:00.000Z",
+            ...overrides,
+        };
+    }
+
+    it("rejects missing actualStartAt", () => {
+        expect(() =>
+            validateStartEncounterRules(makeStartInput({ actualStartAt: "" }))
+        ).toThrowError("actualStartAt debe ser un datetime ISO con componente de tiempo");
+    });
+
+    it("rejects invalid actualStartAt ISO datetime", () => {
+        expect(() =>
+            validateStartEncounterRules(makeStartInput({ actualStartAt: "2026-03-20" }))
+        ).toThrowError("actualStartAt debe ser un datetime ISO con componente de tiempo");
+
+        expect(() =>
+            validateStartEncounterRules(makeStartInput({ actualStartAt: "not-a-dateT10:00:00" }))
+        ).toThrowError("actualStartAt debe ser un datetime ISO válido");
+    });
+
+    it("accepts valid actualStartAt ISO datetime", () => {
+        expect(() =>
+            validateStartEncounterRules(makeStartInput())
+        ).not.toThrow();
     });
 });
