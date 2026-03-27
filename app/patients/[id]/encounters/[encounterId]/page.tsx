@@ -38,7 +38,7 @@ export default async function EncounterDetailPage({ params }: PageProps) {
   const {
     encounter,
     patient,
-    practitioner,
+    practitionerName,
     vitalSigns,
     evaRecords,
     procedures,
@@ -215,7 +215,7 @@ export default async function EncounterDetailPage({ params }: PageProps) {
                 <FinalizeEncounterForm
                   patientId={patientId}
                   encounterId={encounterId}
-                  practitionerName={practitioner.displayName}
+                  practitionerName={practitionerName ?? "Profesional no disponible"}
                   plannedDate={encounter.plannedDate}
                   plannedTime={encounter.plannedTime}
                   actualStartAt={encounter.actualStartAt}
