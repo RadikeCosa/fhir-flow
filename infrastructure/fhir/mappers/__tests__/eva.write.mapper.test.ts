@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { FinalizeEncounterInput } from "../../../../../domain/encounters/encounter.write-input";
+import type { FinalizeEncounterInput } from "../../../../domain/encounters/encounter.write-input";
 import { mapToFhirEvaObservation } from "../assessments/eva.write.mapper";
 
 const buildInput = (
