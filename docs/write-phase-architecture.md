@@ -380,9 +380,9 @@ After a successful write flow, the canonical follow-up read for a single encount
 
 The ADR defines finished encounter detail as the canonical read target.
 
-That canonical intent is already in force architecturally, but the fully hydrated read-only finished detail remains technical debt where implementation is still incomplete.
+That canonical intent is already in force architecturally and is functionally resolved in the current implementation: detail is re-read from source-of-truth repositories, finished detail hydrates note/vital signs/EVA/procedures, and finalize redirects to the same canonical detail route.
 
-This document must not describe finished detail as if that debt were already resolved.
+Remaining debt here is narrower and peripheral (for example, avoiding clinical overloading in history surfaces), not a broad gap in canonical finished detail.
 
 ## FHIR Client Write Behavior
 
@@ -438,9 +438,9 @@ Clinical data is currently created at finalization time rather than through a se
 
 This is the current implemented model, not the target end state.
 
-### 3. Canonical Finished Detail Still Incomplete
+### 3. Canonical Finished Detail Substantially Resolved
 
-Encounter detail is the canonical target by architecture, but the fully hydrated read-only finished view is still implementation debt.
+Encounter detail is the canonical target by architecture and this is now substantially resolved in runtime behavior; only peripheral adjustments remain.
 
 ### 4. Error Detail Typing Still Transitional
 
@@ -475,7 +475,7 @@ When contributors add or modify write behavior, they must preserve the following
 - explicit `planned -> in-progress -> finished` write lifecycle
 - partial persistence while an encounter is `in-progress`
 - stricter finalization that requires `in-progress`
-- fully hydrated read-only finished encounter detail
+- peripheral follow-ups around canonical finished detail (for example, keeping history lean)
 - typed error detail models by layer
 
 ### Explicitly Transitional

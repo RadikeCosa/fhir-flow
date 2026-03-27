@@ -33,7 +33,7 @@ Este documento reemplaza el enfoque de "aprobado total" por una validación hone
 | Inverse mapper purity | **Parcialmente válido** | Regla arquitectónica es clara: mapper puro, sin resolver identidad ni reglas de negocio. Persisten riesgos de drift cuando la resolución de contexto no entra por input. | copilot instructions + ADR (responsabilidad de practitioner en Server Action). | Verificar por flujo que mapper solo transforme input validado y no lea config. |
 | Practitioner resolution | **Parcialmente válido** | El ADR fija que la resolución de practitioner es server-side y luego via write input. La dirección está cerrada, la implementación requiere consistencia completa entre create/finalize. | ADR sección de practitioner responsibility + write-phase. | Completar uniformidad de input (`performerId`, `practitionerName`) en todos los writes. |
 | Transitional `planned -> finished` | **Deuda conocida** | Sigue permitido por compatibilidad transicional. No representa el lifecycle objetivo. | ADR + write-phase lo declaran explícitamente como transición. | Implementar `startEncounterAction` y migrar finalización para requerir `in-progress`. |
-| Canonical read debt | **Deuda conocida** | Arquitectura define detalle de encounter como canonical read post-write, pero la hidratación final completa aún es deuda. | ADR + write-phase (Canonical Read After Write). | Priorizar ticket de detalle canónico por estado y reducir dependencia clínica en history. |
+| Canonical read (finished detail) | **Parcialmente válido** | La ruta de detail ya opera como canonical read post-write en términos funcionales (relectura desde source of truth + hidratación clínica en `finished` + redirect de finalize al detail). Quedan ajustes periféricos, como seguir adelgazando history donde aplique. | ADR + write-phase (Canonical Read After Write). | Mantener ajustes menores de consumo/read-model sin reabrir esta deuda como brecha mayor. |
 | Documentation drift | **Parcialmente válido** | Documentación alinea dirección, pero hubo deriva de tono (“todo aprobado”) y riesgo de leer transición como estado final. | Diferencia entre validación previa y lenguaje explícito de ADR/write-phase. | Mantener este documento como checklist vivo y actualizar por fase/ticket real. |
 
 ## Revisión explícita por tema solicitado
@@ -74,11 +74,11 @@ La responsabilidad quedó correctamente asignada por ADR: resolver practitioner 
 
 Es compatibilidad transicional aceptada, no diseño objetivo. Debe tratarse como excepción temporal hasta habilitar transición explícita `planned -> in-progress -> finished`.
 
-### 7. Canonical read debt
+### 7. Canonical read de finished detail
 
-**Estado:** Deuda conocida
+**Estado:** Parcialmente válido
 
-La intención arquitectónica está cerrada (detalle como fuente canónica para una encounter), pero su implementación aún no está completa en el estado `finished`. No debe comunicarse como cerrado.
+La intención arquitectónica está cerrada (detalle como fuente canónica para una encounter) y hoy está sustancialmente resuelta en implementación para `finished`. La deuda restante es menor y periférica (por ejemplo, mantener history sin carga clínica innecesaria), no una brecha estructural del canonical read.
 
 ### 8. Documentation drift
 
@@ -90,7 +90,7 @@ La base documental principal (copilot instructions + write-phase + ADR) está al
 
 1. Implementar transición operacional `planned -> in-progress` (`startEncounterAction`).
 2. Endurecer finalización para requerir `in-progress` cuando el start esté operativo.
-3. Completar canonical read del detalle de encounter `finished` con hidratación clínica completa.
+3. Consolidar ajustes periféricos del canonical read (principalmente mantener liviano history cuando corresponda) sin reintroducir lógica clínica duplicada.
 4. Tipar `ActionError.details` por variante/capa sin romper `ActionResult`.
 5. Cerrar consistencia total de practitioner context en todos los write inputs.
 
@@ -111,6 +111,6 @@ Usar este checklist en cada cambio de write flow:
 
 La arquitectura **no está “todo aprobado”**.
 
-El sistema tiene bases sólidas en boundaries y responsabilidades, pero mantiene deuda explícita en lifecycle operativo, canonical read y cierre del contrato de errores tipados. La validación correcta hoy es: **base válida + transición activa + deuda reconocida + pendientes concretos del ADR**.
+El sistema tiene bases sólidas en boundaries y responsabilidades, mantiene deuda explícita en lifecycle operativo y cierre del contrato de errores tipados, y deja el canonical read de `finished` sustancialmente resuelto con pendientes periféricos. La validación correcta hoy es: **base válida + transición activa + deuda reconocida + pendientes concretos del ADR**.
 
 Nota: los últimos refactors de la capa `app/` (loaders, contratos y convención de rutas en patients/encounters) están resumidos en `docs/architecture/current/app-architecture-checkpoint-2026-03.md`.

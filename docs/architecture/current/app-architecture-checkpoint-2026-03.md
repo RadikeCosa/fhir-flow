@@ -202,8 +202,9 @@ This convention is now consistently present in the main patient/encounter routes
 
 This refactor round did **not** attempt to solve the following:
 
-### 1. full canonical read for finished encounter detail
-The encounter detail route is still the canonical read surface by architectural direction, but the fully hydrated finished detail remains incomplete and is still tracked as existing debt in architecture documentation.
+### 1. canonical read for finished encounter detail (mostly resolved)
+The encounter detail route remains the canonical read surface by architectural direction and is functionally resolved for `finished` in current runtime behavior (source-of-truth re-read + hydration of note/vitals/EVA/procedures + finalize redirect to detail).
+What remains open is narrower: peripheral read-model cleanup (for example, avoiding unnecessary clinical load in history surfaces).
 
 ### 2. final shape of `encounters/data.ts`
 The encounters loader still serves both:
@@ -255,7 +256,7 @@ When changing route-level UI in the patients/encounters area:
 - some infrastructure leakage into encounter detail presentation
 
 ### Still open
-- canonical finished encounter detail hydration
+- peripheral canonical-read cleanup outside finished detail core path (for example, history load shape)
 - possible future redesign of `encounters/data.ts`
 - possible future slimming of `EncounterList`
 - possible future partitioning of `FinalizeEncounterForm`
