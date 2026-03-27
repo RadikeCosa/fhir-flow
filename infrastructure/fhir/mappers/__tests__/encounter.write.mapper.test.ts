@@ -21,8 +21,12 @@ function makeInput(overrides: Partial<CreateEncounterInput> = {}): CreateEncount
         practitionerName: "Lic. Ramiro Perez",
         performerId: "kine-1",
         episodeOfCareId: "episode-1",
-        plannedDate: "2026-03-20",
-        plannedTime: "10:00",
+        plannedSchedule: {
+            kind: "datetime",
+            plannedDate: "2026-03-20",
+            plannedTime: "10:00",
+            plannedAtUtc: "2026-03-20T13:00:00.000Z",
+        },
         visitType: "follow-up",
         reasonDisplay: "Control programado",
         note: "Paciente estable",
@@ -42,28 +46,33 @@ describe("mapToFhirEncounter", () => {
     it("writes period.start as UTC datetime when plannedTime is present", async () => {
         const { mapToFhirEncounter } = await loadMapperModule();
         const result = mapToFhirEncounter(
-            makeInput({ plannedDate: "2026-03-20", plannedTime: "10:00" })
+            makeInput({
+                plannedSchedule: {
+                    kind: "datetime",
+                    plannedDate: "2026-03-20",
+                    plannedTime: "10:00",
+                    plannedAtUtc: "2026-03-20T13:00:00.000Z",
+                },
+            })
         );
+        const period = result.period as { start?: string } | undefined;
 
-        expect(result.period?.start).toBe("2026-03-20T13:00:00.000Z");
+        expect(period?.start).toBe("2026-03-20T13:00:00.000Z");
     });
 
     it("writes period.start as date-only when plannedTime is missing", async () => {
         const { mapToFhirEncounter } = await loadMapperModule();
         const result = mapToFhirEncounter(
-            makeInput({ plannedDate: "2026-03-20", plannedTime: undefined })
+            makeInput({
+                plannedSchedule: {
+                    kind: "date",
+                    plannedDate: "2026-03-20",
+                },
+            })
         );
+        const period = result.period as { start?: string } | undefined;
 
-        expect(result.period?.start).toBe("2026-03-20");
-    });
-
-    it("writes period.start as date-only when plannedTime is empty string", async () => {
-        const { mapToFhirEncounter } = await loadMapperModule();
-        const result = mapToFhirEncounter(
-            makeInput({ plannedDate: "2026-03-20", plannedTime: "" })
-        );
-
-        expect(result.period?.start).toBe("2026-03-20");
+        expect(period?.start).toBe("2026-03-20");
     });
 
 

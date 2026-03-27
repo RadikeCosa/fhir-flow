@@ -18,8 +18,12 @@ function makeInput(overrides: Partial<CreateEncounterInput> = {}): CreateEncount
         practitionerName: "Lic. Ramiro Perez",
         performerId: "kine-1",
         episodeOfCareId: "episode-1",
-        plannedDate: "2026-03-20",
-        plannedTime: "10:00",
+        plannedSchedule: {
+            kind: "datetime",
+            plannedDate: "2026-03-20",
+            plannedTime: "10:00",
+            plannedAtUtc: "2026-03-20T13:00:00.000Z",
+        },
         visitType: "follow-up",
         reasonDisplay: "Control",
         note: "Visita planificada",
@@ -55,13 +59,29 @@ describe("validateEncounterRules", () => {
 
     it("accepts planned date without planned time", () => {
         expect(() =>
-            validateEncounterRules(makeInput({ plannedDate: "2026-03-20", plannedTime: undefined }))
+            validateEncounterRules(
+                makeInput({
+                    plannedSchedule: {
+                        kind: "date",
+                        plannedDate: "2026-03-20",
+                    },
+                })
+            )
         ).not.toThrow();
     });
 
-    it("throws for invalid planned time format", () => {
+    it("throws for invalid planned datetime payload", () => {
         expect(() =>
-            validateEncounterRules(makeInput({ plannedTime: "25:70" }))
+            validateEncounterRules(
+                makeInput({
+                    plannedSchedule: {
+                        kind: "datetime",
+                        plannedDate: "2026-03-20",
+                        plannedTime: "10:00",
+                        plannedAtUtc: "invalid",
+                    },
+                })
+            )
         ).toThrowError(DomainRuleError);
     });
 });

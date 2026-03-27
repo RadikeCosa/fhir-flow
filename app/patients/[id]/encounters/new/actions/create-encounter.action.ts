@@ -12,6 +12,7 @@ import { FhirMapperError, FhirWriteError } from "../../../../../../domain/shared
 import { createEncounterRepository } from "../../../../../../infrastructure/fhir/factories/encounter.factory";
 import { getCurrentPractitioner } from "@/lib/server/current-practitioner";
 import { createEncounterFormSchema } from "../components/CreateEncounterForm/create-encounter-form.schema";
+import { normalizePlannedSchedule } from "./normalize-planned-schedule";
 
 export async function createEncounterAction(
     patientId: string,
@@ -58,8 +59,10 @@ export async function createEncounterAction(
         practitionerName,
         performerId,
         episodeOfCareId,
-        plannedDate: parseResult.data.plannedDate,
-        plannedTime: parseResult.data.plannedTime,
+        plannedSchedule: normalizePlannedSchedule({
+            plannedDate: parseResult.data.plannedDate,
+            plannedTime: parseResult.data.plannedTime,
+        }),
         visitType: parseResult.data.visitType,
         reasonDisplay: parseResult.data.reasonDisplay || null,
         note: parseResult.data.note || null,

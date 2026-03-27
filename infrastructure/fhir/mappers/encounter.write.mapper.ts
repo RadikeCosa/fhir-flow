@@ -12,7 +12,6 @@ import { FhirMapperError } from "../../../domain/shared/error-types";
 import type { FhirResource } from "../../../lib/fhir/fhir-client";
 import { CLINICAL_NOTE_EXTENSION_URL } from "../../../lib/fhir/systems";
 import { formatEncounterVisitType } from "../../../lib/patient/formatters/encounter.formatters";
-import { composeLocalDateTimeToUtcIso } from "../../../lib/date-time/date-time.utils";
 
 type EncounterWritePayload = FhirResource & {
     resourceType: "Encounter";
@@ -55,9 +54,9 @@ export function mapToFhirEncounter(input: CreateEncounterInput): EncounterWriteP
         );
     }
 
-    const periodStart = input.plannedTime
-        ? composeLocalDateTimeToUtcIso(input.plannedDate, input.plannedTime)
-        : input.plannedDate;
+    const periodStart = input.plannedSchedule.kind === "datetime"
+        ? input.plannedSchedule.plannedAtUtc
+        : input.plannedSchedule.plannedDate;
 
     const fhirEncounter: EncounterWritePayload = {
         resourceType: "Encounter",

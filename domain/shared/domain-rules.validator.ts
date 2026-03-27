@@ -5,10 +5,7 @@ import type { EncounterStatus, EncounterVisitType } from "../encounters/encounte
 import { PROCEDURE_CODES_BY_CATEGORY } from "../procedures/procedure-code-category.map";
 import {
     APP_TIME_ZONE,
-    composeLocalDateTimeToUtcIso,
     formatCalendarDateInTimeZone,
-    isDateOnly,
-    isValidLocalTimeString,
 } from "../../lib/date-time/date-time.utils";
 import { VITAL_SIGN_CAPTURE_RANGES } from "../../lib/clinical/vital-sign-capture-ranges";
 
@@ -46,63 +43,42 @@ export function validateEncounterRules(input: CreateEncounterInput): void {
         throw new DomainRuleError("Episode of care ID is required", "MISSING_EPISODE_ID");
     }
 
-    if (!isDateOnly(input.plannedDate)) {
-        throw new DomainRuleError(
-            "Planned date must be a valid YYYY-MM-DD date",
-            "INVALID_PLANNED_DATE"
-        );
-    }
-
-    if (input.plannedTime != null && input.plannedTime !== "" && !isValidLocalTimeString(input.plannedTime)) {
-        throw new DomainRuleError(
-            "Planned time must be a valid HH:mm value",
-            "INVALID_PLANNED_TIME"
-        );
-    }
-
     const now = new Date();
     const maxMoment = new Date(now.getTime());
     maxMoment.setDate(maxMoment.getDate() + 10);
 
-    if (input.plannedTime) {
-        try {
-            const plannedAtIso = composeLocalDateTimeToUtcIso(
-                input.plannedDate,
-                input.plannedTime,
-                APP_TIME_ZONE
-            );
-            const plannedAt = new Date(plannedAtIso);
-            if (plannedAt.getTime() < now.getTime()) {
-                throw new DomainRuleError(
-                    "Planned datetime cannot be in the past",
-                    "PAST_PLANNED_DATETIME"
-                );
-            }
-            if (plannedAt.getTime() > maxMoment.getTime()) {
-                throw new DomainRuleError(
-                    "Visit cannot be scheduled more than 10 days ahead",
-                    "PLANNING_WINDOW_EXCEEDED"
-                );
-            }
-        } catch (err) {
-            if (err instanceof DomainRuleError) throw err;
+    if (input.plannedSchedule.kind === "datetime") {
+        const plannedAt = new Date(input.plannedSchedule.plannedAtUtc);
+        if (isNaN(plannedAt.getTime())) {
             throw new DomainRuleError(
                 "Planned datetime is invalid",
                 "INVALID_PLANNED_DATETIME"
+            );
+        }
+        if (plannedAt.getTime() < now.getTime()) {
+            throw new DomainRuleError(
+                "Planned datetime cannot be in the past",
+                "PAST_PLANNED_DATETIME"
+            );
+        }
+        if (plannedAt.getTime() > maxMoment.getTime()) {
+            throw new DomainRuleError(
+                "Visit cannot be scheduled more than 10 days ahead",
+                "PLANNING_WINDOW_EXCEEDED"
             );
         }
     } else {
         const today = formatCalendarDateInTimeZone(now, APP_TIME_ZONE);
         const maxDate = formatCalendarDateInTimeZone(maxMoment, APP_TIME_ZONE);
 
-        if (input.plannedDate < today) {
+        if (input.plannedSchedule.plannedDate < today) {
             throw new DomainRuleError(
                 "Planned date cannot be before today",
                 "PAST_PLANNED_DATE"
             );
         }
 
-        if (input.plannedDate > maxDate) {
+        if (input.plannedSchedule.plannedDate > maxDate) {
             throw new DomainRuleError(
                 "Visit cannot be scheduled more than 10 days ahead",
                 "PLANNING_WINDOW_EXCEEDED"

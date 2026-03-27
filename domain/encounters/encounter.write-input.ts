@@ -10,6 +10,7 @@
  */
 import type { EncounterVisitType } from "./encounter";
 import type { ProcedureCategory, ProcedureCode } from "../procedures/procedure";
+import type { PlannedSchedule } from "./planned-schedule";
 
 export interface CreateEncounterInput {
     /**
@@ -34,15 +35,9 @@ export interface CreateEncounterInput {
     episodeOfCareId: string;
 
     /**
-     * Planned calendar date for the encounter in YYYY-MM-DD format.
+     * Canonical planned schedule representation for the encounter.
      */
-    plannedDate: string;
-
-    /**
-     * Optional planned local time in HH:mm format.
-     * When omitted, the encounter remains planned without explicit schedule time.
-     */
-    plannedTime?: string | null;
+    plannedSchedule: PlannedSchedule;
 
     /**
      * Visit type, used for the `Encounter.type` coding.

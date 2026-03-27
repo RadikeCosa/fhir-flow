@@ -62,8 +62,12 @@ describe("createEncounterAction", () => {
             expect.objectContaining({
                 practitionerName: "Lic. Ramiro Perez",
                 performerId: "kine-1",
-                plannedDate: "2026-03-20",
-                plannedTime: "10:00",
+                plannedSchedule: {
+                    kind: "datetime",
+                    plannedDate: "2026-03-20",
+                    plannedTime: "10:00",
+                    plannedAtUtc: "2026-03-20T13:00:00.000Z",
+                },
             })
         );
         expect(revalidatePathMock).toHaveBeenNthCalledWith(1, "/patients/patient-1");
@@ -204,8 +208,10 @@ describe("createEncounterAction", () => {
 
         expect(createMock).toHaveBeenCalledWith(
             expect.objectContaining({
-                plannedDate: "2026-03-20",
-                plannedTime: undefined,
+                plannedSchedule: {
+                    kind: "date",
+                    plannedDate: "2026-03-20",
+                },
             })
         );
     });
