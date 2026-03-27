@@ -6,17 +6,16 @@ import type {
     ActionError,
     ActionResult,
 } from "../../../../../../domain/shared/action-result.types";
+import type { StartEncounterInput } from "../../../../../../domain/encounters/encounter.write-input";
 import {
     DomainRuleError,
+    validateStartEncounterRules,
     validateStartEncounterStatus,
 } from "../../../../../../domain/shared/domain-rules.validator";
 import { FhirMapperError, FhirWriteError } from "../../../../../../domain/shared/error-types";
-import {
-    composeLocalDateTimeToUtcIso,
-    isDateOnly,
-    isValidLocalTimeString,
-} from "../../../../../../lib/date-time/date-time.utils";
+import { composeLocalDateTimeToUtcIso } from "../../../../../../lib/date-time/date-time.utils";
 import { createEncounterRepository } from "../../../../../../infrastructure/fhir/factories/encounter.factory";
+import { startEncounterFormSchema } from "../components/StartEncounterForm/start-encounter-form.schema";
 
 function isOperationOutcomeError(
     error: unknown
@@ -44,6 +43,22 @@ export async function startEncounterAction(
     actualStartDate: string,
     actualStartTime: string
 ): Promise<ActionResult<void>> {
+    const parseResult = startEncounterFormSchema.safeParse({
+        actualStartDate,
+        actualStartTime,
+    });
+    if (!parseResult.success) {
+        return {
+            success: false,
+            error: {
+                layer: "validation",
+                message: "Invalid form data",
+                code: "FORM_VALIDATION_FAILED",
+                details: parseResult.error.flatten(),
+            } satisfies ActionError,
+        };
+    }
+
     const repo = createEncounterRepository();
 
     let encounter: Awaited<ReturnType<typeof repo.findById>>;
@@ -110,6 +125,7 @@ export async function startEncounterAction(
             } satisfies ActionError,
         };
     }
+
     if (!encounter) {
         return {
             success: false,
@@ -132,8 +148,18 @@ export async function startEncounterAction(
         };
     }
 
+    const input: StartEncounterInput = {
+        encounterId: encounter.id,
+        patientId: encounter.patientId,
+        actualStartAt: composeLocalDateTimeToUtcIso(
+            parseResult.data.actualStartDate,
+            parseResult.data.actualStartTime
+        ),
+    };
+
     try {
         validateStartEncounterStatus(encounter.status);
+        validateStartEncounterRules(input);
     } catch (error: unknown) {
         if (error instanceof DomainRuleError) {
             return {
@@ -150,37 +176,14 @@ export async function startEncounterAction(
             success: false,
             error: {
                 layer: "domain",
-                message: "No se pudo validar el estado del encuentro",
-                code: "ENCOUNTER_STATUS_VALIDATION_FAILED",
+                message: "No se pudo validar el inicio del encuentro",
+                code: "ENCOUNTER_START_VALIDATION_FAILED",
             } satisfies ActionError,
         };
     }
 
     try {
-        if (!isDateOnly(actualStartDate)) {
-            return {
-                success: false,
-                error: {
-                    layer: "validation",
-                    message: "La fecha real debe tener formato YYYY-MM-DD",
-                    code: "ACTUAL_START_DATE_INVALID",
-                } satisfies ActionError,
-            };
-        }
-
-        if (!isValidLocalTimeString(actualStartTime)) {
-            return {
-                success: false,
-                error: {
-                    layer: "validation",
-                    message: "La hora real debe tener formato HH:mm",
-                    code: "ACTUAL_START_TIME_INVALID",
-                } satisfies ActionError,
-            };
-        }
-
-        const actualStartAt = composeLocalDateTimeToUtcIso(actualStartDate, actualStartTime);
-        await repo.startEncounter(encounter.id, actualStartAt);
+        await repo.startEncounter(input);
 
         revalidatePath(`/patients/${patientId}`);
         revalidatePath(`/patients/${patientId}/encounters`);

@@ -138,10 +138,11 @@ describe("startEncounterAction", () => {
             "NEXT_REDIRECT"
         );
 
-        expect(startEncounterMock).toHaveBeenCalledWith(
-            "enc-123",
-            "2026-03-20T13:00:00.000Z"
-        );
+        expect(startEncounterMock).toHaveBeenCalledWith({
+            encounterId: "enc-123",
+            patientId: "patient-1",
+            actualStartAt: "2026-03-20T13:00:00.000Z",
+        });
         expect(revalidatePathMock).toHaveBeenNthCalledWith(1, "/patients/patient-1");
         expect(revalidatePathMock).toHaveBeenNthCalledWith(2, "/patients/patient-1/encounters");
         expect(revalidatePathMock).toHaveBeenNthCalledWith(3, "/patients/patient-1/encounters/enc-123");
@@ -210,8 +211,9 @@ describe("startEncounterAction", () => {
             success: false,
             error: {
                 layer: "validation",
-                message: "La fecha real debe tener formato YYYY-MM-DD",
-                code: "ACTUAL_START_DATE_INVALID",
+                message: "Invalid form data",
+                code: "FORM_VALIDATION_FAILED",
+                details: expect.any(Object),
             },
         });
 
@@ -227,8 +229,9 @@ describe("startEncounterAction", () => {
             success: false,
             error: {
                 layer: "validation",
-                message: "La hora real debe tener formato HH:mm",
-                code: "ACTUAL_START_TIME_INVALID",
+                message: "Invalid form data",
+                code: "FORM_VALIDATION_FAILED",
+                details: expect.any(Object),
             },
         });
 
