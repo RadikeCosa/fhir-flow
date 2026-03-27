@@ -168,64 +168,84 @@ export default function FinalizeEncounterForm({
         <div className="rounded-lg border border-border bg-surface p-4">
           <h2 className="font-semibold">Datos del cierre</h2>
 
-          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <div>
-              <label htmlFor="actualDate" className="block text-sm font-medium">
-                Fecha real
-              </label>
-              <input
-                type="date"
-                id="actualDate"
-                {...register("actualDate")}
-                className="mt-1 block w-full rounded-md border border-border px-3 py-2"
-              />
-              {formState.errors.actualDate && (
-                <p className="text-xs text-red-600">
-                  {formState.errors.actualDate.message}
-                </p>
-              )}
-            </div>
+          <fieldset className="mt-3 space-y-3">
+            <legend className="text-sm font-medium text-foreground">
+              Tiempo real de la visita
+            </legend>
+            <p
+              id="actualTimingHint"
+              className="mt-1 text-xs text-muted-foreground"
+            >
+              Completá fecha, inicio y fin en formato 24 horas.
+            </p>
 
-            <div>
-              <label
-                htmlFor="actualStartTime"
-                className="block text-sm font-medium"
-              >
-                Inicio real
-              </label>
-              <input
-                type="time"
-                id="actualStartTime"
-                {...register("actualStartTime")}
-                className="mt-1 block w-full rounded-md border border-border px-3 py-2"
-              />
-              {formState.errors.actualStartTime && (
-                <p className="text-xs text-red-600">
-                  {formState.errors.actualStartTime.message}
-                </p>
-              )}
-            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div>
+                <label
+                  htmlFor="actualDate"
+                  className="block text-sm font-medium text-foreground"
+                >
+                  Fecha real de la visita
+                </label>
+                <input
+                  type="date"
+                  id="actualDate"
+                  aria-describedby="actualTimingHint"
+                  {...register("actualDate")}
+                  className="mt-1 block w-full rounded-md border border-border px-3 py-2"
+                />
+                {formState.errors.actualDate && (
+                  <p className="text-xs text-red-600">
+                    {formState.errors.actualDate.message}
+                  </p>
+                )}
+              </div>
 
-            <div>
-              <label
-                htmlFor="actualEndTime"
-                className="block text-sm font-medium"
-              >
-                Fin real
-              </label>
-              <input
-                type="time"
-                id="actualEndTime"
-                {...register("actualEndTime")}
-                className="mt-1 block w-full rounded-md border border-border px-3 py-2"
-              />
-              {formState.errors.actualEndTime && (
-                <p className="text-xs text-red-600">
-                  {formState.errors.actualEndTime.message}
-                </p>
-              )}
+              <div>
+                <label
+                  htmlFor="actualStartTime"
+                  className="block text-sm font-medium text-foreground"
+                >
+                  Hora de inicio
+                </label>
+                <input
+                  type="time"
+                  id="actualStartTime"
+                  step={300}
+                  aria-describedby="actualTimingHint"
+                  {...register("actualStartTime")}
+                  className="mt-1 block w-full rounded-md border border-border px-3 py-2"
+                />
+                {formState.errors.actualStartTime && (
+                  <p className="text-xs text-red-600">
+                    {formState.errors.actualStartTime.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="actualEndTime"
+                  className="block text-sm font-medium text-foreground"
+                >
+                  Hora de fin
+                </label>
+                <input
+                  type="time"
+                  id="actualEndTime"
+                  step={300}
+                  aria-describedby="actualTimingHint"
+                  {...register("actualEndTime")}
+                  className="mt-1 block w-full rounded-md border border-border px-3 py-2"
+                />
+                {formState.errors.actualEndTime && (
+                  <p className="text-xs text-red-600">
+                    {formState.errors.actualEndTime.message}
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
+          </fieldset>
 
           <div className="mt-3">
             <label htmlFor="clinicalNote" className="block text-sm font-medium">
