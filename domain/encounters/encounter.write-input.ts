@@ -58,6 +58,12 @@ export interface CreateEncounterInput {
     reasonDisplay?: string | null;
 }
 
+export interface StartEncounterInput {
+    encounterId: string;
+    patientId: string;
+    actualStartAt: string;
+}
+
 /**
  * Input for finalizing an encounter with clinical observations, procedures and
  * optional summary notes.
