@@ -56,9 +56,6 @@ describe("EncounterList finished sorting", () => {
                 proceduresByEncounterId: {},
                 vitalsByEncounterId: {},
                 evaByEncounterId: {},
-                barthelByEncounterId: {},
-                necpalByEncounterId: {},
-                ecogByEncounterId: {},
             })
         );
 
@@ -93,9 +90,6 @@ describe("EncounterList finished sorting", () => {
                 proceduresByEncounterId: {},
                 vitalsByEncounterId: {},
                 evaByEncounterId: {},
-                barthelByEncounterId: {},
-                necpalByEncounterId: {},
-                ecogByEncounterId: {},
             })
         );
 

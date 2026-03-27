@@ -34,9 +34,6 @@ describe("EncounterCard planned render", () => {
                 procedures: [],
                 vitalSigns: [],
                 evaRecords: [],
-                barthelAssessment: null,
-                necpalAssessment: null,
-                ecogAssessment: null,
             })
         );
 
@@ -52,9 +49,6 @@ describe("EncounterCard planned render", () => {
                 procedures: [],
                 vitalSigns: [],
                 evaRecords: [],
-                barthelAssessment: null,
-                necpalAssessment: null,
-                ecogAssessment: null,
             })
         );
 
