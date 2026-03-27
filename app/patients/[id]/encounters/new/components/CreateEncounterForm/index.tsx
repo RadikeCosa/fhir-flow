@@ -162,7 +162,7 @@ export function CreateEncounterForm({
             Fecha de la visita
           </label>
           <p id="plannedDateHint" className="mt-1 text-xs text-muted-foreground">
-            Elegí una fecha entre hoy y los próximos 10 días.
+            Entre hoy y los próximos 10 días.
           </p>
           <input
             type="date"
@@ -189,7 +189,7 @@ export function CreateEncounterForm({
             Hora de la visita (opcional)
           </label>
           <p id="plannedTimeHint" className="mt-1 text-xs text-muted-foreground">
-            Si la dejás vacía, la visita se planifica solo con fecha.
+            Si queda vacía, se planifica solo con fecha.
           </p>
           <input
             type="time"

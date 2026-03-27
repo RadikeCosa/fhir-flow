@@ -168,15 +168,15 @@ export default function FinalizeEncounterForm({
         <div className="rounded-lg border border-border bg-surface p-4">
           <h2 className="font-semibold">Datos del cierre</h2>
 
-          <fieldset className="mt-3 space-y-3">
+          <fieldset className="mt-3 space-y-4">
             <legend className="text-sm font-medium text-foreground">
-              Tiempo real de la visita
+              Planificación temporal
             </legend>
             <p
               id="actualTimingHint"
               className="text-xs text-muted-foreground"
             >
-              Completá fecha, hora de inicio y hora de fin en formato 24 horas.
+              Registrá fecha y horario real en formato 24 horas.
             </p>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -185,14 +185,14 @@ export default function FinalizeEncounterForm({
                   htmlFor="actualDate"
                   className="block text-sm font-medium text-foreground"
                 >
-                  Fecha de realización
+                  Fecha de la visita
                 </label>
                 <input
                   type="date"
                   id="actualDate"
                   aria-describedby="actualTimingHint"
                   {...register("actualDate")}
-                  className="mt-1 block w-full rounded-md border border-border px-3 py-2"
+                  className="mt-1 block w-full rounded-md border border-border px-3 py-2 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm"
                 />
                 {formState.errors.actualDate && (
                   <p className="text-xs text-red-600">
@@ -206,7 +206,7 @@ export default function FinalizeEncounterForm({
                   htmlFor="actualStartTime"
                   className="block text-sm font-medium text-foreground"
                 >
-                  Hora de inicio real
+                  Hora de inicio
                 </label>
                 <input
                   type="time"
@@ -214,7 +214,7 @@ export default function FinalizeEncounterForm({
                   step={300}
                   aria-describedby="actualTimingHint"
                   {...register("actualStartTime")}
-                  className="mt-1 block w-full rounded-md border border-border px-3 py-2"
+                  className="mt-1 block w-full rounded-md border border-border px-3 py-2 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm"
                 />
                 {formState.errors.actualStartTime && (
                   <p className="text-xs text-red-600">
@@ -228,7 +228,7 @@ export default function FinalizeEncounterForm({
                   htmlFor="actualEndTime"
                   className="block text-sm font-medium text-foreground"
                 >
-                  Hora de fin real
+                  Hora de fin
                 </label>
                 <input
                   type="time"
@@ -236,7 +236,7 @@ export default function FinalizeEncounterForm({
                   step={300}
                   aria-describedby="actualTimingHint"
                   {...register("actualEndTime")}
-                  className="mt-1 block w-full rounded-md border border-border px-3 py-2"
+                  className="mt-1 block w-full rounded-md border border-border px-3 py-2 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm"
                 />
                 {formState.errors.actualEndTime && (
                   <p className="text-xs text-red-600">
