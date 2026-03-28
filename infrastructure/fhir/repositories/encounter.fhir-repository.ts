@@ -7,12 +7,17 @@ import { fhirEncounterSchema } from "../schemas/encounter.schema";
 import { mapFhirEncounterToEncounter } from "../mappers/encounter.mapper";
 import { mapToFhirEncounter } from "../mappers/encounter.write.mapper";
 import { buildFinalizeEncounterBundle } from "../mappers/finalize-encounter-bundle.mapper";
+import {
+    buildSaveEncounterProgressBundle,
+    type ExistingEncounterClinicalSnapshot,
+} from "../mappers/save-encounter-progress-bundle.mapper";
 import { mapToStartedEncounterUpdate } from "../mappers/encounter.start.mapper";
 import { FhirMapperError } from "../../../domain/shared/error-types";
 
 import type {
     CreateEncounterInput,
     FinalizeEncounterInput,
+    SaveEncounterProgressInput,
     StartEncounterInput,
 } from "../../../domain/encounters/encounter.write-input";
 import type { EncounterRepository } from "../../../domain/encounters/encounter.repository";
@@ -31,6 +36,15 @@ export class EncounterFhirRepository implements EncounterRepository {
     constructor(private client: FhirClient, logger: Logger = defaultLogger) {
         this.logger = logger;
     }
+
+    private static readonly SNAPSHOT_OBSERVATION_CODES = [
+        "8867-4",
+        "9279-1",
+        "59408-5",
+        "8310-5",
+        "85354-9",
+        "72514-3",
+    ] as const;
 
     /**
      * Validate a raw value against the encounter schema, returning the typed
@@ -175,6 +189,82 @@ export class EncounterFhirRepository implements EncounterRepository {
 
     public async finalize(input: FinalizeEncounterInput): Promise<void> {
         const bundle = buildFinalizeEncounterBundle(input);
+        await this.client.postBundle(bundle);
+    }
+
+    private async findSnapshotResourceIds(
+        encounterId: string
+    ): Promise<ExistingEncounterClinicalSnapshot> {
+        const observationBundle = await this.client.search<unknown>(
+            "Observation",
+            {
+                encounter: `Encounter/${encounterId}`,
+                code: EncounterFhirRepository.SNAPSHOT_OBSERVATION_CODES.join(","),
+                _count: "200",
+            },
+            { cache: "no-store" }
+        );
+        const observationIds = safeGetResources(observationBundle)
+            .map((resource) => {
+                if (typeof resource !== "object" || resource === null) {
+                    return null;
+                }
+                const maybeResource = resource as Record<string, unknown>;
+                if (
+                    maybeResource.resourceType !== "Observation" ||
+                    typeof maybeResource.id !== "string" ||
+                    maybeResource.id.trim() === ""
+                ) {
+                    return null;
+                }
+                return maybeResource.id;
+            })
+            .filter((id): id is string => id !== null);
+
+        const procedureBundle = await this.client.search<unknown>(
+            "Procedure",
+            {
+                encounter: `Encounter/${encounterId}`,
+                _count: "200",
+            },
+            { cache: "no-store" }
+        );
+        const procedureIds = safeGetResources(procedureBundle)
+            .map((resource) => {
+                if (typeof resource !== "object" || resource === null) {
+                    return null;
+                }
+                const maybeResource = resource as Record<string, unknown>;
+                if (
+                    maybeResource.resourceType !== "Procedure" ||
+                    typeof maybeResource.id !== "string" ||
+                    maybeResource.id.trim() === ""
+                ) {
+                    return null;
+                }
+                return maybeResource.id;
+            })
+            .filter((id): id is string => id !== null);
+
+        return { observationIds, procedureIds };
+    }
+
+    public async saveProgress(input: SaveEncounterProgressInput): Promise<void> {
+        const existing = await this.client.read<FhirResource>("Encounter", input.encounterId, {
+            cache: "no-store",
+        });
+        const encounter = this.parseEncounter(existing);
+
+        if (!encounter) {
+            throw new FhirMapperError("Encounter resource is invalid", "INVALID_ENCOUNTER_RESOURCE");
+        }
+
+        const existingSnapshot = await this.findSnapshotResourceIds(input.encounterId);
+        const bundle = buildSaveEncounterProgressBundle(
+            input,
+            existing as Record<string, unknown>,
+            existingSnapshot
+        );
         await this.client.postBundle(bundle);
     }
 

@@ -20,6 +20,10 @@ const VITAL_SIGNS_CATEGORY = [
 ];
 
 type VitalSignObservationInput = ClinicalResourceContext &
+    {
+        effectiveDateTime?: string;
+        actualEndAt?: string;
+    } &
     Pick<
         PersistableClinicalPayload,
         | "heartRate"
@@ -30,7 +34,11 @@ type VitalSignObservationInput = ClinicalResourceContext &
         | "bloodPressureDiastolic"
     >;
 
-function createBaseObservationResource(input: ClinicalResourceContext): Record<string, unknown> {
+function createBaseObservationResource(
+    input: VitalSignObservationInput
+): Record<string, unknown> {
+    const effectiveDateTime = input.effectiveDateTime ?? input.actualEndAt;
+
     return {
         resourceType: "Observation",
         status: "final",
@@ -47,7 +55,7 @@ function createBaseObservationResource(input: ClinicalResourceContext): Record<s
                 display: input.practitionerName,
             },
         ],
-        effectiveDateTime: input.actualEndAt,
+        effectiveDateTime,
     };
 }
 
