@@ -1,8 +1,8 @@
 /**
- * Build FHIR Procedure entries from FinalizeEncounterInput.
+ * Build FHIR Procedure entries from PersistableClinicalPayload.
  * Pure mapper: no I/O, no side effects.
  */
-import type { FinalizeEncounterInput } from "../../../domain/encounters/encounter.write-input";
+import type { PersistableClinicalPayload } from "./shared/persistable-clinical-payload";
 import { PROCEDURE_SYSTEM } from "../../../lib/fhir/systems";
 import { FhirMapperError } from "../../../domain/shared/error-types";
 import { mapProcedureCode } from "./procedure.mapper";
@@ -11,7 +11,7 @@ function hasContent(value?: string): value is string {
     return typeof value === "string" && value.trim() !== "";
 }
 
-export function mapToFhirProcedures(input: FinalizeEncounterInput): Array<unknown> {
+export function mapToFhirProcedures(input: PersistableClinicalPayload): Array<unknown> {
     if (!Array.isArray(input.procedures) || input.procedures.length === 0) {
         return [];
     }

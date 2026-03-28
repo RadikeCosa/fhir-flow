@@ -17,6 +17,18 @@ function makeInput(
         actualEndAt: "2026-03-20T11:00:00.000Z",
         clinicalNote: "Paciente estable. Se finaliza visita.",
         reasonDisplay: "Control programado",
+import type { PersistableClinicalPayload } from "../shared/persistable-clinical-payload";
+import { buildClinicalResourcesBundleEntries } from "../clinical-resources-bundle.mapper";
+
+function makePayload(
+    overrides: Partial<PersistableClinicalPayload> = {}
+): PersistableClinicalPayload {
+    return {
+        encounterId: "enc-123",
+        patientId: "patient-1",
+        performerId: "prac-1",
+        practitionerName: "Lic. Ramiro Perez",
+        actualEndAt: "2026-03-20T11:00:00.000Z",
         heartRate: 78,
         respiratoryRate: 18,
         oxygenSaturation: 97,
@@ -39,6 +51,7 @@ function makeInput(
 describe("buildClinicalResourcesBundleEntries", () => {
     it("returns vital signs + eva + procedures preserving finalize ordering", () => {
         const entries = buildClinicalResourcesBundleEntries(makeInput()) as Array<{
+        const entries = buildClinicalResourcesBundleEntries(makePayload()) as Array<{
             request: { url: string };
             resource: { code?: { coding?: Array<{ code?: string }> } };
         }>;
@@ -53,6 +66,7 @@ describe("buildClinicalResourcesBundleEntries", () => {
     it("omits EVA entry when score is not present", () => {
         const entries = buildClinicalResourcesBundleEntries(
             makeInput({ evaScore: undefined })
+            makePayload({ evaScore: undefined })
         ) as Array<{ resource: { code?: { coding?: Array<{ code?: string }> } } }>;
 
         const loincCodes = entries
