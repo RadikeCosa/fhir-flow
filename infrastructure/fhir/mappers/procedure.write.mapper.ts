@@ -1,5 +1,5 @@
 /**
- * Build FHIR Procedure entries from finalize encounter input.
+ * Build FHIR Procedure entries from FinalizeEncounterInput.
  * Pure mapper: no I/O, no side effects.
  */
 import type { FinalizeEncounterInput } from "../../../domain/encounters/encounter.write-input";
