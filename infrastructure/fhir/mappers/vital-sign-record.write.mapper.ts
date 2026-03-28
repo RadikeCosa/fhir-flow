@@ -2,7 +2,10 @@
  * Build FHIR Observation entries for vital signs from a finalize encounter input.
  * Pure mapper: no HTTP side effects.
  */
-import type { PersistableClinicalPayload } from "./shared/persistable-clinical-payload";
+import type {
+    ClinicalResourceContext,
+    PersistableClinicalPayload,
+} from "./shared/persistable-clinical-payload";
 
 const VITAL_SIGNS_CATEGORY = [
     {
@@ -16,7 +19,18 @@ const VITAL_SIGNS_CATEGORY = [
     },
 ];
 
-function createBaseObservationResource(input: PersistableClinicalPayload): Record<string, unknown> {
+type VitalSignObservationInput = ClinicalResourceContext &
+    Pick<
+        PersistableClinicalPayload,
+        | "heartRate"
+        | "respiratoryRate"
+        | "oxygenSaturation"
+        | "bodyTemperature"
+        | "bloodPressureSystolic"
+        | "bloodPressureDiastolic"
+    >;
+
+function createBaseObservationResource(input: ClinicalResourceContext): Record<string, unknown> {
     return {
         resourceType: "Observation",
         status: "final",
@@ -37,7 +51,7 @@ function createBaseObservationResource(input: PersistableClinicalPayload): Recor
     };
 }
 
-export function mapToFhirVitalSignObservations(input: PersistableClinicalPayload): Array<unknown> {
+export function mapToFhirVitalSignObservations(input: VitalSignObservationInput): Array<unknown> {
     const entries: Array<unknown> = [];
 
     const base = createBaseObservationResource(input);
