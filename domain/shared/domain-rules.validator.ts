@@ -3,6 +3,7 @@ import { DomainRuleError } from "./error-types";
 import type {
     CreateEncounterInput,
     FinalizeEncounterInput,
+    RegisterEncounterInput,
     FinishedEncounterClinicalPayload,
     SaveEncounterProgressInput,
     StartEncounterInput,
@@ -273,6 +274,79 @@ export function validateSaveEncounterProgressRules(input: SaveEncounterProgressI
         throw new DomainRuleError("recordedAt debe ser un datetime ISO válido", "INVALID_RECORDED_AT");
     }
 
+    validateEncounterClinicalSnapshotRules(input);
+}
+
+export function validateRegisterEncounterRules(input: RegisterEncounterInput): void {
+    if (!input.patientId || input.patientId.trim() === "") {
+        throw new DomainRuleError("El ID de paciente es requerido", "MISSING_PATIENT_ID");
+    }
+
+    if (!input.episodeOfCareId || input.episodeOfCareId.trim() === "") {
+        throw new DomainRuleError("El ID de episodio es requerido", "MISSING_EPISODE_ID");
+    }
+
+    if (!input.performerId || input.performerId.trim() === "") {
+        throw new DomainRuleError("El ID del profesional es requerido", "MISSING_PERFORMER_ID");
+    }
+
+    if (!input.practitionerName || input.practitionerName.trim() === "") {
+        throw new DomainRuleError("El nombre del profesional es requerido", "MISSING_PRACTITIONER_NAME");
+    }
+
+    if (!input.actualStartAt || typeof input.actualStartAt !== "string" || !input.actualStartAt.includes("T")) {
+        throw new DomainRuleError(
+            "actualStartAt debe ser un datetime ISO con componente de tiempo",
+            "INVALID_ACTUAL_START"
+        );
+    }
+
+    const actualStartDate = new Date(input.actualStartAt);
+    if (isNaN(actualStartDate.getTime())) {
+        throw new DomainRuleError(
+            "actualStartAt debe ser un datetime ISO válido",
+            "INVALID_ACTUAL_START"
+        );
+    }
+
+    if (input.completionMode === "complete") {
+        if (!input.actualEndAt) {
+            throw new DomainRuleError("actualEndAt es requerido para completar el encuentro", "INVALID_ACTUAL_END");
+        }
+
+        validateFinishedEncounterClinicalRules({
+            actualStartAt: input.actualStartAt,
+            actualEndAt: input.actualEndAt,
+            clinicalNote: input.clinicalNote ?? "",
+            reasonDisplay: input.reasonDisplay,
+            heartRate: input.heartRate,
+            respiratoryRate: input.respiratoryRate,
+            oxygenSaturation: input.oxygenSaturation,
+            bodyTemperature: input.bodyTemperature,
+            bloodPressureSystolic: input.bloodPressureSystolic,
+            bloodPressureDiastolic: input.bloodPressureDiastolic,
+            evaScore: input.evaScore,
+            procedures: input.procedures,
+        });
+        return;
+    }
+
+    validateEncounterClinicalSnapshotRules(input);
+}
+
+type ClinicalSnapshotRulesInput = Pick<
+    SaveEncounterProgressInput,
+    | "heartRate"
+    | "respiratoryRate"
+    | "oxygenSaturation"
+    | "bodyTemperature"
+    | "bloodPressureSystolic"
+    | "bloodPressureDiastolic"
+    | "evaScore"
+    | "procedures"
+>;
+
+function validateEncounterClinicalSnapshotRules(input: ClinicalSnapshotRulesInput): void {
     const hasSystolic = input.bloodPressureSystolic !== undefined;
     const hasDiastolic = input.bloodPressureDiastolic !== undefined;
 

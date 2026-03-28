@@ -132,3 +132,18 @@ export interface SaveEncounterProgressInput extends EncounterProgressClinicalPay
     actualStartAt: string;
     recordedAt: string;
 }
+
+export type RegisterEncounterCompletionMode = "start" | "complete";
+
+export interface RegisterEncounterInput extends EncounterProgressClinicalPayload {
+    patientId: string;
+    episodeOfCareId: string;
+    performerId: string;
+    practitionerName: string;
+    visitType: EncounterVisitType;
+    completionMode: RegisterEncounterCompletionMode;
+    actualStartAt: string;
+    actualEndAt?: string;
+    clinicalNote?: string | null;
+    reasonDisplay?: string | null;
+}

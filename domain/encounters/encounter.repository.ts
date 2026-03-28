@@ -9,6 +9,7 @@
 import type {
     CreateEncounterInput,
     FinalizeEncounterInput,
+    RegisterEncounterInput,
     SaveEncounterProgressInput,
     StartEncounterInput,
 } from "./encounter.write-input";
@@ -102,4 +103,10 @@ export interface EncounterRepository {
      * setting the actual start datetime.
      */
     startEncounter(input: StartEncounterInput): Promise<void>;
+
+    /**
+     * Registers a new unplanned encounter in either in-progress ("start") or
+     * finished ("complete") mode, optionally persisting an initial clinical snapshot.
+     */
+    register(input: RegisterEncounterInput): Promise<{ id: string }>;
 }

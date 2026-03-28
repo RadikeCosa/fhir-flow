@@ -11,12 +11,14 @@ import {
     buildSaveEncounterProgressBundle,
     type ExistingEncounterClinicalSnapshot,
 } from "../mappers/save-encounter-progress-bundle.mapper";
+import { buildRegisterEncounterBundle } from "../mappers/register-encounter-bundle.mapper";
 import { mapToStartedEncounterUpdate } from "../mappers/encounter.start.mapper";
 import { FhirMapperError } from "../../../domain/shared/error-types";
 
 import type {
     CreateEncounterInput,
     FinalizeEncounterInput,
+    RegisterEncounterInput,
     SaveEncounterProgressInput,
     StartEncounterInput,
 } from "../../../domain/encounters/encounter.write-input";
@@ -311,5 +313,16 @@ export class EncounterFhirRepository implements EncounterRepository {
 
         const updatedEncounter = mapToStartedEncounterUpdate(encounter, input.actualStartAt);
         await this.client.update("Encounter", input.encounterId, updatedEncounter);
+    }
+
+    public async register(input: RegisterEncounterInput): Promise<{ id: string }> {
+        // Decision note:
+        // register uses a client-generated Encounter id so the transaction bundle
+        // can reference the Encounter consistently in clinical resources and keep
+        // the operation atomic. This implies create-via-PUT semantics by design.
+        const encounterId = crypto.randomUUID();
+        const bundle = buildRegisterEncounterBundle(encounterId, input);
+        await this.client.postBundle(bundle);
+        return { id: encounterId };
     }
 }

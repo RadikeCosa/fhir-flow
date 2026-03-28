@@ -5,6 +5,7 @@ import {
     validateFinalizeEncounterRules,
     validateFinishedEncounterClinicalRules,
     validateFinalizeEncounterStatus,
+    validateRegisterEncounterRules,
     validateStartEncounterRules,
     validateStartEncounterStatus,
 } from "../domain-rules.validator";
@@ -13,6 +14,7 @@ import type {
     CreateEncounterInput,
     FinalizeEncounterInput,
     FinishedEncounterClinicalPayload,
+    RegisterEncounterInput,
     StartEncounterInput,
 } from "../../encounters/encounter.write-input";
 
@@ -248,5 +250,60 @@ describe("validateStartEncounterRules", () => {
         expect(() =>
             validateStartEncounterRules(makeStartInput())
         ).not.toThrow();
+    });
+});
+
+describe("validateRegisterEncounterRules", () => {
+    function makeRegisterInput(
+        overrides: Partial<RegisterEncounterInput> = {}
+    ): RegisterEncounterInput {
+        return {
+            patientId: "pat-1",
+            episodeOfCareId: "episode-1",
+            performerId: "kine-1",
+            practitionerName: "Lic. Ramiro Perez",
+            visitType: "follow-up",
+            completionMode: "start",
+            actualStartAt: "2026-03-20T10:00:00.000Z",
+            clinicalNote: null,
+            procedures: [],
+            ...overrides,
+        };
+    }
+
+    it("en modo complete reutiliza reglas shared de finished", () => {
+        expect(() =>
+            validateRegisterEncounterRules(
+                makeRegisterInput({
+                    completionMode: "complete",
+                    actualEndAt: "2026-03-20T09:00:00.000Z",
+                    clinicalNote: "Nota de cierre",
+                })
+            )
+        ).toThrowError("actualEndAt debe ser posterior a actualStartAt");
+    });
+
+    it("en modo start no depende de reglas de finished", () => {
+        expect(() =>
+            validateRegisterEncounterRules(
+                makeRegisterInput({
+                    completionMode: "start",
+                    clinicalNote: null,
+                    actualEndAt: undefined,
+                })
+            )
+        ).not.toThrow();
+    });
+
+    it("en modo start valida coherencia clínica sin atarse a saveProgress", () => {
+        expect(() =>
+            validateRegisterEncounterRules(
+                makeRegisterInput({
+                    completionMode: "start",
+                    bloodPressureSystolic: 120,
+                    bloodPressureDiastolic: undefined,
+                })
+            )
+        ).toThrowError("Si se registra presión arterial, debe incluir sistólica y diastólica");
     });
 });
