@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
     validateEncounterRules,
     validateFinalizeEncounterRules,
+    validateFinishedEncounterClinicalRules,
     validateFinalizeEncounterStatus,
     validateStartEncounterRules,
     validateStartEncounterStatus,
@@ -11,6 +12,7 @@ import { DomainRuleError } from "../error-types";
 import type {
     CreateEncounterInput,
     FinalizeEncounterInput,
+    FinishedEncounterClinicalPayload,
     StartEncounterInput,
 } from "../../encounters/encounter.write-input";
 
@@ -88,6 +90,52 @@ describe("validateEncounterRules", () => {
     });
 });
 
+
+describe("validateFinishedEncounterClinicalRules", () => {
+    function makeFinishedClinicalPayload(
+        overrides: Partial<FinishedEncounterClinicalPayload> = {}
+    ): FinishedEncounterClinicalPayload {
+        return {
+            actualStartAt: "2026-03-20T10:00:00.000Z",
+            actualEndAt: "2026-03-20T11:00:00.000Z",
+            clinicalNote: "Nota clínica",
+            evaScore: 5,
+            procedures: [],
+            ...overrides,
+        };
+    }
+
+    it("rejects invalid actualEndAt datetime", () => {
+        expect(() =>
+            validateFinishedEncounterClinicalRules(
+                makeFinishedClinicalPayload({ actualEndAt: "2026-03-20" })
+            )
+        ).toThrowError("actualEndAt debe ser un datetime ISO con componente de tiempo");
+    });
+
+    it("rejects when actualEndAt is before actualStartAt", () => {
+        expect(() =>
+            validateFinishedEncounterClinicalRules(
+                makeFinishedClinicalPayload({
+                    actualStartAt: "2026-03-20T10:00:00.000Z",
+                    actualEndAt: "2026-03-20T09:00:00.000Z",
+                })
+            )
+        ).toThrowError("actualEndAt debe ser posterior a actualStartAt");
+    });
+
+    it("accepts a valid finished clinical payload", () => {
+        expect(() =>
+            validateFinishedEncounterClinicalRules(
+                makeFinishedClinicalPayload({
+                    bloodPressureSystolic: 120,
+                    bloodPressureDiastolic: 80,
+                    evaScore: 3,
+                })
+            )
+        ).not.toThrow();
+    });
+});
 describe("validateFinalizeEncounterRules", () => {
     function makeFinalize(overrides: Partial<FinalizeEncounterInput> = {}): FinalizeEncounterInput {
         return {

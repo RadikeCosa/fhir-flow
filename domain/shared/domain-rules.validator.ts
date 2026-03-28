@@ -3,6 +3,7 @@ import { DomainRuleError } from "./error-types";
 import type {
     CreateEncounterInput,
     FinalizeEncounterInput,
+    FinishedEncounterClinicalPayload,
     StartEncounterInput,
 } from "../encounters/encounter.write-input";
 import type { EncounterStatus, EncounterVisitType } from "../encounters/encounter";
@@ -107,15 +108,9 @@ export function validateEncounterRules(input: CreateEncounterInput): void {
     }
 }
 
-export function validateFinalizeEncounterRules(input: FinalizeEncounterInput): void {
-    if (!input.encounterId || input.encounterId.trim() === "") {
-        throw new DomainRuleError("El ID de encuentro es requerido", "MISSING_ENCOUNTER_ID");
-    }
-
-    if (!input.patientId || input.patientId.trim() === "") {
-        throw new DomainRuleError("El ID de paciente es requerido", "MISSING_PATIENT_ID");
-    }
-
+export function validateFinishedEncounterClinicalRules(
+    input: FinishedEncounterClinicalPayload
+): void {
     if (!input.actualEndAt || typeof input.actualEndAt !== "string" || !input.actualEndAt.includes("T")) {
         throw new DomainRuleError("actualEndAt debe ser un datetime ISO con componente de tiempo", "INVALID_ACTUAL_END");
     }
@@ -187,6 +182,18 @@ export function validateFinalizeEncounterRules(input: FinalizeEncounterInput): v
             throw new DomainRuleError("El código del procedimiento no coincide con la categoría", "PROCEDURE_CODE_CATEGORY_MISMATCH");
         }
     }
+}
+
+export function validateFinalizeEncounterRules(input: FinalizeEncounterInput): void {
+    if (!input.encounterId || input.encounterId.trim() === "") {
+        throw new DomainRuleError("El ID de encuentro es requerido", "MISSING_ENCOUNTER_ID");
+    }
+
+    if (!input.patientId || input.patientId.trim() === "") {
+        throw new DomainRuleError("El ID de paciente es requerido", "MISSING_PATIENT_ID");
+    }
+
+    validateFinishedEncounterClinicalRules(input);
 }
 
 export function validateFinalizeEncounterStatus(status: EncounterStatus): void {
