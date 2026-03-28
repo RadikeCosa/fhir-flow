@@ -2,9 +2,9 @@
  * Build a FHIR Observation entry for EVA score if present.
  * Pure mapper: no side effects.
  */
-import type { FinalizeEncounterInput } from "../../../../domain/encounters/encounter.write-input";
+import type { PersistableClinicalPayload } from "../shared/persistable-clinical-payload";
 
-export function mapToFhirEvaObservation(input: FinalizeEncounterInput): unknown | null {
+export function mapToFhirEvaObservation(input: PersistableClinicalPayload): unknown | null {
     if (typeof input.evaScore !== "number") {
         return null;
     }
