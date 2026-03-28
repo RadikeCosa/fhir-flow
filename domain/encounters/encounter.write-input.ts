@@ -75,13 +75,7 @@ export interface StartEncounterInput {
  * `procedures` must always be an array; when no procedures apply it should be
  * an empty array.
  */
-export interface FinalizeEncounterInput {
-    encounterId: string;
-    patientId: string;
-    episodeOfCareId: string;
-    performerId: string;
-    practitionerName: string;
-    visitType: EncounterVisitType;
+export interface FinishedEncounterClinicalPayload {
     actualStartAt: string;
     actualEndAt: string;
     clinicalNote: string;
@@ -99,4 +93,13 @@ export interface FinalizeEncounterInput {
         bodySite?: string;
         note?: string;
     }>;
+}
+
+export interface FinalizeEncounterInput extends FinishedEncounterClinicalPayload {
+    encounterId: string;
+    patientId: string;
+    episodeOfCareId: string;
+    performerId: string;
+    practitionerName: string;
+    visitType: EncounterVisitType;
 }
