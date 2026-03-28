@@ -2,11 +2,10 @@
  * Build FHIR Observation entries for vital signs from a finalize encounter input.
  * Pure mapper: no HTTP side effects.
  */
-import type { PersistableClinicalPayload } from "./shared/persistable-clinical-payload";
-import type { ClinicalResourceContext } from "./shared/persistable-clinical-payload";
+import type { FinalizeEncounterInput } from "../../../domain/encounters/encounter.write-input";
 
 type VitalSignsPayload = Pick<
-    PersistableClinicalPayload,
+    FinalizeEncounterInput,
     | "heartRate"
     | "respiratoryRate"
     | "oxygenSaturation"
@@ -15,7 +14,12 @@ type VitalSignsPayload = Pick<
     | "bloodPressureDiastolic"
 >;
 
-export type VitalSignsResourceInput = ClinicalResourceContext & VitalSignsPayload;
+type VitalSignsContext = Pick<
+    FinalizeEncounterInput,
+    "encounterId" | "patientId" | "performerId" | "practitionerName" | "actualEndAt"
+>;
+
+export type VitalSignsResourceInput = VitalSignsContext & VitalSignsPayload;
 
 const VITAL_SIGNS_CATEGORY = [
     {

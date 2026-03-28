@@ -2,10 +2,14 @@
  * Build a FHIR Observation entry for EVA score if present.
  * Pure mapper: no side effects.
  */
-import type { ClinicalResourceContext, PersistableClinicalPayload } from "../shared/persistable-clinical-payload";
+import type { FinalizeEncounterInput } from "../../../../domain/encounters/encounter.write-input";
 
-type EvaPayload = Pick<PersistableClinicalPayload, "evaScore">;
-export type EvaResourceInput = ClinicalResourceContext & EvaPayload;
+type EvaPayload = Pick<FinalizeEncounterInput, "evaScore">;
+type EvaContext = Pick<
+    FinalizeEncounterInput,
+    "encounterId" | "patientId" | "performerId" | "practitionerName" | "actualEndAt"
+>;
+export type EvaResourceInput = EvaContext & EvaPayload;
 
 export function mapToFhirEvaObservation(input: EvaResourceInput): unknown | null {
     if (typeof input.evaScore !== "number") {
