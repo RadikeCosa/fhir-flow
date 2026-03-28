@@ -16,7 +16,10 @@ export function buildFinalizeEncounterBundle(input: FinalizeEncounterInput): unk
         throw new FhirMapperError("Encounter update entry is required", "MISSING_ENCOUNTER_ENTRY");
     }
 
-    const clinicalResourceEntries = buildClinicalResourcesBundleEntries(input);
+    const clinicalResourceEntries = buildClinicalResourcesBundleEntries({
+        ...input,
+        effectiveDateTime: input.actualEndAt,
+    });
 
     const entries = [encounterEntry, ...clinicalResourceEntries];
 

@@ -9,6 +9,7 @@
 import type {
     CreateEncounterInput,
     FinalizeEncounterInput,
+    SaveEncounterProgressInput,
     StartEncounterInput,
 } from "./encounter.write-input";
 import type { Encounter } from "./encounter";
@@ -87,6 +88,14 @@ export interface EncounterRepository {
      * repository as a learning-lab simplification (see write-phase-architecture.md).
      */
     finalize(input: FinalizeEncounterInput): Promise<void>;
+
+    /**
+     * Persists an in-progress clinical snapshot for an existing encounter.
+     *
+     * Implementations must preserve "snapshot" semantics for managed clinical
+     * resources (replace current in-progress snapshot rather than blind append).
+     */
+    saveProgress(input: SaveEncounterProgressInput): Promise<void>;
 
     /**
      * Starts a planned encounter by transitioning status to in-progress and

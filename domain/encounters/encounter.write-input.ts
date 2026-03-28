@@ -103,3 +103,32 @@ export interface FinalizeEncounterInput extends FinishedEncounterClinicalPayload
     practitionerName: string;
     visitType: EncounterVisitType;
 }
+
+export interface EncounterProgressClinicalPayload {
+    clinicalNote?: string | null;
+    reasonDisplay?: string | null;
+    heartRate?: number;
+    respiratoryRate?: number;
+    oxygenSaturation?: number;
+    bodyTemperature?: number;
+    bloodPressureSystolic?: number;
+    bloodPressureDiastolic?: number;
+    evaScore?: number;
+    procedures: Array<{
+        category: ProcedureCategory;
+        code: ProcedureCode;
+        bodySite?: string;
+        note?: string;
+    }>;
+}
+
+export interface SaveEncounterProgressInput extends EncounterProgressClinicalPayload {
+    encounterId: string;
+    patientId: string;
+    episodeOfCareId: string;
+    performerId: string;
+    practitionerName: string;
+    visitType: EncounterVisitType;
+    actualStartAt: string;
+    recordedAt: string;
+}

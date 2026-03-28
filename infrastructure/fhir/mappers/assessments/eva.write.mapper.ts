@@ -7,12 +7,19 @@ import type {
     PersistableClinicalPayload,
 } from "../shared/persistable-clinical-payload";
 
-type EvaObservationInput = ClinicalResourceContext & Pick<PersistableClinicalPayload, "evaScore">;
+type EvaObservationInput = ClinicalResourceContext &
+    {
+        effectiveDateTime?: string;
+        actualEndAt?: string;
+    } &
+    Pick<PersistableClinicalPayload, "evaScore">;
 
 export function mapToFhirEvaObservation(input: EvaObservationInput): unknown | null {
     if (typeof input.evaScore !== "number") {
         return null;
     }
+
+    const effectiveDateTime = input.effectiveDateTime ?? input.actualEndAt;
 
     const observation = {
         request: {
@@ -55,7 +62,7 @@ export function mapToFhirEvaObservation(input: EvaObservationInput): unknown | n
                     display: input.practitionerName,
                 },
             ],
-            effectiveDateTime: input.actualEndAt,
+            effectiveDateTime,
         },
     };
 

@@ -14,7 +14,7 @@ function makePayload(
         patientId: "patient-1",
         performerId: "prac-1",
         practitionerName: "Lic. Ramiro Perez",
-        actualEndAt: "2026-03-20T11:00:00.000Z",
+        effectiveDateTime: "2026-03-20T11:00:00.000Z",
         heartRate: 78,
         respiratoryRate: 18,
         oxygenSaturation: 97,

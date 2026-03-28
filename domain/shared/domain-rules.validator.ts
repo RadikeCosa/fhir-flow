@@ -4,6 +4,7 @@ import type {
     CreateEncounterInput,
     FinalizeEncounterInput,
     FinishedEncounterClinicalPayload,
+    SaveEncounterProgressInput,
     StartEncounterInput,
 } from "../encounters/encounter.write-input";
 import type { EncounterStatus, EncounterVisitType } from "../encounters/encounter";
@@ -237,5 +238,126 @@ export function validateStartEncounterRules(input: StartEncounterInput): void {
             "actualStartAt debe ser un datetime ISO válido",
             "INVALID_ACTUAL_START"
         );
+    }
+}
+
+export function validateSaveEncounterProgressStatus(status: EncounterStatus): void {
+    if (status === "in-progress") {
+        return;
+    }
+
+    throw new DomainRuleError(
+        "Solo se puede guardar progreso en un encuentro en curso",
+        "ENCOUNTER_NOT_IN_PROGRESS"
+    );
+}
+
+export function validateSaveEncounterProgressRules(input: SaveEncounterProgressInput): void {
+    if (!input.encounterId || input.encounterId.trim() === "") {
+        throw new DomainRuleError("El ID de encuentro es requerido", "MISSING_ENCOUNTER_ID");
+    }
+
+    if (!input.patientId || input.patientId.trim() === "") {
+        throw new DomainRuleError("El ID de paciente es requerido", "MISSING_PATIENT_ID");
+    }
+
+    if (!input.recordedAt || typeof input.recordedAt !== "string" || !input.recordedAt.includes("T")) {
+        throw new DomainRuleError(
+            "recordedAt debe ser un datetime ISO con componente de tiempo",
+            "INVALID_RECORDED_AT"
+        );
+    }
+
+    const recordedAtDate = new Date(input.recordedAt);
+    if (isNaN(recordedAtDate.getTime())) {
+        throw new DomainRuleError("recordedAt debe ser un datetime ISO válido", "INVALID_RECORDED_AT");
+    }
+
+    const hasSystolic = input.bloodPressureSystolic !== undefined;
+    const hasDiastolic = input.bloodPressureDiastolic !== undefined;
+
+    if ((hasSystolic && !hasDiastolic) || (!hasSystolic && hasDiastolic)) {
+        throw new DomainRuleError("Si se registra presión arterial, debe incluir sistólica y diastólica", "PRESSURE_INCOMPLETE");
+    }
+
+    if (hasSystolic && hasDiastolic && input.bloodPressureDiastolic! > input.bloodPressureSystolic!) {
+        throw new DomainRuleError("La presión diastólica no puede exceder la sistólica", "PRESSURE_INVALID");
+    }
+
+    if (hasSystolic) {
+        if (
+            !Number.isInteger(input.bloodPressureSystolic!) ||
+            input.bloodPressureSystolic! < VITAL_SIGN_CAPTURE_RANGES.bloodPressureSystolic.min ||
+            input.bloodPressureSystolic! > VITAL_SIGN_CAPTURE_RANGES.bloodPressureSystolic.max
+        ) {
+            throw new DomainRuleError("La presión sistólica está fuera del rango válido", "PRESSURE_SYSTOLIC_OUT_OF_RANGE");
+        }
+    }
+
+    if (hasDiastolic) {
+        if (
+            !Number.isInteger(input.bloodPressureDiastolic!) ||
+            input.bloodPressureDiastolic! < VITAL_SIGN_CAPTURE_RANGES.bloodPressureDiastolic.min ||
+            input.bloodPressureDiastolic! > VITAL_SIGN_CAPTURE_RANGES.bloodPressureDiastolic.max
+        ) {
+            throw new DomainRuleError("La presión diastólica está fuera del rango válido", "PRESSURE_DIASTOLIC_OUT_OF_RANGE");
+        }
+    }
+
+    if (input.heartRate !== undefined) {
+        if (
+            !Number.isInteger(input.heartRate) ||
+            input.heartRate < VITAL_SIGN_CAPTURE_RANGES.heartRate.min ||
+            input.heartRate > VITAL_SIGN_CAPTURE_RANGES.heartRate.max
+        ) {
+            throw new DomainRuleError("La frecuencia cardíaca está fuera del rango válido", "HEART_RATE_OUT_OF_RANGE");
+        }
+    }
+
+    if (input.respiratoryRate !== undefined) {
+        if (
+            !Number.isInteger(input.respiratoryRate) ||
+            input.respiratoryRate < VITAL_SIGN_CAPTURE_RANGES.respiratoryRate.min ||
+            input.respiratoryRate > VITAL_SIGN_CAPTURE_RANGES.respiratoryRate.max
+        ) {
+            throw new DomainRuleError("La frecuencia respiratoria está fuera del rango válido", "RESPIRATORY_RATE_OUT_OF_RANGE");
+        }
+    }
+
+    if (input.oxygenSaturation !== undefined) {
+        if (
+            !Number.isInteger(input.oxygenSaturation) ||
+            input.oxygenSaturation < VITAL_SIGN_CAPTURE_RANGES.oxygenSaturation.min ||
+            input.oxygenSaturation > VITAL_SIGN_CAPTURE_RANGES.oxygenSaturation.max
+        ) {
+            throw new DomainRuleError("La saturación de oxígeno está fuera del rango válido", "OXYGEN_SATURATION_OUT_OF_RANGE");
+        }
+    }
+
+    if (input.bodyTemperature !== undefined) {
+        if (
+            typeof input.bodyTemperature !== "number" ||
+            input.bodyTemperature < VITAL_SIGN_CAPTURE_RANGES.bodyTemperature.min ||
+            input.bodyTemperature > VITAL_SIGN_CAPTURE_RANGES.bodyTemperature.max
+        ) {
+            throw new DomainRuleError("La temperatura corporal está fuera del rango válido", "BODY_TEMPERATURE_OUT_OF_RANGE");
+        }
+    }
+
+    if (input.evaScore !== undefined) {
+        if (
+            !Number.isInteger(input.evaScore) ||
+            input.evaScore < VITAL_SIGN_CAPTURE_RANGES.evaScore.min ||
+            input.evaScore > VITAL_SIGN_CAPTURE_RANGES.evaScore.max
+        ) {
+            throw new DomainRuleError("El EVA debe ser un entero entre 0 y 10", "EVA_OUT_OF_RANGE");
+        }
+    }
+
+    for (const procedure of input.procedures) {
+        const allowed = PROCEDURE_CODES_BY_CATEGORY[procedure.category];
+        if (!allowed || !allowed.includes(procedure.code)) {
+            throw new DomainRuleError("El código del procedimiento no coincide con la categoría", "PROCEDURE_CODE_CATEGORY_MISMATCH");
+        }
     }
 }
