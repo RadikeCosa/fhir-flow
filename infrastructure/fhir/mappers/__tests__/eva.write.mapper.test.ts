@@ -35,5 +35,11 @@ describe("mapToFhirEvaObservation", () => {
         expect(result).toHaveProperty("resource.effectiveDateTime", input.actualEndAt);
         expect(result).toHaveProperty("resource.subject.reference", `Patient/${input.patientId}`);
         expect(result).toHaveProperty("resource.encounter.reference", `Encounter/${input.encounterId}`);
+        expect(result).toHaveProperty("resource.meta.tag", [
+            {
+                system: "https://fhir-flow.app/ownership",
+                code: "managed-by-fhir-flow",
+            },
+        ]);
     });
 });

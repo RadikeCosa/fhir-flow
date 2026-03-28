@@ -9,6 +9,7 @@ import type {
 import { PROCEDURE_SYSTEM } from "../../../lib/fhir/systems";
 import { FhirMapperError } from "../../../domain/shared/error-types";
 import { mapProcedureCode } from "./procedure.mapper";
+import { FHIR_FLOW_OWNERSHIP_TAG } from "../shared/ownership";
 
 function hasContent(value?: string): value is string {
     return typeof value === "string" && value.trim() !== "";
@@ -58,6 +59,9 @@ export function mapToFhirProcedures(input: ProcedureWriteInput): Array<unknown> 
                             display: metadata.display,
                         },
                     ],
+                },
+                meta: {
+                    tag: [FHIR_FLOW_OWNERSHIP_TAG],
                 },
                 ...(hasContent(procedure.bodySite)
                     ? {

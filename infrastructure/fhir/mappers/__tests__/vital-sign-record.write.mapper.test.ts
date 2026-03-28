@@ -63,6 +63,14 @@ describe("mapToFhirVitalSignObservations", () => {
                     },
                 ],
                 effectiveDateTime: "2026-03-20T11:00:00.000Z",
+                meta: {
+                    tag: [
+                        {
+                            system: "https://fhir-flow.app/ownership",
+                            code: "managed-by-fhir-flow",
+                        },
+                    ],
+                },
             });
         }
     });

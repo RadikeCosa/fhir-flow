@@ -6,6 +6,7 @@ import type {
     ClinicalResourceContext,
     PersistableClinicalPayload,
 } from "./shared/persistable-clinical-payload";
+import { FHIR_FLOW_OWNERSHIP_TAG } from "../shared/ownership";
 
 const VITAL_SIGNS_CATEGORY = [
     {
@@ -56,6 +57,9 @@ function createBaseObservationResource(
             },
         ],
         effectiveDateTime,
+        meta: {
+            tag: [FHIR_FLOW_OWNERSHIP_TAG],
+        },
     };
 }
 

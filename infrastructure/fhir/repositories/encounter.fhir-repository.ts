@@ -22,6 +22,10 @@ import type {
 } from "../../../domain/encounters/encounter.write-input";
 import type { EncounterRepository } from "../../../domain/encounters/encounter.repository";
 import type { Encounter } from "../../../domain/encounters/encounter";
+import {
+    FHIR_FLOW_OWNERSHIP_SEARCH_TOKEN,
+    hasFhirFlowOwnershipTag,
+} from "../shared/ownership";
 
 /**
  * FHIR-based implementation of the `EncounterRepository` domain contract.
@@ -45,6 +49,59 @@ export class EncounterFhirRepository implements EncounterRepository {
         "85354-9",
         "72514-3",
     ] as const;
+
+    private static readonly SNAPSHOT_OBSERVATION_CODE_SET = new Set<string>(
+        EncounterFhirRepository.SNAPSHOT_OBSERVATION_CODES
+    );
+
+    private static isManagedObservationSnapshotResource(resource: unknown): resource is {
+        resourceType: "Observation";
+        id: string;
+    } {
+        if (typeof resource !== "object" || resource === null) {
+            return false;
+        }
+
+        const maybeObservation = resource as {
+            resourceType?: unknown;
+            id?: unknown;
+            code?: { coding?: Array<{ code?: unknown }> };
+        };
+
+        if (
+            maybeObservation.resourceType !== "Observation" ||
+            typeof maybeObservation.id !== "string" ||
+            maybeObservation.id.trim() === ""
+        ) {
+            return false;
+        }
+
+        const hasSnapshotCode = Array.isArray(maybeObservation.code?.coding)
+            && maybeObservation.code.coding.some((coding) =>
+                typeof coding.code === "string"
+                && EncounterFhirRepository.SNAPSHOT_OBSERVATION_CODE_SET.has(coding.code)
+            );
+
+        return hasSnapshotCode && hasFhirFlowOwnershipTag(resource);
+    }
+
+    private static isManagedProcedureSnapshotResource(resource: unknown): resource is {
+        resourceType: "Procedure";
+        id: string;
+    } {
+        if (typeof resource !== "object" || resource === null) {
+            return false;
+        }
+
+        const maybeProcedure = resource as { resourceType?: unknown; id?: unknown };
+
+        return (
+            maybeProcedure.resourceType === "Procedure"
+            && typeof maybeProcedure.id === "string"
+            && maybeProcedure.id.trim() !== ""
+            && hasFhirFlowOwnershipTag(resource)
+        );
+    }
 
     /**
      * Validate a raw value against the encounter schema, returning the typed
@@ -200,51 +257,27 @@ export class EncounterFhirRepository implements EncounterRepository {
             {
                 encounter: `Encounter/${encounterId}`,
                 code: EncounterFhirRepository.SNAPSHOT_OBSERVATION_CODES.join(","),
+                _tag: FHIR_FLOW_OWNERSHIP_SEARCH_TOKEN,
                 _count: "200",
             },
             { cache: "no-store" }
         );
         const observationIds = safeGetResources(observationBundle)
-            .map((resource) => {
-                if (typeof resource !== "object" || resource === null) {
-                    return null;
-                }
-                const maybeResource = resource as Record<string, unknown>;
-                if (
-                    maybeResource.resourceType !== "Observation" ||
-                    typeof maybeResource.id !== "string" ||
-                    maybeResource.id.trim() === ""
-                ) {
-                    return null;
-                }
-                return maybeResource.id;
-            })
-            .filter((id): id is string => id !== null);
+            .filter(EncounterFhirRepository.isManagedObservationSnapshotResource)
+            .map((resource) => resource.id);
 
         const procedureBundle = await this.client.search<unknown>(
             "Procedure",
             {
                 encounter: `Encounter/${encounterId}`,
+                _tag: FHIR_FLOW_OWNERSHIP_SEARCH_TOKEN,
                 _count: "200",
             },
             { cache: "no-store" }
         );
         const procedureIds = safeGetResources(procedureBundle)
-            .map((resource) => {
-                if (typeof resource !== "object" || resource === null) {
-                    return null;
-                }
-                const maybeResource = resource as Record<string, unknown>;
-                if (
-                    maybeResource.resourceType !== "Procedure" ||
-                    typeof maybeResource.id !== "string" ||
-                    maybeResource.id.trim() === ""
-                ) {
-                    return null;
-                }
-                return maybeResource.id;
-            })
-            .filter((id): id is string => id !== null);
+            .filter(EncounterFhirRepository.isManagedProcedureSnapshotResource)
+            .map((resource) => resource.id);
 
         return { observationIds, procedureIds };
     }

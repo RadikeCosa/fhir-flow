@@ -6,6 +6,7 @@ import type {
     ClinicalResourceContext,
     PersistableClinicalPayload,
 } from "../shared/persistable-clinical-payload";
+import { FHIR_FLOW_OWNERSHIP_TAG } from "../../shared/ownership";
 
 type EvaObservationInput = ClinicalResourceContext &
     {
@@ -63,6 +64,9 @@ export function mapToFhirEvaObservation(input: EvaObservationInput): unknown | n
                 },
             ],
             effectiveDateTime,
+            meta: {
+                tag: [FHIR_FLOW_OWNERSHIP_TAG],
+            },
         },
     };
 
