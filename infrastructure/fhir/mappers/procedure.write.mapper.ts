@@ -2,7 +2,10 @@
  * Build FHIR Procedure entries from PersistableClinicalPayload.
  * Pure mapper: no I/O, no side effects.
  */
-import type { PersistableClinicalPayload } from "./shared/persistable-clinical-payload";
+import type {
+    ClinicalResourceContext,
+    PersistableClinicalPayload,
+} from "./shared/persistable-clinical-payload";
 import { PROCEDURE_SYSTEM } from "../../../lib/fhir/systems";
 import { FhirMapperError } from "../../../domain/shared/error-types";
 import { mapProcedureCode } from "./procedure.mapper";
@@ -11,7 +14,9 @@ function hasContent(value?: string): value is string {
     return typeof value === "string" && value.trim() !== "";
 }
 
-export function mapToFhirProcedures(input: PersistableClinicalPayload): Array<unknown> {
+type ProcedureWriteInput = ClinicalResourceContext & Pick<PersistableClinicalPayload, "procedures">;
+
+export function mapToFhirProcedures(input: ProcedureWriteInput): Array<unknown> {
     if (!Array.isArray(input.procedures) || input.procedures.length === 0) {
         return [];
     }

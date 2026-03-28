@@ -4,13 +4,13 @@
  *
  * Pure mapper: no I/O, no side effects.
  */
-import type { PersistableClinicalPayload } from "./shared/persistable-clinical-payload";
+import type { PersistableClinicalResourceInput } from "./shared/persistable-clinical-payload";
 import { mapToFhirVitalSignObservations } from "./vital-sign-record.write.mapper";
 import { mapToFhirEvaObservation } from "./assessments/eva.write.mapper";
 import { mapToFhirProcedures } from "./procedure.write.mapper";
 
 export function buildClinicalResourcesBundleEntries(
-    input: PersistableClinicalPayload
+    input: PersistableClinicalResourceInput
 ): Array<unknown> {
     const vitalEntries = mapToFhirVitalSignObservations(input);
     const evaEntry = mapToFhirEvaObservation(input);
