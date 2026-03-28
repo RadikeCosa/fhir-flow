@@ -74,6 +74,14 @@ describe("mapToFhirProcedures", () => {
                     text: "Sin incidencias",
                 },
             ],
+            meta: {
+                tag: [
+                    {
+                        system: "https://fhir-flow.app/ownership",
+                        code: "managed-by-fhir-flow",
+                    },
+                ],
+            },
         });
     });
 
