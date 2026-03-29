@@ -25,16 +25,26 @@ const registerEncounterFormSchema = z.object({
   actualStartTime: z.string().refine((value) => isValidLocalTimeString(value), {
     message: "La hora de inicio real debe tener formato HH:mm.",
   }),
-  actualEndTime: z
-    .string()
-    .optional()
-    .refine((value) => value === undefined || isValidLocalTimeString(value), {
-      message: "La hora de fin real debe tener formato HH:mm.",
-    }),
+  actualEndTime: z.preprocess(
+    (value) => {
+      if (typeof value !== "string") return value;
+      const normalized = value.trim();
+      return normalized === "" ? undefined : normalized;
+    },
+    z
+      .string()
+      .refine((value) => isValidLocalTimeString(value), {
+        message: "La hora de fin real debe tener formato HH:mm.",
+      })
+      .optional(),
+  ),
   clinicalNote: z
     .string()
     .optional()
-    .transform((value) => value?.trim()),
+    .transform((value) => {
+      const normalized = value?.trim();
+      return normalized === "" ? undefined : normalized;
+    }),
 });
 
 type RegisterEncounterFormInput = z.input<typeof registerEncounterFormSchema>;
@@ -55,6 +65,13 @@ export function resolveRegisterCompletionMode(
   }
 
   return null;
+}
+
+export function normalizeOptionalString(
+  value: string | undefined,
+): string | undefined {
+  const normalized = value?.trim();
+  return normalized === "" ? undefined : normalized;
 }
 
 function formatLocalTimeInTimeZone(date: Date, timeZone: string): string {
@@ -130,6 +147,8 @@ export function RegisterEncounterForm({
 
     const result = await registerEncounterAction(patientId, {
       ...values,
+      actualEndTime: normalizeOptionalString(values.actualEndTime),
+      clinicalNote: normalizeOptionalString(values.clinicalNote),
       completionMode,
       procedures: [],
     });

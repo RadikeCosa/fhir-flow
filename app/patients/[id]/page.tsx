@@ -82,7 +82,7 @@ export default async function Page({ params }: Props) {
             )}
             {!data.inProgressEncounter && (
               <Link
-                href={`/patients/${id}/encounters/new`}
+                href={`/patients/${id}/encounters/register`}
                 className="inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-foreground hover:bg-surface transition-colors duration-150"
               >
                 Registrar visita
