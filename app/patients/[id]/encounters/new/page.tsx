@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CreateEncounterForm } from "./components/CreateEncounterForm";
+import { RegisterEncounterForm } from "./components/RegisterEncounterForm";
 import { getNewEncounterPageData, type NewEncounterPageData } from "./data";
 
 export const metadata: Metadata = {
-  title: "Planificar Visita | FHIR Flow",
-  description: "Crea una nueva visita planificada para el paciente",
+  title: "Registrar visita | FHIR Flow",
+  description: "Registra una visita del paciente con intención explícita",
 };
 
 interface PageProps {
@@ -67,9 +67,7 @@ export default async function CreateEncounterPage({ params }: PageProps) {
   return (
     <div className="max-w-2xl mx-auto py-8 px-4">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground">
-          Planificar Nueva Visita
-        </h1>
+        <h1 className="text-3xl font-bold text-foreground">Registrar visita</h1>
         <p className="mt-2 text-sm text-muted">
           Paciente: {patientName || patientId} | Episodio:{" "}
           <code className="text-xs bg-surface px-1 rounded">
@@ -85,7 +83,7 @@ export default async function CreateEncounterPage({ params }: PageProps) {
           </h2>
         </div>
         <div className="p-6">
-          <CreateEncounterForm
+          <RegisterEncounterForm
             patientId={patientId}
             episodeOfCareId={activeEpisode.id}
             practitionerName={practitionerName}
