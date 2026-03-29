@@ -238,7 +238,7 @@ export function RegisterEncounterForm({
           <input
             type="time"
             id="actualStartTime"
-            step={300}
+            step={60}
             {...form.register("actualStartTime")}
             className="mt-1 block w-full rounded-md border border-border px-3 py-2 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm"
             disabled={isSubmitting}
@@ -260,7 +260,7 @@ export function RegisterEncounterForm({
           <input
             type="time"
             id="actualEndTime"
-            step={300}
+            step={60}
             {...form.register("actualEndTime")}
             className="mt-1 block w-full rounded-md border border-border px-3 py-2 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm"
             disabled={isSubmitting}
