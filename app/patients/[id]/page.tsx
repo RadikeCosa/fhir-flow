@@ -54,8 +54,8 @@ export default async function Page({ params }: Props) {
   const hasActiveEpisode = data.episodes.some(
     (episode) => episode.status === "active",
   );
-  const encounterCtaTarget =
-    data.inProgressEncounter ?? data.nextPlannedEncounter;
+  const inProgressEncounter = data.inProgressEncounter;
+  const nextPlannedEncounter = data.nextPlannedEncounter;
 
   return (
     <>
@@ -65,28 +65,68 @@ export default async function Page({ params }: Props) {
         </div>
         {hasActiveEpisode && (
           <div className="flex flex-wrap items-center gap-2">
-            {encounterCtaTarget ? (
-              <Link
-                href={`/patients/${id}/encounters/${encounterCtaTarget.id}`}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-hover transition-colors duration-150"
-              >
-                Registrar Visita
-              </Link>
-            ) : (
-              <Link
-                href={`/patients/${id}/encounters/new`}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-hover transition-colors duration-150"
-              >
-                Planificar Visita
-              </Link>
+            {!inProgressEncounter && !nextPlannedEncounter && (
+              <>
+                <Link
+                  href={`/patients/${id}/encounters/register`}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-hover transition-colors duration-150"
+                >
+                  Registrar visita
+                </Link>
+                <Link
+                  href={`/patients/${id}/encounters/new`}
+                  className="inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-foreground hover:bg-surface transition-colors duration-150"
+                >
+                  Planificar visita
+                </Link>
+              </>
             )}
-            {!data.inProgressEncounter && (
-              <Link
-                href={`/patients/${id}/encounters/register`}
-                className="inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-foreground hover:bg-surface transition-colors duration-150"
-              >
-                Registrar visita
-              </Link>
+
+            {inProgressEncounter && !nextPlannedEncounter && (
+              <>
+                <Link
+                  href={`/patients/${id}/encounters/${inProgressEncounter.id}`}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-hover transition-colors duration-150"
+                >
+                  Completar visita
+                </Link>
+                <Link
+                  href={`/patients/${id}/encounters/new`}
+                  className="inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-foreground hover:bg-surface transition-colors duration-150"
+                >
+                  Planificar visita
+                </Link>
+              </>
+            )}
+
+            {!inProgressEncounter && nextPlannedEncounter && (
+              <>
+                <span className="text-sm text-muted">Tenés una visita planificada</span>
+                <Link
+                  href={`/patients/${id}/encounters/${nextPlannedEncounter.id}`}
+                  className="inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-foreground hover:bg-surface transition-colors duration-150"
+                >
+                  Ver detalle
+                </Link>
+              </>
+            )}
+
+            {inProgressEncounter && nextPlannedEncounter && (
+              <>
+                <Link
+                  href={`/patients/${id}/encounters/${inProgressEncounter.id}`}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-hover transition-colors duration-150"
+                >
+                  Completar visita
+                </Link>
+                <Link
+                  href={`/patients/${id}/encounters/new`}
+                  className="inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-foreground hover:bg-surface transition-colors duration-150"
+                >
+                  Planificar visita
+                </Link>
+                <span className="text-sm text-muted">Además tenés una visita planificada</span>
+              </>
             )}
           </div>
         )}

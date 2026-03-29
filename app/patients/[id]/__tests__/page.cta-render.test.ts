@@ -129,7 +129,7 @@ function makePatientDetailData(overrides: Partial<PatientDetailData> = {}): Pati
 }
 
 describe("Patient detail CTA render", () => {
-    it("shows 'Registrar visita' when the patient has no encounters", async () => {
+    it("renders register + plan CTAs when there is no in-progress nor planned encounter", async () => {
         vi.mocked(getPatientDetailData).mockResolvedValue(
             makePatientDetailData(),
         );
@@ -140,13 +140,35 @@ describe("Patient detail CTA render", () => {
 
         const html = renderToStaticMarkup(element);
 
-        expect(html).toContain(">Planificar Visita<");
         expect(html).toContain(">Registrar visita<");
-        expect(countOccurrences(html, 'href="/patients/pat-1/encounters/new"')).toBe(1);
+        expect(html).toContain(">Planificar visita<");
+        expect(html).not.toContain(">Completar visita<");
         expect(countOccurrences(html, 'href="/patients/pat-1/encounters/register"')).toBe(1);
+        expect(countOccurrences(html, 'href="/patients/pat-1/encounters/new"')).toBe(1);
     });
 
-    it("shows 'Registrar visita' to /encounters/register when there is no in-progress encounter", async () => {
+    it("renders complete + plan CTAs when there is an in-progress encounter without planned encounter", async () => {
+        vi.mocked(getPatientDetailData).mockResolvedValue(
+            makePatientDetailData({
+                inProgressEncounter: makeEncounter("in-progress"),
+                lastEncounter: makeEncounter("in-progress"),
+            }),
+        );
+
+        const element = await Page({
+            params: Promise.resolve({ id: "pat-1" }),
+        });
+
+        const html = renderToStaticMarkup(element);
+
+        expect(html).toContain(">Completar visita<");
+        expect(html).toContain(">Planificar visita<");
+        expect(html).not.toContain(">Registrar visita<");
+        expect(countOccurrences(html, 'href="/patients/pat-1/encounters/enc-in-progress-1"')).toBe(1);
+        expect(countOccurrences(html, 'href="/patients/pat-1/encounters/new"')).toBe(1);
+    });
+
+    it("renders planned-message + detail CTA when there is planned encounter without in-progress encounter", async () => {
         vi.mocked(getPatientDetailData).mockResolvedValue(
             makePatientDetailData({
                 nextPlannedEncounter: makeEncounter("planned"),
@@ -159,13 +181,15 @@ describe("Patient detail CTA render", () => {
 
         const html = renderToStaticMarkup(element);
 
-        expect(html).toContain(">Registrar Visita<");
-        expect(html).toContain(">Registrar visita<");
+        expect(html).toContain("Tenés una visita planificada");
+        expect(html).toContain(">Ver detalle<");
+        expect(html).not.toContain(">Registrar visita<");
+        expect(countOccurrences(html, 'href="/patients/pat-1/encounters/enc-planned-1"')).toBe(1);
         expect(countOccurrences(html, 'href="/patients/pat-1/encounters/new"')).toBe(0);
-        expect(countOccurrences(html, 'href="/patients/pat-1/encounters/register"')).toBe(1);
+        expect(countOccurrences(html, 'href="/patients/pat-1/encounters/register"')).toBe(0);
     });
 
-    it("hides 'Registrar visita' when there is an in-progress encounter", async () => {
+    it("renders complete + plan CTAs and planned helper message when both encounters exist", async () => {
         vi.mocked(getPatientDetailData).mockResolvedValue(
             makePatientDetailData({
                 inProgressEncounter: makeEncounter("in-progress"),
@@ -180,8 +204,11 @@ describe("Patient detail CTA render", () => {
 
         const html = renderToStaticMarkup(element);
 
+        expect(html).toContain(">Completar visita<");
+        expect(html).toContain(">Planificar visita<");
+        expect(html).toContain("Además tenés una visita planificada");
         expect(html).not.toContain(">Registrar visita<");
-        expect(html).toContain(">Registrar Visita<");
-        expect(html).not.toContain('href="/patients/pat-1/encounters/register"');
+        expect(countOccurrences(html, 'href="/patients/pat-1/encounters/enc-in-progress-1"')).toBe(1);
+        expect(countOccurrences(html, 'href="/patients/pat-1/encounters/new"')).toBe(1);
     });
 });
