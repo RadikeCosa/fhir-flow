@@ -18,13 +18,12 @@ describe("RegisterEncounterForm render", () => {
             }),
         );
 
-        expect(html).toContain("Episodio de cuidado");
         expect(html).toContain("Tipo de visita");
         expect(html).toContain("Fecha real");
         expect(html).toContain("Hora real de inicio");
         expect(html).toContain("Hora real de fin");
         expect(html).toContain("Nota clínica");
-        expect(html).toContain("Guardar e iniciar");
-        expect(html).toContain("Registrar visita completa");
+        expect(html).toContain("Iniciar visita");
+        expect(html).toContain("Finalizar directamente");
     });
 });
