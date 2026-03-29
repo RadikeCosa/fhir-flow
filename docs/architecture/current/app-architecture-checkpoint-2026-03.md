@@ -16,6 +16,7 @@ This checkpoint covers changes in:
 - `app/patients/[id]/data.ts`
 - `app/patients/[id]/encounters/data.ts`
 - `app/patients/[id]/encounters/new/page.tsx`
+- `app/patients/[id]/encounters/register/page.tsx`
 - `app/patients/[id]/encounters/new/data.ts`
 - `app/patients/[id]/encounters/[encounterId]/data.ts`
 - `app/patients/[id]/encounters/[encounterId]/page.tsx`
@@ -159,6 +160,18 @@ The boundary between route data and user-visible presentation is cleaner.
 
 ---
 
+### 8. separación explícita entre planning y register quedó operativa
+
+La estructura de rutas y CTAs ya refleja dos entry points distintos:
+
+- `/patients/[id]/encounters/new` para planificar visita
+- `/patients/[id]/encounters/register` para registrar visita
+
+En patient detail, los CTAs condicionados por `inProgressEncounter` y `nextPlannedEncounter` cubren 4 estados explícitos.
+
+#### Result
+El app layer dejó de mezclar semánticas de planificación y registro en una sola entrada.
+
 ## Architectural outcomes
 
 After this refactor round, the `patients` area now follows a more consistent route pattern.
@@ -202,9 +215,8 @@ This convention is now consistently present in the main patient/encounter routes
 
 This refactor round did **not** attempt to solve the following:
 
-### 1. canonical read for finished encounter detail (mostly resolved)
-The encounter detail route remains the canonical read surface by architectural direction and is functionally resolved for `finished` in current runtime behavior (source-of-truth re-read + hydration of note/vitals/EVA/procedures + finalize redirect to detail).
-What remains open is narrower: peripheral read-model cleanup (for example, avoiding unnecessary clinical load in history surfaces).
+### 1. canonical read for finished encounter detail (still open)
+The encounter detail route is the canonical target by architecture, but canonical read hardening for `finished` must remain open debt until the remaining gaps are explicitly closed and validated end-to-end.
 
 ### 2. final shape of `encounters/data.ts`
 The encounters loader still serves both:
