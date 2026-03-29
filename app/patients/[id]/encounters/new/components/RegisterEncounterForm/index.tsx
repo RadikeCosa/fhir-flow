@@ -173,26 +173,7 @@ export function RegisterEncounterForm({
         </div>
       )}
 
-      <div>
-        <label
-          htmlFor="episodeOfCareId"
-          className="block text-sm font-medium text-foreground"
-        >
-          Episodio de cuidado
-        </label>
-        <input
-          id="episodeOfCareId"
-          readOnly
-          {...form.register("episodeOfCareId")}
-          className="mt-1 block w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-foreground"
-          disabled={isSubmitting}
-        />
-        {form.formState.errors.episodeOfCareId && (
-          <p className="mt-1 text-sm text-error">
-            {form.formState.errors.episodeOfCareId.message}
-          </p>
-        )}
-      </div>
+      <input type="hidden" {...form.register("episodeOfCareId")} />
 
       <div>
         <label
@@ -325,21 +306,19 @@ export function RegisterEncounterForm({
           className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors duration-150 hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
           disabled={isSubmitting}
         >
-          Guardar e iniciar
+          Iniciar visita
         </button>
         <button
           type="submit"
           data-completion-mode="complete"
-          className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground transition-colors duration-150 hover:bg-surface disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-transparent px-4 py-2 text-sm font-medium text-muted transition-colors duration-150 hover:bg-surface-hover hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
           disabled={isSubmitting}
         >
-          Registrar visita completa
+          Finalizar directamente
         </button>
       </div>
 
-      <p className="text-xs text-muted">
-        El modo de guardado depende del botón que elijas.
-      </p>
+      <p className="text-xs text-muted">Elegí cómo querés registrar la visita.</p>
     </form>
   );
 }
