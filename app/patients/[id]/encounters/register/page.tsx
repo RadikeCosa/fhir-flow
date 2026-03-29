@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CreateEncounterForm } from "./components/CreateEncounterForm";
-import { getNewEncounterPageData, type NewEncounterPageData } from "./data";
+import { RegisterEncounterForm } from "../new/components/RegisterEncounterForm";
+import { getNewEncounterPageData, type NewEncounterPageData } from "../new/data";
 
 export const metadata: Metadata = {
-  title: "Planificar visita | FHIR Flow",
-  description: "Planifica una visita del paciente dentro del episodio activo",
+  title: "Registrar visita | FHIR Flow",
+  description: "Registra una visita del paciente con intención explícita",
 };
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function CreateEncounterPage({ params }: PageProps) {
+export default async function RegisterEncounterPage({ params }: PageProps) {
   const { id: patientId } = await params;
 
   const data: NewEncounterPageData = await getNewEncounterPageData(patientId);
@@ -67,20 +67,23 @@ export default async function CreateEncounterPage({ params }: PageProps) {
   return (
     <div className="max-w-2xl mx-auto py-8 px-4">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground">Planificar visita</h1>
+        <h1 className="text-3xl font-bold text-foreground">Registrar visita</h1>
         <p className="mt-2 text-sm text-muted">
-          Paciente: {patientName || patientId}
+          Paciente: {patientName || patientId} | Episodio:{" "}
+          <code className="text-xs bg-surface px-1 rounded">
+            {activeEpisode.id}
+          </code>
         </p>
       </div>
 
       <div className="bg-surface border border-border rounded-lg shadow-sm">
         <div className="px-6 pt-6 pb-4 border-b border-border">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-            Datos de planificación
+            Datos de la visita
           </h2>
         </div>
         <div className="p-6">
-          <CreateEncounterForm
+          <RegisterEncounterForm
             patientId={patientId}
             episodeOfCareId={activeEpisode.id}
             practitionerName={practitionerName}

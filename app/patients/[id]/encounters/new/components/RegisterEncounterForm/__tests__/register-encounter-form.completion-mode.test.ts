@@ -4,7 +4,10 @@ vi.mock("../../../actions/register-encounter.action", () => ({
     registerEncounterAction: vi.fn(),
 }));
 
-import { resolveRegisterCompletionMode } from "../index";
+import {
+    normalizeOptionalString,
+    resolveRegisterCompletionMode,
+} from "../index";
 
 describe("resolveRegisterCompletionMode", () => {
     it("returns start for the start submit button", () => {
@@ -27,5 +30,17 @@ describe("resolveRegisterCompletionMode", () => {
         expect(
             resolveRegisterCompletionMode({ dataset: {} as DOMStringMap }),
         ).toBeNull();
+    });
+});
+
+describe("normalizeOptionalString", () => {
+    it("returns undefined when value is empty or spaces", () => {
+        expect(normalizeOptionalString("")).toBeUndefined();
+        expect(normalizeOptionalString("   ")).toBeUndefined();
+        expect(normalizeOptionalString(undefined)).toBeUndefined();
+    });
+
+    it("trims and keeps non-empty values", () => {
+        expect(normalizeOptionalString(" nota clínica ")).toBe("nota clínica");
     });
 });

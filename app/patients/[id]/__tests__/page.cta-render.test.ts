@@ -142,10 +142,11 @@ describe("Patient detail CTA render", () => {
 
         expect(html).toContain(">Planificar Visita<");
         expect(html).toContain(">Registrar visita<");
-        expect(countOccurrences(html, 'href="/patients/pat-1/encounters/new"')).toBe(2);
+        expect(countOccurrences(html, 'href="/patients/pat-1/encounters/new"')).toBe(1);
+        expect(countOccurrences(html, 'href="/patients/pat-1/encounters/register"')).toBe(1);
     });
 
-    it("shows 'Registrar visita' to /encounters/new when there is no in-progress encounter", async () => {
+    it("shows 'Registrar visita' to /encounters/register when there is no in-progress encounter", async () => {
         vi.mocked(getPatientDetailData).mockResolvedValue(
             makePatientDetailData({
                 nextPlannedEncounter: makeEncounter("planned"),
@@ -160,7 +161,8 @@ describe("Patient detail CTA render", () => {
 
         expect(html).toContain(">Registrar Visita<");
         expect(html).toContain(">Registrar visita<");
-        expect(countOccurrences(html, 'href="/patients/pat-1/encounters/new"')).toBe(1);
+        expect(countOccurrences(html, 'href="/patients/pat-1/encounters/new"')).toBe(0);
+        expect(countOccurrences(html, 'href="/patients/pat-1/encounters/register"')).toBe(1);
     });
 
     it("hides 'Registrar visita' when there is an in-progress encounter", async () => {
@@ -180,6 +182,6 @@ describe("Patient detail CTA render", () => {
 
         expect(html).not.toContain(">Registrar visita<");
         expect(html).toContain(">Registrar Visita<");
-        expect(html).not.toContain('href="/patients/pat-1/encounters/new"');
+        expect(html).not.toContain('href="/patients/pat-1/encounters/register"');
     });
 });
