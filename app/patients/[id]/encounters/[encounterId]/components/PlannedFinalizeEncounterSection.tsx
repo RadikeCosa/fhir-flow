@@ -104,7 +104,7 @@ export default function PlannedFinalizeEncounterSection({
                 <input
                   id="actualStartTime"
                   type="time"
-                  step={300}
+                  step={60}
                   value={actualStartTime}
                   onChange={(event) => setActualStartTime(event.target.value)}
                   className="mt-1 block w-full rounded-md border border-border px-3 py-2 text-sm"
