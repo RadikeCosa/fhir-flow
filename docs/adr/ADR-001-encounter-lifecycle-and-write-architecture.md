@@ -21,7 +21,8 @@ The current write flow already supports creating a planned encounter and closing
 - `finalizeEncounter` closes it directly in `finished`
 - the domain already defines `in-progress` and `cancelled`
 - the UI already anticipates `in-progress`
-- there is still no explicit write operation that produces `in-progress`
+- direct registration can create encounters in `in-progress` or `finished`
+- there is still no explicit transition operation `planned -> in-progress` for encounters created as `planned`
 
 At the same time, several architectural inconsistencies need to be resolved before the write flow evolves further:
 
@@ -29,7 +30,7 @@ At the same time, several architectural inconsistencies need to be resolved befo
 - the create inverse mapper still reads configuration directly instead of receiving complete write context from the Server Action
 - all clinical data currently gets created only at finalization time
 - the error contract exposes useful validation details, but the form layer cannot consume them safely
-- the Encounter detail page is not yet the canonical read surface for a completed encounter
+- canonical read for completed encounter detail is still treated as active debt and must not be considered fully closed
 
 This ADR defines the architectural baseline for:
 - Encounter lifecycle

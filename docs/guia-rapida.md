@@ -23,6 +23,10 @@ Esta guía es el punto de entrada principal para navegar la documentación vigen
 
 - [`docs/validation/validacion-arquitectonica.md`](./validation/validacion-arquitectonica.md): contrasta autoridad y estado real, distinguiendo lo válido hoy, lo transicional y la deuda conocida. Leer cuando necesites validar si algo ya está alineado o sigue pendiente.
 
+## Cierre de sprint
+
+- [`docs/sprint-cierre-register-flow-2026-03.md`](./sprint-cierre-register-flow-2026-03.md): cierre técnico del sprint de register flow (alcance ejecutado, decisiones cerradas, deuda abierta y próximos pasos). Leer cuando necesites contexto de estado post-sprint sin mezclarlo con decisiones normativas.
+
 ## Documentos históricos
 
 - [`docs/evolution/reviews/*`](./evolution/reviews/): revisiones puntuales e informes de evaluación ya históricos. Leer solo para reconstruir contexto de análisis anteriores, no para definir reglas vigentes.

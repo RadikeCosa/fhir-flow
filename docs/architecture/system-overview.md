@@ -216,19 +216,27 @@ El sistema soporta dos entry points de escritura:
 - **planning**: crea una visita planificada
 - **direct registration**: registra una visita de manera directa sin pasar primero por el estado planificado
 
-**Operaciones visibles hoy y dirección futura**
+**Rutas actuales del app layer**
+
+- `/patients/[id]/encounters/new` = planificar visita
+- `/patients/[id]/encounters/register` = registrar visita
+
+En patient detail, los CTAs se condicionan por `inProgressEncounter` y `nextPlannedEncounter`, cubriendo 4 estados explícitos de acción.
+
+**Operaciones visibles hoy y siguiente fase**
 
 - `createEncounterAction`: crea un `Encounter` en `planned`
 - `startEncounterAction` (future): transiciona `planned -> in-progress`
 - `finalizeEncounterAction`: cierra el `Encounter` y persiste datos clínicos soportados en el write actual
-- `registerEncounterAction` (conceptual): crea un `Encounter` directamente en `in-progress` o `finished`
+- `registerEncounterAction`: crea un `Encounter` directamente en `in-progress` o `finished` con `completionMode` explícito (`start` | `complete`)
+- `saveEncounterProgressAction`: persiste snapshot clínico transaccional para encounters `in-progress`
 
 La direct registration puede resolver en dos resultados iniciales:
 
 - `in-progress` cuando la visita se abre con partial save
 - `finished` cuando la visita se registra con finalización inmediata
 
-El modelo de runtime implementado hoy sigue siendo transicional: `planned -> finished`. La dirección oficial documentada sigue siendo `planned -> in-progress -> finished`.
+El modelo de runtime implementado hoy combina creación directa por register (`in-progress`/`finished`) con compatibilidad transicional `planned -> finished`. La dirección oficial documentada sigue siendo `planned -> in-progress -> finished` para lifecycle completo.
 
 Las transiciones de lifecycle siguen aplicando después de la creación. La creación directa no reemplaza el modelo de lifecycle; solo define el estado inicial del Encounter.
 

@@ -6,7 +6,7 @@ Este documento describe el estado real del sistema en relación a la arquitectur
 
 Este documento ofrece una validación honesta del estado real de la arquitectura: distingue lo válido hoy, lo transicional y la deuda conocida sin presentar el estado actual como cierre definitivo.
 
-Fecha: 2026-03-19
+Fecha: 2026-03-29
 
 Este documento reemplaza el enfoque de "aprobado total" por una validación honesta del estado actual.
 
@@ -32,8 +32,10 @@ Este documento reemplaza el enfoque de "aprobado total" por una validación hone
 | ActionResult / ActionError | **Parcialmente válido** | `ActionResult` es contrato estable en Server Actions; `ActionError.details` sigue transicional (`unknown`). | ADR + write-phase definen estabilidad de `layer/message/code` y evolución de `details`. | Ticket de tipado por capa (`validation/domain/fhir`) sin romper contrato estable. |
 | Inverse mapper purity | **Parcialmente válido** | Regla arquitectónica es clara: mapper puro, sin resolver identidad ni reglas de negocio. Persisten riesgos de drift cuando la resolución de contexto no entra por input. | copilot instructions + ADR (responsabilidad de practitioner en Server Action). | Verificar por flujo que mapper solo transforme input validado y no lea config. |
 | Practitioner resolution | **Parcialmente válido** | El ADR fija que la resolución de practitioner es server-side y luego via write input. La dirección está cerrada, la implementación requiere consistencia completa entre create/finalize. | ADR sección de practitioner responsibility + write-phase. | Completar uniformidad de input (`performerId`, `practitionerName`) en todos los writes. |
+| Register flow (`/encounters/register`) | **Válido hoy** | La separación de entry points está operativa: `/encounters/new` planifica y `/encounters/register` registra con `registerEncounterAction` y `completionMode` explícito (`start`/`complete`). | Estado de app layer + write-phase actualizado. | Mantener consistencia documental y evitar regresión semántica entre rutas. |
+| Save progress separado | **Válido hoy** | `saveEncounterProgressAction` existe como operación propia con snapshot transaccional y ownership metadata interoperable para recursos clínicos gestionados por esta app. | write-phase + código de acciones/rules/repositorio. | Mantener hardening de validaciones por estado y ownership. |
 | Transitional `planned -> finished` | **Deuda conocida** | Sigue permitido por compatibilidad transicional. No representa el lifecycle objetivo. | ADR + write-phase lo declaran explícitamente como transición. | Implementar `startEncounterAction` y migrar finalización para requerir `in-progress`. |
-| Canonical read (finished detail) | **Parcialmente válido** | La ruta de detail ya opera como canonical read post-write en términos funcionales (relectura desde source of truth + hidratación clínica en `finished` + redirect de finalize al detail). Quedan ajustes periféricos, como seguir adelgazando history donde aplique. | ADR + write-phase (Canonical Read After Write). | Mantener ajustes menores de consumo/read-model sin reabrir esta deuda como brecha mayor. |
+| Canonical read (finished detail) | **Deuda conocida** | El detail es el target canónico por arquitectura, pero el cierre completo del canonical read de `finished` sigue abierto y no debe declararse como terminado. | ADR + write-phase (Canonical Read After Write) + pendiente explícito en backlog. | Cerrar hardening de canonical read por estado y validar cobertura end-to-end antes de marcar resuelto. |
 | Documentation drift | **Parcialmente válido** | Documentación alinea dirección, pero hubo deriva de tono (“todo aprobado”) y riesgo de leer transición como estado final. | Diferencia entre validación previa y lenguaje explícito de ADR/write-phase. | Mantener este documento como checklist vivo y actualizar por fase/ticket real. |
 
 ## Revisión explícita por tema solicitado
@@ -68,19 +70,31 @@ La pureza del inverse mapper está definida como regla no negociable. La deuda a
 
 La responsabilidad quedó correctamente asignada por ADR: resolver practitioner en Server Action y pasar contexto al repositorio/mapper por input. La consistencia total entre flujos aún es trabajo en curso.
 
-### 6. Transitional `planned -> finished`
+### 6. Register flow separado (`/encounters/register`)
+
+**Estado:** Válido hoy
+
+La separación de entry points está implementada: `/encounters/new` planifica y `/encounters/register` registra visita. El register flow usa `registerEncounterAction` con `completionMode` explícito (`start`/`complete`) y validación server-side de EpisodeOfCare.
+
+### 6.1 Save progress separado
+
+**Estado:** Válido hoy
+
+`saveEncounterProgressAction` existe como operación separada para encuentros en `in-progress`, con persistencia transaccional de snapshot clínico y metadata de ownership para interoperabilidad de recursos gestionados por esta app.
+
+### 7. Transitional `planned -> finished`
 
 **Estado:** Deuda conocida
 
 Es compatibilidad transicional aceptada, no diseño objetivo. Debe tratarse como excepción temporal hasta habilitar transición explícita `planned -> in-progress -> finished`.
 
-### 7. Canonical read de finished detail
+### 8. Canonical read de finished detail
 
-**Estado:** Parcialmente válido
+**Estado:** Deuda conocida
 
-La intención arquitectónica está cerrada (detalle como fuente canónica para una encounter) y hoy está sustancialmente resuelta en implementación para `finished`. La deuda restante es menor y periférica (por ejemplo, mantener history sin carga clínica innecesaria), no una brecha estructural del canonical read.
+La intención arquitectónica está cerrada (detalle como fuente canónica para una encounter), pero el cierre completo del canonical read para `finished` sigue abierto. Debe mantenerse explícito como deuda hasta completar hardening por estado y validación end-to-end.
 
-### 8. Documentation drift
+### 9. Documentation drift
 
 **Estado:** Parcialmente válido
 
@@ -88,9 +102,9 @@ La base documental principal (copilot instructions + write-phase + ADR) está al
 
 ## Pendientes del ADR / tickets siguientes
 
-1. Implementar transición operacional `planned -> in-progress` (`startEncounterAction`).
-2. Endurecer finalización para requerir `in-progress` cuando el start esté operativo.
-3. Consolidar ajustes periféricos del canonical read (principalmente mantener liviano history cuando corresponda) sin reintroducir lógica clínica duplicada.
+1. Implementar transición operacional `planned -> in-progress` (`startEncounterAction`) para encounters creados como `planned`.
+2. Endurecer finalización para requerir `in-progress` cuando el start esté operativo (manteniendo compatibilidad controlada durante la migración).
+3. Completar canonical read de `finished` por estado y cerrar la deuda de forma verificable.
 4. Tipar `ActionError.details` por variante/capa sin romper `ActionResult`.
 5. Cerrar consistencia total de practitioner context en todos los write inputs.
 
@@ -111,6 +125,6 @@ Usar este checklist en cada cambio de write flow:
 
 La arquitectura **no está “todo aprobado”**.
 
-El sistema tiene bases sólidas en boundaries y responsabilidades, mantiene deuda explícita en lifecycle operativo y cierre del contrato de errores tipados, y deja el canonical read de `finished` sustancialmente resuelto con pendientes periféricos. La validación correcta hoy es: **base válida + transición activa + deuda reconocida + pendientes concretos del ADR**.
+El sistema tiene bases sólidas en boundaries y responsabilidades, mantiene deuda explícita en lifecycle operativo, canonical read completo de `finished` y cierre del contrato de errores tipados. La validación correcta hoy es: **base válida + transición activa + deuda reconocida + pendientes concretos del ADR**.
 
 Nota: los últimos refactors de la capa `app/` (loaders, contratos y convención de rutas en patients/encounters) están resumidos en `docs/architecture/current/app-architecture-checkpoint-2026-03.md`.

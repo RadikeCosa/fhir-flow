@@ -338,17 +338,19 @@ Encounter finalization closes the encounter and persists the currently supported
 
 ## Current Clinical Write Scope
 
-The write flow currently supports clinical persistence at finalization time.
+The write flow currently supports two operational clinical persistence paths:
 
-This is the correct description of the implemented model today.
+- `registerEncounterAction`: creates the encounter as `in-progress` (`completionMode: "start"`) or `finished` (`completionMode: "complete"`) and writes the corresponding clinical snapshot in a transaction
+- `saveEncounterProgressAction`: persists partial progress for encounters already in `in-progress`, replacing managed clinical resources with ownership metadata
 
-It should not be described as if start, partial save, and finalize were already separated runtime operations.
+`startEncounterAction` as transition from an existing `planned` encounter is still not implemented.
 
 ### Operational Reality Today
 
-- clinical data persistence currently happens at finalization time
-- the implemented model is bundle-oriented when multiple resources are written together
-- the current runtime model is intentionally narrower than the target lifecycle
+- planning (`/encounters/new`) remains separated from registration (`/encounters/register`)
+- register and save-progress are runtime operations already available
+- compatibility `planned -> finished` still exists and remains transitional
+- the runtime model is still narrower than the target lifecycle because `planned -> in-progress` transition is pending
 
 ## Accepted Architectural Direction
 
@@ -438,9 +440,9 @@ Clinical data is currently created at finalization time rather than through a se
 
 This is the current implemented model, not the target end state.
 
-### 3. Canonical Finished Detail Substantially Resolved
+### 3. Canonical Finished Detail Still Transitional
 
-Encounter detail is the canonical target by architecture and this is now substantially resolved in runtime behavior; only peripheral adjustments remain.
+Encounter detail remains the canonical target by architecture, but complete canonical read coverage for `finished` must remain explicit debt until the pending detail hardening is closed end-to-end.
 
 ### 4. Error Detail Typing Still Transitional
 
@@ -468,13 +470,17 @@ When contributors add or modify write behavior, they must preserve the following
 - inverse mappers are pure functions
 - repositories do not return raw FHIR resources
 - multi-resource writes use FHIR Transaction Bundle semantics where required
-- encounter detail is the canonical read target for a single encounter
+- `/patients/[id]/encounters/new` is planning and `/patients/[id]/encounters/register` is direct registration
+- `registerEncounterAction` is operational with `completionMode: "start" | "complete"`
+- `saveEncounterProgressAction` is operational for in-progress partial persistence
+- encounter detail is the canonical read target by architecture
 
 ### Accepted but Not Fully Implemented
 
 - explicit `planned -> in-progress -> finished` write lifecycle
 - partial persistence while an encounter is `in-progress`
 - stricter finalization that requires `in-progress`
+- full canonical read hardening for finished encounter detail
 - peripheral follow-ups around canonical finished detail (for example, keeping history lean)
 - typed error detail models by layer
 
