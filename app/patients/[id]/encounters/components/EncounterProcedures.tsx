@@ -9,7 +9,16 @@ interface Props {
 }
 
 export default function EncounterProcedures({ procedures }: Props) {
-  if (procedures.length === 0) return null;
+  if (procedures.length === 0) {
+    return (
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted mb-2">
+          Procedimientos
+        </p>
+        <p className="text-xs text-muted">Sin procedimientos registrados</p>
+      </div>
+    );
+  }
 
   const groupedProcedures = groupProceduresByCategory(procedures);
 

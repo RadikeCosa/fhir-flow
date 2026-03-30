@@ -34,15 +34,32 @@ vi.mock("../components/EncounterClinicalNote", () => ({
 }));
 
 vi.mock("../components/EncounterVitalSignsSection", () => ({
-  default: () => React.createElement("section", {}, "vitals"),
+  default: ({ records }: { records: unknown[] }) =>
+    React.createElement(
+      "section",
+      {},
+      records.length === 0
+        ? "No hay registros de signos vitales"
+        : `vitals:${records.length}`,
+    ),
 }));
 
 vi.mock("../components/EncounterEvaSection", () => ({
-  default: () => React.createElement("section", {}, "eva"),
+  default: ({ records }: { records: unknown[] }) =>
+    React.createElement(
+      "section",
+      {},
+      records.length === 0 ? "Sin evaluaciones EVA" : "eva",
+    ),
 }));
 
 vi.mock("../components/EncounterProcedures", () => ({
-  default: () => React.createElement("section", {}, "procedures"),
+  default: ({ procedures }: { procedures: unknown[] }) =>
+    React.createElement(
+      "section",
+      {},
+      procedures.length === 0 ? "Sin procedimientos registrados" : "procedures",
+    ),
 }));
 
 const mapperMock = vi.hoisted(() => vi.fn());
@@ -162,5 +179,30 @@ describe("Encounter detail page rehydration wiring", () => {
     expect(mapperMock).not.toHaveBeenCalled();
     expect(html).toContain("Esta visita está finalizada");
     expect(html).not.toContain("finalize:");
+  });
+
+  it("finished with empty clinical datasets: keeps canonical clinical blocks visible", async () => {
+    vi.mocked(getEncounterDetailData).mockResolvedValue({
+      ...baseData,
+      encounter: {
+        ...baseData.encounter,
+        status: "finished",
+        clinicalNote: "   ",
+      },
+      vitalSigns: [],
+      evaRecords: [],
+      procedures: [],
+      inProgressInitialValues: undefined,
+    } as never);
+
+    const element = await Page({
+      params: Promise.resolve({ id: "pat-1", encounterId: "enc-1" }),
+    });
+    const html = renderToStaticMarkup(element);
+
+    expect(html).toContain("Sin nota clínica registrada");
+    expect(html).toContain("No hay registros de signos vitales");
+    expect(html).toContain("Sin evaluaciones EVA");
+    expect(html).toContain("Sin procedimientos registrados");
   });
 });

@@ -301,18 +301,21 @@ export default async function EncounterDetailPage({ params }: PageProps) {
           {shouldRenderClinicalBlocks && (
             <>
               {typeof encounter.clinicalNote === "string" &&
-                encounter.clinicalNote.trim() !== "" && (
-                  <EncounterClinicalNote note={encounter.clinicalNote} />
-                )}
-              {vitalSigns.length > 0 && (
-                <EncounterVitalSignsSection records={vitalSigns} />
+              encounter.clinicalNote.trim() !== "" ? (
+                <EncounterClinicalNote note={encounter.clinicalNote} />
+              ) : (
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted mb-1">
+                    Nota clínica
+                  </p>
+                  <div className="bg-surface border border-border rounded-md p-3 text-sm text-muted">
+                    Sin nota clínica registrada
+                  </div>
+                </div>
               )}
-              {evaRecords.length > 0 && (
-                <EncounterEvaSection records={evaRecords} />
-              )}
-              {procedures.length > 0 && (
-                <EncounterProcedures procedures={procedures} />
-              )}
+              <EncounterVitalSignsSection records={vitalSigns} />
+              <EncounterEvaSection records={evaRecords} />
+              <EncounterProcedures procedures={procedures} />
             </>
           )}
         </div>
