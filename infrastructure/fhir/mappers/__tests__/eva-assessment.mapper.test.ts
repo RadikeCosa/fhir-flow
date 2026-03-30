@@ -98,4 +98,12 @@ describe('mapFhirObservationsToEvaAssessments', () => {
         expect(result).toHaveLength(1);
         expect(result[0].encounterId).toBeUndefined();
     });
+
+    it('extracts encounterId from absolute encounter references', () => {
+        const obs = makeObservation({ encounter: { reference: 'https://fhir.example.com/Encounter/enc-999' } });
+        const result = mapFhirObservationsToEvaAssessments([obs]);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].encounterId).toBe('enc-999');
+    });
 });

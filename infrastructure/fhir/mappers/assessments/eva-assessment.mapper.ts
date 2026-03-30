@@ -1,6 +1,6 @@
 import type { FhirEvaObservation } from "../../schemas/assessments/eva-assessment.schema";
 import type { EvaAssessment } from "../../../../domain/assessments/eva-assessment";
-import { extractId } from "../shared/extract-helpers";
+import { extractEncounterId, extractId } from "../shared/extract-helpers";
 
 /**
  * Map raw FHIR Observation resources to the domain `EvaAssessment` type.
@@ -16,7 +16,7 @@ export function mapFhirObservationsToEvaAssessments(
     for (const obs of observations) {
         const id = obs.id;
         const patientId = extractId(obs.subject?.reference);
-        const encounterId = extractId(obs.encounter?.reference);
+        const encounterId = extractEncounterId(obs.encounter?.reference);
 
         // derive date from effectiveDateTime
         const dt = typeof obs.effectiveDateTime === "string" ? obs.effectiveDateTime : "";
