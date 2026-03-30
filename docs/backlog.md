@@ -83,7 +83,10 @@ Tracks:
 1. **Bloque prioritario inmediato (read + UX clínica):**
    - continuidad clínica real de `in-progress` en UI;
    - integración/rehidratación de `saveEncounterProgressAction` en surfaces encounter-centric;
-   - validación de no-mezcla encounter/datasets en escenarios reales.
+   - validación de no-mezcla encounter/datasets:
+- patient detail: datasets pertenecen al mismo encounterId renderizado
+- encounter detail: no fallback temporal si existe linkage
+- charts: fallback permitido solo en modo longitudinal
 2. **Cerrar deuda de canonical read para `finished`** (hardening por estado + validación end-to-end).
 3. **L1** — startEncounterAction.
 4. **L2** — endurecer finalize con retiro progresivo del fallback transicional.
