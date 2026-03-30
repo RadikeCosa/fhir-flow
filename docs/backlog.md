@@ -86,16 +86,14 @@ Tracks:
 ## 🔴 Deuda abierta (no cerrar)
 
 ### Debt transversal documentada
-- **Canonical read completo de finished detail** → **Deuda abierta**
-  - Detail es target canónico por arquitectura, pero el cierre completo sigue pendiente.
+- **Canonical read completo de finished detail (path específico)** → **Cerrado (sprint canonical read finished 2026-03)**
+  - Se cerró de forma acotada en `finished encounter detail` con auditoría + hardening mínimo de render + tests locales.
+  - Este cierre no aplica automáticamente a deuda longitudinal/histórica ni a hardening E2E global.
 - **Deuda longitudinal/histórica** → **Deuda abierta**
   - El fallback temporal por fecha se mantiene como estrategia longitudinal; no debe reutilizarse como source-of-truth encounter-centric.
   - Persisten casos históricos sin `encounterId` que requieren manejo controlado.
 
 ## 🔴 Deuda abierta (post-sprint)
-
-- **Canonical read de `finished`** → **NO resuelto**
-  - Sigue pendiente el hardening completo del detail canónico para encounters finalizados.
 
 - **Validación end-to-end del flujo clínico** → **Pendiente**
   - Falta cerrar validación integral de punta a punta para continuidad de lectura/rehidratación/edición.
@@ -117,21 +115,21 @@ Tracks:
 - patient detail: datasets pertenecen al mismo encounterId renderizado
 - encounter detail: no fallback temporal si existe linkage
 - charts: fallback permitido solo en modo longitudinal
-2. **Cerrar deuda de canonical read para `finished`** (hardening por estado + validación end-to-end).
+2. **Profundizar validación E2E post-cierre de canonical read en `finished detail`**.
 3. Tipado de `ActionError.details` por capa.
 4. Hardening incremental UI/UX (F2/F3/G2 y luego temporal UX/hardening/dashboard).
 
 ## 🚀 Próximo sprint propuesto
 
-### Canonical read hardening — finished encounters
+### Validación clínica E2E y continuidad post-cierre de finished detail
 
 **Objetivo breve**
-- Endurecer el canonical read encounter-centric para `finished` sin romper continuidad de `in-progress` ya cerrada en el sprint anterior.
+- Consolidar validación end-to-end y continuidad encounter-centric sin reabrir artificialmente el cierre ya logrado en `finished encounter detail`.
 
 **Scope inicial**
-- consolidar reglas de lectura canónica para encounter detail en estado `finished`;
-- reforzar validaciones de no-mezcla entre encounter-centric y longitudinal en detail;
-- definir y ejecutar validaciones de integración/E2E mínimas para cierre técnico del hardening.
+- reforzar validaciones de no-mezcla entre encounter-centric y longitudinal en rutas abiertas;
+- definir y ejecutar validaciones de integración/E2E para lectura/rehidratación/edición;
+- mantener explícito el límite entre deuda longitudinal/histórica abierta y surfaces canónicas ya cerradas.
 
 ---
 
