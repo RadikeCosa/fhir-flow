@@ -45,6 +45,23 @@ Tracks:
 - **L1 — Implementar startEncounterAction** → **Resuelto**
   - `startEncounterAction` está operativo para transición explícita `planned -> in-progress` en encounters ya planificados.
 
+## ✅ Sprint cerrado — Rehidratación in-progress (2026-03)
+
+- **T1 — Contrato loader → initial values** → **Completado**
+  - Se cerró el contrato explícito entre loader encounter-centric y valores iniciales del formulario para `in-progress`.
+
+- **T2 — Loader encounter detail (`in-progress`)** → **Completado**
+  - `encounter detail` entrega lectura clínica por `encounterId` para continuidad de la visita en curso.
+
+- **T3 — Mapper clinical read → form values** → **Completado**
+  - Se implementó el mapeo de lectura clínica persistida hacia valores iniciales editables, tolerando parcialidad sin mezclar encounters.
+
+- **T4 — Wiring formulario editable** → **Completado**
+  - El formulario consume initial values rehidratados y mantiene flujo consistente de edición/guardado/reapertura.
+
+- **T5 — Tests de rehidratación y no-mezcla** → **Completado**
+  - Se incorporaron pruebas para continuidad clínica por `encounterId` y protección contra contaminación entre datasets de encounters.
+
 ---
 
 ## 🟡 Parcial / transición activa
@@ -75,6 +92,20 @@ Tracks:
   - El fallback temporal por fecha se mantiene como estrategia longitudinal; no debe reutilizarse como source-of-truth encounter-centric.
   - Persisten casos históricos sin `encounterId` que requieren manejo controlado.
 
+## 🔴 Deuda abierta (post-sprint)
+
+- **Canonical read de `finished`** → **NO resuelto**
+  - Sigue pendiente el hardening completo del detail canónico para encounters finalizados.
+
+- **Validación end-to-end del flujo clínico** → **Pendiente**
+  - Falta cerrar validación integral de punta a punta para continuidad de lectura/rehidratación/edición.
+
+- **Datos históricos sin `encounterId`** → **Pendiente**
+  - Continúan existiendo casos legacy sin linkage completo que requieren estrategia explícita para no contaminar surfaces encounter-centric.
+
+- **Ausencia de test E2E** → **Pendiente**
+  - No hay cobertura E2E dedicada al circuito completo de rehidratación in-progress + no-mezcla.
+
 ---
 
 ## 🚀 Siguiente fase (prioridad sugerida)
@@ -89,6 +120,18 @@ Tracks:
 2. **Cerrar deuda de canonical read para `finished`** (hardening por estado + validación end-to-end).
 3. Tipado de `ActionError.details` por capa.
 4. Hardening incremental UI/UX (F2/F3/G2 y luego temporal UX/hardening/dashboard).
+
+## 🚀 Próximo sprint propuesto
+
+### Canonical read hardening — finished encounters
+
+**Objetivo breve**
+- Endurecer el canonical read encounter-centric para `finished` sin romper continuidad de `in-progress` ya cerrada en el sprint anterior.
+
+**Scope inicial**
+- consolidar reglas de lectura canónica para encounter detail en estado `finished`;
+- reforzar validaciones de no-mezcla entre encounter-centric y longitudinal en detail;
+- definir y ejecutar validaciones de integración/E2E mínimas para cierre técnico del hardening.
 
 ---
 
