@@ -1,6 +1,6 @@
 import type { FhirVitalSignObservation } from "../schemas/vital-sign.schema";
 import type { VitalSignRecord, BloodPressureReading } from "../../../domain/vital-sign-record/vital-sign-record";
-import { extractId } from "./shared/extract-helpers";
+import { extractEncounterId, extractId } from "./shared/extract-helpers";
 
 /**
  * Map an array of validated FHIR Observation resources representing vital
@@ -67,7 +67,7 @@ export function mapFhirObservationsToVitalSignRecords(
         if (!performerKey) continue;
 
         const groupKey = `${date}::${performerKey}`;
-        const encounterId = extractId(obs.encounter?.reference);
+        const encounterId = extractEncounterId(obs.encounter?.reference);
 
         let record = groups.get(groupKey);
         if (!record) {

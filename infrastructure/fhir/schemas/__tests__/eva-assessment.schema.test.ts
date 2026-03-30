@@ -66,4 +66,27 @@ describe('fhirEvaObservationSchema', () => {
 
         expect(result.success).toBe(true);
     });
+
+    it('accepts encounter.reference when present', () => {
+        const result = fhirEvaObservationSchema.safeParse({
+            resourceType: 'Observation',
+            id: 'obs-1',
+            effectiveDateTime: '2022-01-01',
+            valueInteger: 7,
+            encounter: { reference: 'Encounter/enc-123' },
+        });
+
+        expect(result.success).toBe(true);
+    });
+
+    it('accepts missing encounter for backward compatibility', () => {
+        const result = fhirEvaObservationSchema.safeParse({
+            resourceType: 'Observation',
+            id: 'obs-1',
+            effectiveDateTime: '2022-01-01',
+            valueInteger: 7,
+        });
+
+        expect(result.success).toBe(true);
+    });
 });

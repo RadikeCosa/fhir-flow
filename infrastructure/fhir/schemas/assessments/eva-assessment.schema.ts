@@ -1,14 +1,5 @@
 import { z } from "zod";
-import { codingSchema, codeableConceptSchema } from "../shared.schema";
-
-// reusable fragments -------------------------------------------------------
-
-const performerSchema = z
-    .object({
-        reference: z.string().optional(),
-        display: z.string().optional(),
-    })
-    .passthrough();
+import { codingSchema, codeableConceptSchema, referenceSchema } from "../shared.schema";
 
 /**
  * Zod schema for a FHIR Observation resource that carries an EVA assessment.
@@ -29,15 +20,9 @@ export const fhirEvaObservationSchema = z
                 .passthrough()
         ).optional(),
         code: codeableConceptSchema.optional(),
-        subject: z
-            .object({ reference: z.string().optional() })
-            .passthrough()
-            .optional(),
-        encounter: z
-            .object({ reference: z.string().optional() })
-            .passthrough()
-            .optional(),
-        performer: z.array(performerSchema).optional(),
+        subject: referenceSchema.optional(),
+        encounter: referenceSchema.optional(),
+        performer: z.array(referenceSchema).optional(),
         effectiveDateTime: z.string().optional(),
         issued: z.string().optional(),
         valueInteger: z.number().int().min(0).max(10).optional(),
