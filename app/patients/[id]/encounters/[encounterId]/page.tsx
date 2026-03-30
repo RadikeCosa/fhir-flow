@@ -19,6 +19,7 @@ import EncounterClinicalNote from "../components/EncounterClinicalNote";
 import EncounterVitalSignsSection from "../components/EncounterVitalSignsSection";
 import EncounterEvaSection from "../components/EncounterEvaSection";
 import EncounterProcedures from "../components/EncounterProcedures";
+import { mapInProgressEncounterDetailToFormInitialValues } from "@/lib/patient/mappers/in-progress-encounter-detail.mapper";
 
 type PageProps = {
   params: Promise<{
@@ -95,6 +96,11 @@ export default async function EncounterDetailPage({ params }: PageProps) {
   const readOnlyStart = getEncounterRepresentativeStart(encounter);
   const readOnlyEnd = getEncounterRepresentativeEnd(encounter);
   const encounterDuration = formatEncounterDuration(encounter.durationMinutes);
+
+  const inProgressFormInitialValues =
+    encounter.status === "in-progress" && data.inProgressInitialValues
+      ? mapInProgressEncounterDetailToFormInitialValues(data.inProgressInitialValues)
+      : undefined;
 
   return (
     <div className="space-y-6">
@@ -219,6 +225,7 @@ export default async function EncounterDetailPage({ params }: PageProps) {
                   plannedDate={encounter.plannedDate}
                   plannedTime={encounter.plannedTime}
                   actualStartAt={encounter.actualStartAt}
+                  initialValues={inProgressFormInitialValues}
                 />
               </div>
             </div>

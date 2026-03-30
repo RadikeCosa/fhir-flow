@@ -3,6 +3,7 @@ import type { EvaAssessment } from "@/domain/assessments/eva-assessment";
 import type { Procedure } from "@/domain/procedures/procedure";
 import type { Encounter } from "@/domain/encounters/encounter";
 import type { Patient } from "@/domain/patients/patient";
+import type { InProgressEncounterDetailInitialValues } from "@/domain/encounters/encounter-detail-initial-values";
 
 import {
     createEncounterRepository,
@@ -21,6 +22,7 @@ export interface EncounterDetailData {
     vitalSigns: VitalSignRecord[];
     evaRecords: EvaAssessment[];
     procedures: Procedure[];
+    inProgressInitialValues?: InProgressEncounterDetailInitialValues;
 }
 
 export async function getEncounterDetailData(
@@ -47,13 +49,15 @@ export async function getEncounterDetailData(
             vitalSigns: [],
             evaRecords: [],
             procedures: [],
+            inProgressInitialValues: undefined,
         };
     }
 
-    const practitionerName =
-        normalizedEncounter.status === "in-progress"
-            ? (await getCurrentPractitioner()).displayName
-            : null;
+    const isInProgressEncounter = normalizedEncounter.status === "in-progress";
+
+    const practitionerName = isInProgressEncounter
+        ? (await getCurrentPractitioner()).displayName
+        : null;
 
     let vitalSigns: VitalSignRecord[] = [];
     let evaRecords: EvaAssessment[] = [];
@@ -75,6 +79,18 @@ export async function getEncounterDetailData(
         ]);
     }
 
+    const inProgressInitialValues: InProgressEncounterDetailInitialValues | undefined =
+        isInProgressEncounter
+            ? {
+                  encounterId: normalizedEncounter.id,
+                  clinicalNote: normalizedEncounter.clinicalNote,
+                  reasonDisplay: normalizedEncounter.reasonDisplay,
+                  vitalSigns,
+                  evaAssessments: evaRecords,
+                  procedures,
+              }
+            : undefined;
+
     return {
         encounter: normalizedEncounter,
         patient,
@@ -82,5 +98,6 @@ export async function getEncounterDetailData(
         vitalSigns,
         evaRecords,
         procedures,
+        inProgressInitialValues,
     };
 }
