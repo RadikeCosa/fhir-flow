@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Encounter } from "@/domain/encounters/encounter";
 import type { EpisodeOfCare } from "@/domain/episode-of-care/episode-of-care";
 import type { Patient } from "@/domain/patients/patient";
+import type { VitalSignRecord } from "@/domain/vital-sign-record/vital-sign-record";
+import type { EvaAssessment } from "@/domain/assessments/eva-assessment";
 
 const repositories = vi.hoisted(() => ({
     patientRepo: {
@@ -123,5 +125,45 @@ describe("getEncountersPageData sorting", () => {
             newerByActual.id,
             olderByActual.id,
         ]);
+    });
+
+    it("keeps longitudinal vitals and EVA linked by encounter date when encounterId is missing", async () => {
+        const activeEncounter = makeEncounter({
+            id: "enc-date-match",
+            actualStartAt: "2026-03-15T12:00:00.000Z",
+        });
+
+        repositories.encounterRepo.findAllByEpisodeOfCareId.mockResolvedValue([
+            activeEncounter,
+        ]);
+
+        const vitalFromSameDate: VitalSignRecord = {
+            id: "vs-1",
+            patientId: patientFixture.id,
+            date: "2026-03-15",
+            recordedBy: { id: "pr-1", display: "Nurse" },
+            heartRate: 80,
+        };
+        const evaFromSameDate: EvaAssessment = {
+            id: "eva-1",
+            patientId: patientFixture.id,
+            type: "eva",
+            date: "2026-03-15",
+            score: 4,
+            recordedBy: { id: "pr-1", display: "Nurse" },
+        };
+
+        repositories.vitalRepo.findAllByPatientId.mockResolvedValue([
+            vitalFromSameDate,
+        ]);
+        repositories.assessmentRepo.findEvaByPatientId.mockResolvedValue([
+            evaFromSameDate,
+        ]);
+
+        const { getEncountersPageData } = await import("../data");
+        const result = await getEncountersPageData(patientFixture.id);
+
+        expect(result.vitalSigns).toEqual([vitalFromSameDate]);
+        expect(result.evaRecords).toEqual([evaFromSameDate]);
     });
 });
