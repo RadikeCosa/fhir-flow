@@ -51,6 +51,8 @@ const singleValueObservation = z
         status: z.string(),
         effectiveDateTime: z.string(),
         performer: z.array(performerSchema).min(1),
+        subject: referenceSchema.optional(),
+        encounter: referenceSchema.optional(),
         code: z.object({ coding: z.array(codingSchema).optional() }).passthrough(),
         valueQuantity: valueQuantitySchema,
         // accept category but do not validate its shape strictly
@@ -69,6 +71,8 @@ const componentObservation = z
         status: z.string(),
         effectiveDateTime: z.string(),
         performer: z.array(performerSchema).min(1),
+        subject: referenceSchema.optional(),
+        encounter: referenceSchema.optional(),
         code: z.object({ coding: z.array(codingSchema).optional() }).passthrough(),
         component: z.array(componentSchema).min(1),
         category: z.unknown().optional(),

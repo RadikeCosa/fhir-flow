@@ -80,7 +80,7 @@ export async function getPatientDetailData(
 
     const activeEpisode = episodes.find((episode) => episode.status === "active");
 
-    const [lastEncounter, nextPlannedEncounter, initialEncounter, activeEpisodeEncounters] = await Promise.all([
+    const [lastFinishedEncounter, nextPlannedEncounter, initialEncounter, activeEpisodeEncounters] = await Promise.all([
         encounterRepo.findLastByPatientIdAndPractitionerId(
             patientId,
             currentPractitionerId
@@ -101,19 +101,21 @@ export async function getPatientDetailData(
         (encounter) => encounter.status === "in-progress"
     ) ?? null;
 
+    const clinicalEncounter = inProgressEncounter ?? lastFinishedEncounter;
+
     const [
         lastEncounterProcedures,
         lastEncounterEvaRecords,
         lastEncounterVitalSigns,
     ] = await Promise.all([
-        lastEncounter
-            ? procedureRepo.findAllByEncounterId(lastEncounter.id)
+        clinicalEncounter
+            ? procedureRepo.findAllByEncounterId(clinicalEncounter.id)
             : Promise.resolve<Procedure[]>([]),
-        lastEncounter
-            ? assessmentRepo.findEvaByEncounterId(lastEncounter.id)
+        clinicalEncounter
+            ? assessmentRepo.findEvaByEncounterId(clinicalEncounter.id)
             : Promise.resolve<EvaAssessment[]>([]),
-        lastEncounter
-            ? vitalRepo.findAllByEncounterId(lastEncounter.id)
+        clinicalEncounter
+            ? vitalRepo.findAllByEncounterId(clinicalEncounter.id)
             : Promise.resolve<VitalSignRecord[]>([]),
     ]);
 
@@ -173,7 +175,7 @@ export async function getPatientDetailData(
     return {
         patient,
         episodes,
-        lastEncounter: inProgressEncounter ?? lastEncounter,
+        lastEncounter: clinicalEncounter,
         inProgressEncounter,
         nextPlannedEncounter,
         initialEncounter,

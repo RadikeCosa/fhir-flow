@@ -10,6 +10,7 @@ const makeObservation = (overrides: Partial<FhirEvaObservation> = {}): FhirEvaOb
     valueInteger: 5,
     performer: [{ reference: 'Practitioner/pr-123', display: 'Dr. Test' }],
     subject: { reference: 'Patient/p-001' },
+    encounter: { reference: 'Encounter/enc-1' },
     ...overrides,
 });
 
@@ -22,6 +23,7 @@ describe('mapFhirObservationsToEvaAssessments', () => {
         expect(result[0]).toEqual({
             id: 'obs-1',
             patientId: 'p-001',
+            encounterId: 'enc-1',
             type: 'eva',
             date: '2022-01-01T10:30:00.000Z',
             score: 5,
@@ -79,5 +81,21 @@ describe('mapFhirObservationsToEvaAssessments', () => {
 
         expect(result).toHaveLength(1);
         expect(result[0].patientId).toBe('');
+    });
+
+    it('hydrates encounterId when encounter.reference is present', () => {
+        const obs = makeObservation({ encounter: { reference: 'Encounter/enc-456' } });
+        const result = mapFhirObservationsToEvaAssessments([obs]);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].encounterId).toBe('enc-456');
+    });
+
+    it('keeps encounterId undefined when encounter.reference is absent', () => {
+        const obs = makeObservation({ encounter: { reference: undefined } });
+        const result = mapFhirObservationsToEvaAssessments([obs]);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].encounterId).toBeUndefined();
     });
 });
