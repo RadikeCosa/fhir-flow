@@ -127,7 +127,7 @@ export default function SingleSeriesChart({
     <div
       role="img"
       aria-label={`Gráfico de ${label} — ${data.length} registros`}
-      className="h-35 md:h-45 lg:h-55"
+      className="h-64"
     >
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data}>
