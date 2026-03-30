@@ -6,7 +6,7 @@ This document is the operational reference for write behavior in FHIR Flow.
 
 It complements `.github/instructions/copilot.instructions.md`, which defines the global architecture rules for the repository.
 
-> Primary authority for lifecycle, practitioner responsibility, canonical read behavior, and transitional write behavior:  
+> Primary authority for lifecycle, practitioner responsibility, canonical read behavior, and transitional write behavior:
 > `docs/adr/ADR-001-encounter-lifecycle-and-write-architecture.md`
 
 When this document and the ADR address the same topic, the ADR is authoritative.
@@ -382,9 +382,8 @@ After a successful write flow, the canonical follow-up read for a single encount
 
 The ADR defines finished encounter detail as the canonical read target.
 
-That canonical intent is already in force architecturally and is functionally resolved in the current implementation: detail is re-read from source-of-truth repositories, finished detail hydrates note/vital signs/EVA/procedures, and finalize redirects to the same canonical detail route.
-
-Remaining debt here is narrower and peripheral (for example, avoiding clinical overloading in history surfaces), not a broad gap in canonical finished detail.
+That canonical intent is in force architecturally, and current implementation has concrete progress (encounter-centric hydration paths and redirects to detail after finalize).
+However, canonical read hardening for `finished` must still be treated as open debt until all remaining state/consistency gaps are explicitly validated end-to-end.
 
 ## FHIR Client Write Behavior
 
@@ -478,7 +477,6 @@ When contributors add or modify write behavior, they must preserve the following
 ### Accepted but Not Fully Implemented
 
 - explicit `planned -> in-progress -> finished` write lifecycle
-- partial persistence while an encounter is `in-progress`
 - stricter finalization that requires `in-progress`
 - full canonical read hardening for finished encounter detail
 - peripheral follow-ups around canonical finished detail (for example, keeping history lean)

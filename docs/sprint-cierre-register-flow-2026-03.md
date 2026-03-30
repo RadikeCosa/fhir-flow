@@ -71,3 +71,14 @@ Completar la separación entre planificar y registrar visita, y dejar operativo 
 ---
 
 Este cierre documenta estado real post-sprint: base sólida, transición activa y deuda explícita aún abierta.
+
+## Addendum (2026-03-30) — avance read encounter-centric posterior al sprint
+
+Sin cambiar las decisiones del sprint, luego de este cierre se consolidaron avances en lectura:
+
+- separación más explícita entre modo longitudinal y encounter-centric en `encounters/data.ts`;
+- hidratación de `encounterId` en lectura de vitales/EVA cuando FHIR trae `Observation.encounter.reference`;
+- patient detail alineado a una única fuente clínica (`inProgressEncounter ?? lastFinishedEncounter`) con datasets del mismo `encounterId`;
+- encounter detail con hidratación por `encounterId` también para `in-progress` (manteniendo bloques clínicos visibles en `finished`).
+
+Este addendum **no** marca cierre total de deuda: continuidad clínica completa de `in-progress`, canonical read completo de `finished` y tipado de `ActionError.details` permanecen abiertos.

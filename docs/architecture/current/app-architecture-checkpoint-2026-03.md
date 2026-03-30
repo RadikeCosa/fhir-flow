@@ -4,7 +4,7 @@
 
 This document records the latest refactors and architectural adjustments made in `app/` after the write-flow stabilization work.
 
-It is **not** an ADR and does **not** replace the existing architecture documents.  
+It is **not** an ADR and does **not** replace the existing architecture documents.
 Its purpose is to capture the current state of the UI/app-layer structure, document recent cleanup decisions, and clarify which architectural debts were resolved versus which ones remain intentionally open.
 
 ---
@@ -39,26 +39,19 @@ The changes in this round were guided by four goals:
 
 ## Changes completed
 
-### 1. `encounters/[encounterId]/data.ts` was aligned with actual page usage
+### 1. `encounters/[encounterId]/data.ts` now supports encounter-centric hydration for `in-progress`
 
-The encounter detail loader was simplified so it now returns only what the current page actually consumes.
-
-Previously, the loader also fetched and returned clinical collections such as:
-
-- vital signs
-- EVA assessments
-- procedures
-
-Those values were not used by the current `page.tsx`, which made the loader contract misleading and introduced unnecessary data loading.
+The encounter detail loader was extended to hydrate clinical datasets by `encounterId` for both `finished` and `in-progress` encounters.
 
 #### Result
-`getEncounterDetailData()` now returns only the route data that is currently rendered:
+`getEncounterDetailData()` can now resolve:
 
 - `encounter`
 - `patient`
 - `practitioner`
+- encounter-scoped clinical collections (vital signs, EVA, procedures)
 
-This makes the loader contract more honest and easier to evolve.
+Render semantics remain intentional: clinical blocks are still shown only in `finished`, while `in-progress` keeps an encounter-centric editable surface without duplicated read-only blocks.
 
 ---
 
@@ -111,6 +104,18 @@ This was a conservative cleanup only. No broader redesign of the loader contract
 
 ---
 
+### 4.1. `encounters/data.ts` now separates encounter-centric vs longitudinal intent more explicitly
+
+The read model used by encounters list/history keeps both concerns, but now with clearer boundaries:
+
+- encounter-centric composition by `encounterId` for encounter-specific surfaces
+- date-based fallback constrained to longitudinal composition only
+
+#### Result
+Temporal fallback is no longer described as a generic strategy. It is explicitly scoped to longitudinal read behavior (charts/history) and should not leak into encounter-centric surfaces.
+
+---
+
 ### 5. `encounters/new/page.tsx` now follows the same route pattern as its siblings
 
 The “new encounter” route used to resolve repositories and compose route data directly inside `page.tsx`.
@@ -146,6 +151,20 @@ The tree is now clearer about what is:
 - route-local
 - shared within `patients`
 - global across the app
+
+---
+
+### 6.1. patient detail now uses a single encounter-centric clinical source
+
+Patient detail now resolves one clinical encounter source:
+
+- `inProgressEncounter ?? lastFinishedEncounter`
+
+Clinical datasets (vital signs, EVA, procedures) are loaded from that same `encounterId`.
+
+#### Result
+Patient detail no longer mixes the encounter shown in UI with clinical data from a different encounter.
+No date fallback is used in this encounter-centric surface.
 
 ---
 
@@ -218,6 +237,9 @@ This refactor round did **not** attempt to solve the following:
 ### 1. canonical read for finished encounter detail (still open)
 The encounter detail route is the canonical target by architecture, but canonical read hardening for `finished` must remain open debt until the remaining gaps are explicitly closed and validated end-to-end.
 
+### 1.1. in-progress continuity remains intentionally partial
+Read hydration by `encounterId` is now available for `in-progress` as well, but full UI clinical continuity for in-progress should still be treated as open debt unless explicitly closed by product behavior and end-to-end validation.
+
 ### 2. final shape of `encounters/data.ts`
 The encounters loader still serves both:
 - longitudinal chart data
@@ -234,7 +256,7 @@ This is acceptable for now, but may deserve a future redesign if the route grows
 This is currently considered an acceptable imperfection, not an urgent architectural problem.
 
 ### 4. `FinalizeEncounterForm` internal size
-`FinalizeEncounterForm` remains a relatively large client component.  
+`FinalizeEncounterForm` remains a relatively large client component.
 It is currently acceptable because it is still route-local and cohesive enough, but it remains a candidate for future partitioning if the flow grows.
 
 ### 5. encounter lifecycle target state
@@ -259,13 +281,15 @@ When changing route-level UI in the patients/encounters area:
 ## Status summary
 
 ### Resolved in this round
-- loader overfetch in encounter detail
+- encounter-centric hydration path in encounter detail (`finished` + `in-progress`)
 - patient/encounter read-path mismatch handling
 - UI type dependency inside patient detail loader
 - dead field in encounters page loader
 - route-pattern inconsistency in `encounters/new`
 - route-local component colocation issues
 - some infrastructure leakage into encounter detail presentation
+- patient detail clinical-source mismatch (single encounter source + same `encounterId` datasets)
+- explicit separation between encounter-centric reads and longitudinal date fallback
 
 ### Still open
 - peripheral canonical-read cleanup outside finished detail core path (for example, history load shape)
@@ -273,6 +297,7 @@ When changing route-level UI in the patients/encounters area:
 - possible future slimming of `EncounterList`
 - possible future partitioning of `FinalizeEncounterForm`
 - lifecycle transition beyond the current transitional runtime model
+- complete in-progress clinical continuity in UI (do not treat as closed by hydration alone)
 
 ---
 

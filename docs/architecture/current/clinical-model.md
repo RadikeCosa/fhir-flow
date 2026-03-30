@@ -37,7 +37,9 @@ Consecuencias técnicas de ese diseño:
 
 ### `encounterId` y relación con el encounter
 
-El dominio permite `encounterId?: string` y documenta que puede faltar en registros históricos previos a la write phase. En el mapper de signos vitales revisado para este documento, la agrupación se basa en `date` y `performer`, y no se observa hidratación explícita de `encounterId`. Por eso, la relación exacta entre el agregado longitudinal y el encounter en lectura debe tratarse como **pendiente de verificación** cuando se necesite trazabilidad encounter-by-encounter estricta.
+El dominio permite `encounterId?: string` y documenta que puede faltar en registros históricos previos a la write phase. En el estado actual, los mappers de lectura de vitales y EVA ya hidratan `encounterId` cuando `Observation.encounter.reference` está presente (incluyendo referencias relativas y absolutas).
+
+Esto mejora de forma concreta la trazabilidad encounter-centric en lectura. Aun así, `encounterId` sigue siendo opcional por compatibilidad histórica y por recursos que pueden no traer ese vínculo.
 
 ## 2. Presión arterial como dato compuesto
 
@@ -52,7 +54,7 @@ Al mismo tiempo, la clasificación visual actual sí usa una simplificación con
 
 ## 3. EVA como assessment separado y ordinal
 
-`EvaAssessment` vive fuera de `VitalSignRecord`. El dominio lo define como un assessment específico (`type: "eva"`) que extiende la base de assessments y contiene `score: number`. El mapper de EVA tampoco intenta insertarlo dentro del agregado de signos vitales: proyecta cada `Observation` válida a un `EvaAssessment` con `id`, `patientId`, `date`, `score` y `recordedBy`.
+`EvaAssessment` vive fuera de `VitalSignRecord`. El dominio lo define como un assessment específico (`type: "eva"`) que extiende la base de assessments y contiene `score: number`. El mapper de EVA tampoco intenta insertarlo dentro del agregado de signos vitales: proyecta cada `Observation` válida a un `EvaAssessment` con `id`, `patientId`, `date`, `score`, `recordedBy` y `encounterId` cuando existe referencia FHIR.
 
 La separación tiene implicancias concretas:
 
@@ -176,8 +178,9 @@ La existencia de `rawValue` y `chartValue` muestra una decisión concreta: el gr
 
 ## 8. Inference y pendientes de verificación
 
-- **Pendiente de verificación:** hidratación sistemática de `encounterId` en lectura de signos vitales agrupados. El dominio la admite, pero no quedó verificada en el mapper revisado.
+- **Estado verificado:** hidratación de `encounterId` en lectura de vitales y EVA cuando FHIR provee `Observation.encounter.reference`; cubierta con tests para referencia ausente, relativa y absoluta.
 - **Inferencia razonable:** la separación entre capture range, clinical range y chart range es parte del modelo actual del repo porque aparece en write architecture, en el subsistema de charts y en los formatters; aun así, este documento evita fijar aquí reglas de captura no citadas en las fuentes clínicas obligatorias.
+- **Deuda abierta:** la hidratación de `encounterId` mejora coherencia del read model, pero no reemplaza la necesidad de fallback longitudinal controlado para datos históricos sin vínculo encounter explícito.
 - **Pendiente de verificación:** si en fases futuras la clasificación visual de presión arterial incorporará diastólica. El estado implementado hoy usa solo sistólica para badge/severity.
 
 ## 9. Alcance de este documento
