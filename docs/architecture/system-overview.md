@@ -226,7 +226,7 @@ En patient detail, los CTAs se condicionan por `inProgressEncounter` y `nextPlan
 **Operaciones visibles hoy y siguiente fase**
 
 - `createEncounterAction`: crea un `Encounter` en `planned`
-- `startEncounterAction` (future): transiciona `planned -> in-progress`
+- `startEncounterAction`: transiciona `planned -> in-progress` para encounters ya planificados
 - `finalizeEncounterAction`: cierra el `Encounter` y persiste datos clínicos soportados en el write actual
 - `registerEncounterAction`: crea un `Encounter` directamente en `in-progress` o `finished` con `completionMode` explícito (`start` | `complete`)
 - `saveEncounterProgressAction`: persiste snapshot clínico transaccional para encounters `in-progress`
@@ -236,7 +236,7 @@ La direct registration puede resolver en dos resultados iniciales:
 - `in-progress` cuando la visita se abre con partial save
 - `finished` cuando la visita se registra con finalización inmediata
 
-El modelo de runtime implementado hoy combina creación directa por register (`in-progress`/`finished`) con compatibilidad transicional `planned -> finished`. La dirección oficial documentada sigue siendo `planned -> in-progress -> finished` para lifecycle completo.
+El modelo de runtime implementado hoy combina creación directa por register (`in-progress`/`finished`) con transición explícita `planned -> in-progress -> finished` para encounters ya planificados.
 
 Las transiciones de lifecycle siguen aplicando después de la creación. La creación directa no reemplaza el modelo de lifecycle; solo define el estado inicial del Encounter.
 
@@ -309,7 +309,7 @@ Para el estado actual del subsistema de visualización clínica, ver [`current/i
 - **Single source of truth para rangos clínicos.** Los umbrales clínicos compartidos se definen una vez y luego se reutilizan en badges, adapter y charts.
 - **Separación dominio vs UI.** El dominio modela conceptos clínicos y operativos; la UI consume contratos ya preparados y no interpreta FHIR ni reglas clínicas base.
 - **Adapter pattern para charting.** La traducción de semántica clínica a semántica visual está aislada en una capa puente, en lugar de dispersarse entre componentes.
-- **Modelo temporal de encounters.** El runtime actual permite `planned -> finished` por compatibilidad, pero la dirección arquitectónica oficial sigue siendo `planned -> in-progress -> finished`.
+- **Modelo temporal de encounters.** Para encounters creados como `planned`, el runtime usa transición explícita `planned -> in-progress -> finished`. La creación directa por register puede inicializar un encounter ya en `finished` según intención de usuario.
 
 ---
 
