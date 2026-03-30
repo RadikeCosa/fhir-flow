@@ -156,7 +156,7 @@ describe("getEncounterDetailData", () => {
     expect(result.procedures).toEqual([]);
   });
 
-  it("keeps finished behavior and never mixes data from another encounter", async () => {
+  it("for finished encounters, queries vitals by encounterId and returns repository records", async () => {
     repositories.encounterRepo.findById.mockResolvedValue(
       makeEncounter({ status: "finished" }),
     );
@@ -173,7 +173,6 @@ describe("getEncounterDetailData", () => {
     const result = await getEncounterDetailData(patientFixture.id, "enc-1");
 
     expect(repositories.vitalRepo.findAllByEncounterId).toHaveBeenCalledWith("enc-1");
-    expect(result.vitalSigns).not.toContainEqual(vitalFixture);
     expect(result.vitalSigns).toEqual([otherEncounterVital]);
   });
 });
