@@ -1,7 +1,7 @@
 # Sprint — Canonical read hardening de encounters finished
 
 Fecha: 2026-03  
-Estado: Planificado
+Estado: Cerrado
 
 ---
 
@@ -160,3 +160,41 @@ Este sprint no busca “mejorar un poco el detail”.
 Busca cerrar de forma verificable una deuda arquitectónica específica: que `finished encounter detail` pueda sostenerse como canonical read real de una visita finalizada.
 
 La deuda histórica y longitudinal que exceda ese path debe permanecer explícitamente fuera de alcance para evitar cierre falso.
+
+---
+
+## 10. Ejecución y resultado del sprint
+
+Se cerró el hardening de canonical read para el path específico `finished encounter detail`, con evidencia combinada de auditoría, hardening mínimo de render read-only y tests automatizados locales.
+
+### Estado final por ticket
+
+- **T1 — Criterios de canonical read para `finished`** → **Resuelto**
+  - Se definió como lectura canónica: encounter-centric por `encounterId`, rehidratada desde source of truth, independiente de submit state, sin fallback longitudinal/temporal como source-of-truth, explícita en render read-only y con soporte de tests.
+
+- **T2 — Auditoría de `finished encounter detail`** → **Resuelto**
+  - La auditoría confirmó que `app/patients/[id]/encounters/[encounterId]/data.ts` ya cargaba datos clínicos correctamente por `encounterId`.
+  - No se detectó fallback por fecha en este detail route.
+  - El gap real estaba en render/composición: bloques clínicos ocultos cuando vacíos y vital signs mostrando solo `records[0]`.
+
+- **T3 — Hardening del loader/detail para `finished`** → **Sin cambios requeridos tras auditoría**
+  - No se implementaron cambios de loader para este ticket.
+  - Racional: el path ya era encounter-centric y alineado para este route.
+
+- **T4 — Validación del render read-only clínico** → **Resuelto**
+  - Clinical note visible en `finished` con empty state explícito cuando está en blanco.
+  - Vital signs siempre visible y renderizando la colección completa.
+  - EVA visible con empty state explícito.
+  - Procedures visible con empty state explícito.
+  - Sin introducir fallback longitudinal ni cambios de lifecycle/write-flow.
+
+- **T5 — Tests de canonical read `finished`** → **Resuelto**
+  - Cobertura agregada para visibilidad de bloques clínicos canónicos en `finished` aun con datasets vacíos.
+  - Casos de empty state de vital signs, EVA y procedures.
+  - Caso de múltiples registros de vital signs (sin limitarse al primer registro).
+
+### Límites de cierre (explícitos)
+
+- Este cierre aplica al path `finished encounter detail`; no implica cierre general de deuda longitudinal/histórica.
+- Este cierre no equivale a hardening E2E completo del sistema.
+- Este cierre no modifica arquitectura de lifecycle ni write-flow.
