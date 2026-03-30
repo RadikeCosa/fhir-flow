@@ -42,14 +42,17 @@ Tracks:
   - Operación existente: `saveEncounterProgressAction`.
   - Snapshot transaccional + reemplazo de recursos managed por esta app.
 
+- **L1 — Implementar startEncounterAction** → **Resuelto**
+  - `startEncounterAction` está operativo para transición explícita `planned -> in-progress` en encounters ya planificados.
+
 ---
 
 ## 🟡 Parcial / transición activa
 
 ### Track A — Lifecycle
-- **L2 — Endurecer finalizeEncounterAction** → **Parcial**
-  - Dirección cerrada: requerir `in-progress`.
-  - Estado actual: sigue compatibilidad `planned -> finished` (transicional).
+- **L2 — Endurecer finalizeEncounterAction** → **Resuelto**
+  - `finalizeEncounterAction` valida estado y exige `in-progress`.
+  - Se elimina la suposición transicional de cierre directo `planned -> finished` para encounters ya planificados.
 
 ### Track C — UI/UX & Polish (estado post avances read encounter-centric)
 - **(sin ID nuevo) Read encounter-centric en patient/encounter detail** → **Parcial**
@@ -64,10 +67,6 @@ Tracks:
 ---
 
 ## 🔴 Deuda abierta (no cerrar)
-
-### Track A — Lifecycle
-- **L1 — Implementar startEncounterAction** → **Deuda abierta (crítico)**
-  - Falta transición explícita `planned -> in-progress` para encounters ya planificados.
 
 ### Debt transversal documentada
 - **Canonical read completo de finished detail** → **Deuda abierta**
@@ -88,10 +87,8 @@ Tracks:
 - encounter detail: no fallback temporal si existe linkage
 - charts: fallback permitido solo en modo longitudinal
 2. **Cerrar deuda de canonical read para `finished`** (hardening por estado + validación end-to-end).
-3. **L1** — startEncounterAction.
-4. **L2** — endurecer finalize con retiro progresivo del fallback transicional.
-5. Tipado de `ActionError.details` por capa.
-6. Hardening incremental UI/UX (F2/F3/G2 y luego temporal UX/hardening/dashboard).
+3. Tipado de `ActionError.details` por capa.
+4. Hardening incremental UI/UX (F2/F3/G2 y luego temporal UX/hardening/dashboard).
 
 ---
 

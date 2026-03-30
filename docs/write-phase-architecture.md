@@ -238,12 +238,10 @@ Current behavior:
 ### Effective Runtime Lifecycle Today
 
 ```text
-planned -> finished
+planned -> in-progress -> finished
 ```
 
-This path is accepted only as transitional compatibility.
-
-It is not the official lifecycle model.
+Direct registration remains available as a creation mode that can initialize an encounter in `finished` (`completionMode: "complete"`), but this is not a transition from an existing `planned` encounter.
 
 ## Official Lifecycle and Transitional Compatibility
 
@@ -263,22 +261,20 @@ cancelled
 
 ### Current Transitional Compatibility
 
-Until `startEncounterAction` exists, the system may still allow:
+`startEncounterAction` now exists for encounters created as `planned` and enables:
 
 ```text
-planned -> finished
+planned -> in-progress
 ```
 
-This is compatibility-only behavior.
-
-It must not be treated as the final design of the write flow.
+For encounters created as `planned`, finalization now requires `in-progress`.
 
 ### Consequence for Finalization
 
-The finalization flow is expected to become stricter in the future:
+The finalization flow is now stricter in runtime:
 
-- today it may accept `planned`
-- once explicit start exists, it should require `in-progress`
+- `finalizeEncounterAction` does not accept `planned`
+- finalization requires `in-progress`
 
 ## Practitioner Responsibility
 
@@ -342,15 +338,14 @@ The write flow currently supports two operational clinical persistence paths:
 
 - `registerEncounterAction`: creates the encounter as `in-progress` (`completionMode: "start"`) or `finished` (`completionMode: "complete"`) and writes the corresponding clinical snapshot in a transaction
 - `saveEncounterProgressAction`: persists partial progress for encounters already in `in-progress`, replacing managed clinical resources with ownership metadata
-
-`startEncounterAction` as transition from an existing `planned` encounter is still not implemented.
+- `startEncounterAction`: transitions an existing `planned` encounter to `in-progress`
 
 ### Operational Reality Today
 
 - planning (`/encounters/new`) remains separated from registration (`/encounters/register`)
-- register and save-progress are runtime operations already available
-- compatibility `planned -> finished` still exists and remains transitional
-- the runtime model is still narrower than the target lifecycle because `planned -> in-progress` transition is pending
+- register, start, and save-progress are runtime operations already available
+- direct registration may still create encounters directly as `finished` (`completionMode: "complete"`)
+- for encounters created as `planned`, lifecycle transitions now follow explicit `planned -> in-progress -> finished`
 
 ## Accepted Architectural Direction
 
@@ -425,13 +420,13 @@ The following points are recognized explicitly as current debt or transitional c
 
 ### 1. Transitional Lifecycle Simplification
 
-The runtime still supports:
+The runtime still supports direct registration with immediate completion:
 
 ```text
-planned -> finished
+register (complete) -> finished
 ```
 
-This remains temporarily accepted until explicit start is implemented.
+This remains an accepted creation mode and must not be confused with lifecycle transitions for encounters created as `planned`.
 
 ### 2. Clinical Data Persistence Concentrated at Finalization
 
@@ -476,13 +471,10 @@ When contributors add or modify write behavior, they must preserve the following
 
 ### Accepted but Not Fully Implemented
 
-- explicit `planned -> in-progress -> finished` write lifecycle
-- stricter finalization that requires `in-progress`
 - full canonical read hardening for finished encounter detail
 - peripheral follow-ups around canonical finished detail (for example, keeping history lean)
 - typed error detail models by layer
 
 ### Explicitly Transitional
 
-- `planned -> finished` as a compatibility path
 - finalization-time concentration of currently supported clinical writes

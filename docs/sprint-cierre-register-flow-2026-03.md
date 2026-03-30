@@ -40,8 +40,8 @@ Completar la separación entre planificar y registrar visita, y dejar operativo 
 ## 5) Riesgos o limitaciones que siguen abiertas
 > Este sprint **no** cierra el lifecycle completo.
 
-- Sigue abierta la deuda de transición explícita `planned -> in-progress` para encuentros ya planificados (`startEncounterAction`).
-- `finalizeEncounterAction` todavía no está endurecida de forma definitiva para requerir `in-progress` en todos los casos.
+- (Cerrado luego del sprint) `startEncounterAction` quedó operativo para transición explícita `planned -> in-progress` en encuentros ya planificados.
+- (Cerrado luego del sprint) `finalizeEncounterAction` quedó endurecida para requerir `in-progress`.
 - El canonical read completo de detail en estado `finished` sigue en deuda y no debe marcarse como cerrado total.
 - `ActionError.details` continúa en transición de tipado por capa.
 
@@ -58,15 +58,14 @@ Completar la separación entre planificar y registrar visita, y dejar operativo 
 
 ## 8) Backlog / tickets afectados
 - **Resueltos:** `R1`, `A1`, `R2`, `R3`, `R4`.
-- **Parcial:** `L2`.
-- **Deuda abierta:** `L1` + deuda explícita de canonical read completo de `finished`.
-- **Siguiente fase:** endurecimiento lifecycle + cierre deuda canonical read + tipado de errores.
+- **Resueltos (post-sprint):** `L1`, `L2`.
+- **Deuda abierta:** canonical read completo de `finished`.
+- **Siguiente fase:** cierre deuda canonical read + tipado de errores + continuidad clínica completa de `in-progress`.
 
 ## 9) Próximos pasos sugeridos
-1. Implementar `L1` (`startEncounterAction`) para encounters creados como `planned`.
-2. Endurecer `L2` (finalize requiere `in-progress`) con retiro progresivo del fallback transicional.
-3. Cerrar deuda de canonical read completo en detail `finished` con validación end-to-end.
-4. Avanzar tipado de `ActionError.details` por capa sin romper contrato estable.
+1. Cerrar deuda de canonical read completo en detail `finished` con validación end-to-end.
+2. Avanzar tipado de `ActionError.details` por capa sin romper contrato estable.
+3. Completar continuidad clínica de `in-progress` en UI sin sobredeclarar cierre.
 
 ---
 

@@ -34,7 +34,7 @@ Este documento reemplaza el enfoque de "aprobado total" por una validación hone
 | Practitioner resolution | **Parcialmente válido** | El ADR fija que la resolución de practitioner es server-side y luego via write input. La dirección está cerrada, la implementación requiere consistencia completa entre create/finalize. | ADR sección de practitioner responsibility + write-phase. | Completar uniformidad de input (`performerId`, `practitionerName`) en todos los writes. |
 | Register flow (`/encounters/register`) | **Válido hoy** | La separación de entry points está operativa: `/encounters/new` planifica y `/encounters/register` registra con `registerEncounterAction` y `completionMode` explícito (`start`/`complete`). | Estado de app layer + write-phase actualizado. | Mantener consistencia documental y evitar regresión semántica entre rutas. |
 | Save progress separado | **Válido hoy** | `saveEncounterProgressAction` existe como operación propia con snapshot transaccional y ownership metadata interoperable para recursos clínicos gestionados por esta app. | write-phase + código de acciones/rules/repositorio. | Mantener hardening de validaciones por estado y ownership. |
-| Transitional `planned -> finished` | **Deuda conocida** | Sigue permitido por compatibilidad transicional. No representa el lifecycle objetivo. | ADR + write-phase lo declaran explícitamente como transición. | Implementar `startEncounterAction` y migrar finalización para requerir `in-progress`. |
+| Lifecycle transition (`planned -> in-progress`) | **Válido hoy** | `startEncounterAction` ya está operativo para encounters planificados y la finalización exige `in-progress`. | Reglas de estado en actions/domain + write-phase actualizado. | Mantener hardening de regresiones y tests de estado. |
 | Canonical read (finished detail) | **Deuda conocida** | El detail es el target canónico por arquitectura, pero el cierre completo del canonical read de `finished` sigue abierto y no debe declararse como terminado. | ADR + write-phase (Canonical Read After Write) + pendiente explícito en backlog. | Cerrar hardening de canonical read por estado y validar cobertura end-to-end antes de marcar resuelto. |
 | Encounter-centric vs longitudinal read split | **Parcialmente válido** | Se consolidó la separación: patient/encounter detail operan encounter-centric y el fallback por fecha queda encapsulado para longitudinal. Aún hay deuda en hardening de límites para evitar regresiones de mezcla. | Checkpoint app + auditoría temporal + ajustes recientes en `encounters/data.ts` y patient detail. | Mantener tests de no-filtración del fallback temporal a surfaces encounter-centric. |
 | Clinical linkage (`encounterId`) in read mappers | **Parcialmente válido** | Vital signs y EVA ya hidratan `encounterId` cuando `Observation.encounter.reference` existe (incluyendo casos ausente/relativo/absoluto). Mejora coherencia encounter-centric pero no elimina deuda histórica sin referencia. | Mappers/schemas de lectura y tests endurecidos recientes. | Mantener fallback longitudinal controlado para históricos sin linkage y evaluar backfill futuro. |
@@ -85,11 +85,11 @@ La separación de entry points está implementada: `/encounters/new` planifica y
 
 `saveEncounterProgressAction` existe como operación separada para encuentros en `in-progress`, con persistencia transaccional de snapshot clínico y metadata de ownership para interoperabilidad de recursos gestionados por esta app.
 
-### 7. Transitional `planned -> finished`
+### 7. Lifecycle transition en encounters planificados
 
-**Estado:** Deuda conocida
+**Estado:** Válido hoy
 
-Es compatibilidad transicional aceptada, no diseño objetivo. Debe tratarse como excepción temporal hasta habilitar transición explícita `planned -> in-progress -> finished`.
+`startEncounterAction` ya habilita transición explícita `planned -> in-progress` y `finalizeEncounterAction` exige `in-progress`. La creación directa por register en `finished` permanece como modo de creación, no como transición de un encounter ya planificado.
 
 ### 8. Canonical read de finished detail
 
@@ -125,13 +125,11 @@ La lectura de vitales y EVA ya conserva `encounterId` cuando FHIR trae `Observat
 
 ## Pendientes del ADR / tickets siguientes
 
-1. Implementar transición operacional `planned -> in-progress` (`startEncounterAction`) para encounters creados como `planned`.
-2. Endurecer finalización para requerir `in-progress` cuando el start esté operativo (manteniendo compatibilidad controlada durante la migración).
-3. Completar canonical read de `finished` por estado y cerrar la deuda de forma verificable.
-4. Tipar `ActionError.details` por variante/capa sin romper `ActionResult`.
-5. Cerrar consistencia total de practitioner context en todos los write inputs.
-6. Endurecer garantías de separación encounter-centric vs longitudinal para evitar regresiones de fallback temporal fuera de charts/historial.
-7. Definir cierre verificable de continuidad clínica `in-progress` en UI si producto lo requiere.
+1. Completar canonical read de `finished` por estado y cerrar la deuda de forma verificable.
+2. Tipar `ActionError.details` por variante/capa sin romper `ActionResult`.
+3. Cerrar consistencia total de practitioner context en todos los write inputs.
+4. Endurecer garantías de separación encounter-centric vs longitudinal para evitar regresiones de fallback temporal fuera de charts/historial.
+5. Definir cierre verificable de continuidad clínica `in-progress` en UI si producto lo requiere.
 
 ## Checklist vigente para validación de cambios
 

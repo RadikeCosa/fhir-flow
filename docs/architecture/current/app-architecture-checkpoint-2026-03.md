@@ -260,7 +260,8 @@ This is currently considered an acceptable imperfection, not an urgent architect
 It is currently acceptable because it is still route-local and cohesive enough, but it remains a candidate for future partitioning if the flow grows.
 
 ### 5. encounter lifecycle target state
-The runtime implementation still operates under the documented transitional model where `planned -> finished` remains possible in practice.
+The runtime implementation now supports explicit transition for planned encounters (`planned -> in-progress -> finished`) via `startEncounterAction` + stricter finalization.
+Direct register creation can still initialize an encounter as `finished` by explicit user intention.
 The official lifecycle target remains defined in the ADR and has not changed as part of this refactor round.
 
 ---

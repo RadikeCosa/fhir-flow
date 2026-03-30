@@ -18,11 +18,11 @@ FHIR Flow models home care visits using the FHIR R4 `Encounter` resource.
 The current write flow already supports creating a planned encounter and closing it through a final transactional write. However, the implemented runtime behavior is still a simplified subset of the intended lifecycle:
 
 - `createEncounter` creates an `Encounter` in `planned`
-- `finalizeEncounter` closes it directly in `finished`
+- `finalizeEncounter` closes encounters in `finished` from `in-progress`
 - the domain already defines `in-progress` and `cancelled`
 - the UI already anticipates `in-progress`
 - direct registration can create encounters in `in-progress` or `finished`
-- there is still no explicit transition operation `planned -> in-progress` for encounters created as `planned`
+- `startEncounterAction` transitions encounters created as `planned` to `in-progress`
 
 At the same time, several architectural inconsistencies need to be resolved before the write flow evolves further:
 
@@ -129,18 +129,18 @@ The domain and UI already anticipate `in-progress`, but no write transition exis
 
 #### Transitional compatibility
 
-Until `startEncounterAction` exists, the system may continue to allow:
+Historically, before `startEncounterAction` was implemented, the system allowed:
 
 - `planned -> finished`
 
-This path is considered **compatibility-only** and must be removed once `in-progress` becomes operational in write flow.
+That path was **compatibility-only**. With `startEncounterAction` now operational, finalization for planned encounters follows explicit start-first transition.
 
 #### Consequence
 
-`finalizeEncounterAction` is expected to become stricter in the future:
+`finalizeEncounterAction` is now stricter in runtime:
 
-- today it may accept `planned`
-- once `startEncounterAction` exists, it should require `in-progress`
+- it does not accept `planned`
+- it requires `in-progress`
 
 #### Rationale
 
@@ -427,7 +427,7 @@ But the exact draft persistence design is intentionally left open for its own ti
 
 ### Partially closed decisions
 
-- `planned -> finished` remains temporarily allowed until explicit start exists
+- direct register creation as `finished` remains available as an entry mode; planned encounters follow explicit start-first lifecycle transition
 - future partial persistence during `in-progress` is accepted directionally
 - typed error variants are accepted directionally, but exact final shape is still implementation detail
 - current `clinicalNote` rule remains in force, but may be clinically revisited later
@@ -517,17 +517,14 @@ The canonical lifecycle remains:
 
 The lifecycle still governs state transitions after creation.
 
-- `startEncounterAction` is still required only for Encounters that were created as `planned`
-- `finalizeEncounterAction` should eventually require `in-progress`, except for the temporary compatibility path described below
+- `startEncounterAction` is required only for Encounters that were created as `planned`
+- `finalizeEncounterAction` requires `in-progress`
 
 Creation mode only determines the initial state. Once the Encounter has been created, lifecycle rules decide which transitions are valid next.
 
 ### Transitional compatibility
 
-The current compatibility rule remains in place:
-
-- `planned -> finished` is still temporarily allowed
-
-At the same time, the register visit flow may create an Encounter directly as `finished`.
+The register visit flow may create an Encounter directly as `finished` (`completionMode: "complete"`).
+This is a creation mode and should not be interpreted as a lifecycle transition of an already planned encounter.
 
 This compatibility behavior does not replace the canonical lifecycle. It only preserves the existing temporary path while direct creation modes are introduced.
