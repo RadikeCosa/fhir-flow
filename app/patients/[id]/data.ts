@@ -101,21 +101,21 @@ export async function getPatientDetailData(
         (encounter) => encounter.status === "in-progress"
     ) ?? null;
 
-    const clinicalEncounter = inProgressEncounter ?? lastFinishedEncounter;
+    const clinicalEncounterSource = inProgressEncounter ?? lastFinishedEncounter;
 
     const [
         lastEncounterProcedures,
         lastEncounterEvaRecords,
         lastEncounterVitalSigns,
     ] = await Promise.all([
-        clinicalEncounter
-            ? procedureRepo.findAllByEncounterId(clinicalEncounter.id)
+        clinicalEncounterSource
+            ? procedureRepo.findAllByEncounterId(clinicalEncounterSource.id)
             : Promise.resolve<Procedure[]>([]),
-        clinicalEncounter
-            ? assessmentRepo.findEvaByEncounterId(clinicalEncounter.id)
+        clinicalEncounterSource
+            ? assessmentRepo.findEvaByEncounterId(clinicalEncounterSource.id)
             : Promise.resolve<EvaAssessment[]>([]),
-        clinicalEncounter
-            ? vitalRepo.findAllByEncounterId(clinicalEncounter.id)
+        clinicalEncounterSource
+            ? vitalRepo.findAllByEncounterId(clinicalEncounterSource.id)
             : Promise.resolve<VitalSignRecord[]>([]),
     ]);
 
@@ -175,7 +175,7 @@ export async function getPatientDetailData(
     return {
         patient,
         episodes,
-        lastEncounter: clinicalEncounter,
+        lastEncounter: clinicalEncounterSource,
         inProgressEncounter,
         nextPlannedEncounter,
         initialEncounter,
