@@ -82,30 +82,57 @@ export class FhirClient {
         this.defaultHeaders = opts?.defaultHeaders ?? fhirConfig.defaultHeaders;
     }
 
+    private isAbsoluteUrl(value: string): boolean {
+        try {
+            new URL(value);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    /**
+     * Ensure request paths are relative to the configured FHIR base path.
+     * Example: base `/fhir` + path `/fhir/Observation?...` -> `Observation?...`
+     */
+    private normalizeRelativePath(path: string): string {
+        const withLeadingSlash = path.startsWith("/") ? path : `/${path}`;
+        const [pathname, search = ""] = withLeadingSlash.split("?");
+
+        let basePath = "";
+        try {
+            basePath = new URL(this.baseUrl).pathname.replace(/\/+$/, "");
+        } catch {
+            basePath = "";
+        }
+
+        let normalizedPath = pathname;
+        if (basePath && basePath !== "/" && (pathname === basePath || pathname.startsWith(`${basePath}/`))) {
+            normalizedPath = pathname.slice(basePath.length) || "/";
+        }
+
+        const noLeadingSlash = normalizedPath.replace(/^\/+/, "");
+        return search ? `${noLeadingSlash}?${search}` : noLeadingSlash;
+    }
+
     /**
      * Build a full URL using the configured baseUrl and an application path.
-     * `path` may be absolute (starts with '/') or relative. Query params are
-     * encoded with URLSearchParams. Arrays are encoded as repeated keys.
+     * `path` may be relative, absolute-path, or full absolute URL.
      */
     private buildUrl(path: string, params?: RequestOptions["params"]): string {
-        // ensure exactly one slash between baseUrl and path
-        const cleanedPath = path.startsWith("/") ? path.slice(1) : path;
-        const base = this.baseUrl.replace(/\/+$/, "");
-        const url = new URL(`${base}/${cleanedPath}`);
+        const url = this.isAbsoluteUrl(path)
+            ? new URL(path)
+            : new URL(`${this.baseUrl.replace(/\/+$/, "")}/${this.normalizeRelativePath(path)}`);
 
         if (params) {
-            const search = new URLSearchParams();
             for (const [k, v] of Object.entries(params)) {
                 if (v === undefined || v === null) continue;
                 if (Array.isArray(v)) {
-                    for (const item of v) search.append(k, String(item));
+                    for (const item of v) url.searchParams.append(k, String(item));
                 } else {
-                    search.append(k, String(v));
+                    url.searchParams.append(k, String(v));
                 }
             }
-            // append only if any params were set
-            const s = search.toString();
-            if (s) url.search = s;
         }
 
         return url.toString();
@@ -232,49 +259,7 @@ export class FhirClient {
      * the same error handling and OperationOutcome detection as `request`.
      */
     public async fetchByUrl<T = unknown>(url: string): Promise<T> {
-        // If the URL is relative (starts with '/') or appears to be within the
-        // configured base URL, delegate to `request` so we keep consistent behavior.
-        if (typeof url === "string" && (url.startsWith("/") || url.startsWith(this.baseUrl))) {
-            // If the URL is absolute and within the base URL, strip the base.
-            try {
-                const parsed = new URL(url);
-                const base = new URL(this.baseUrl);
-                if (parsed.origin === base.origin) {
-                    return this.request<T>(parsed.pathname + parsed.search, { method: "GET" });
-                }
-            } catch {
-                // ignore and fall back to direct fetch
-            }
-
-            // Relative URL case
-            if (url.startsWith("/")) {
-                return this.request<T>(url, { method: "GET" });
-            }
-        }
-
-        // Fallback: perform a direct fetch to the absolute URL using the shared helper.
-        const { response, parsedBody } = await this.doFetch(url, { method: "GET", headers: this.defaultHeaders });
-
-        const isOutcome = (obj: unknown): obj is OperationOutcome => {
-            if (typeof obj !== "object" || obj === null) return false;
-            const maybe = obj as Record<string, unknown>;
-            return maybe.resourceType === "OperationOutcome";
-        };
-
-        if (!response.ok) {
-            if (isOutcome(parsedBody)) {
-                throw new OperationOutcomeError(parsedBody);
-            }
-
-            const message = `HTTP ${response.status} ${response.statusText}`;
-            throw new HttpError(response.status, message, parsedBody);
-        }
-
-        if (isOutcome(parsedBody)) {
-            throw new OperationOutcomeError(parsedBody);
-        }
-
-        return (parsedBody as T) ?? (null as unknown as T);
+        return this.request<T>(url, { method: "GET" });
     }
 
     /** Create a new resource (POST) */
