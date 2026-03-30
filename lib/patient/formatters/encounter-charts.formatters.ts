@@ -219,9 +219,11 @@ export function formatChartDate(dateStr: string): string {
     if (!dateStr) return "";
     const d = new Date(dateStr);
     if (Number.isNaN(d.getTime())) return "";
+    const hasTimePrecision = dateStr.includes("T");
     return new Intl.DateTimeFormat("es-AR", {
         day: "2-digit",
         month: "2-digit",
+        ...(hasTimePrecision ? { hour: "2-digit", minute: "2-digit" } : {}),
         timeZone: "UTC",
     }).format(d);
 }

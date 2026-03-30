@@ -87,19 +87,20 @@ export async function getEncountersPageData(
             .map((encounter) => getEncounterRepresentativeStart(encounter).slice(0, 10))
             .filter((date) => /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(date))
     );
+    const normalizeDateOnly = (value: string) => value.slice(0, 10);
 
     // Longitudinal series for the episode charts panel (active episode only).
     const vitalSigns = episodeVitalSigns.filter(
         (record) =>
             (typeof record.encounterId === "string" &&
                 encounterIds.has(record.encounterId)) ||
-            encounterDates.has(record.date)
+            encounterDates.has(normalizeDateOnly(record.date))
     );
     const evaRecords = episodeEvaRecords.filter(
         (record) =>
             (typeof record.encounterId === "string" &&
                 encounterIds.has(record.encounterId)) ||
-            encounterDates.has(record.date)
+            encounterDates.has(normalizeDateOnly(record.date))
     );
     const procedures = episodeProcedures.filter((procedure) =>
         encounterIds.has(procedure.encounterId)
