@@ -23,9 +23,11 @@ import {
   formatProcedureCode,
 } from "@/lib/patient/formatters/procedure.formatters";
 import {
+  buildFinalizeEncounterFormDefaultValues,
   formatPlannedContext,
   resolveInitialActualTiming,
 } from "./finalize-encounter-form.defaults";
+import type { InProgressEncounterFormInitialValues } from "@/lib/patient/mappers/in-progress-encounter-detail.mapper";
 
 interface FinalizeEncounterFormProps {
   // Internal use only, not for display
@@ -36,6 +38,7 @@ interface FinalizeEncounterFormProps {
   plannedDate?: string;
   plannedTime?: string;
   actualStartAt?: string;
+  initialValues?: InProgressEncounterFormInitialValues;
 }
 
 const getProcedureCodes = (
@@ -66,6 +69,7 @@ export default function FinalizeEncounterForm({
   plannedDate,
   plannedTime,
   actualStartAt,
+  initialValues,
 }: FinalizeEncounterFormProps) {
   const [serverResult, setServerResult] = useState<ActionResult<void> | null>(
     null,
@@ -85,21 +89,10 @@ export default function FinalizeEncounterForm({
     FinalizeEncounterFormValues
   >({
     resolver: zodResolver(finalizeEncounterFormSchema),
-    defaultValues: {
-      actualDate: initialActualTiming.actualDate,
-      actualStartTime: initialActualTiming.actualStartTime,
-      actualEndTime: "",
-      clinicalNote: "",
-      reasonDisplay: "",
-      evaScore: undefined,
-      bloodPressureSystolic: undefined,
-      bloodPressureDiastolic: undefined,
-      heartRate: undefined,
-      respiratoryRate: undefined,
-      oxygenSaturation: undefined,
-      bodyTemperature: undefined,
-      procedures: [],
-    },
+    defaultValues: buildFinalizeEncounterFormDefaultValues(
+      initialActualTiming,
+      initialValues,
+    ),
   });
 
   const { control, register, handleSubmit, formState, setValue } = form;

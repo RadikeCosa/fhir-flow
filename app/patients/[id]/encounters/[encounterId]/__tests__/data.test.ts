@@ -141,6 +141,14 @@ describe("getEncounterDetailData", () => {
     expect(result.vitalSigns).toEqual([vitalFixture]);
     expect(result.evaRecords).toEqual([evaFixture]);
     expect(result.procedures).toEqual([procedureFixture]);
+    expect(result.inProgressInitialValues).toEqual({
+      encounterId: "enc-1",
+      clinicalNote: undefined,
+      reasonDisplay: "Control",
+      vitalSigns: [vitalFixture],
+      evaAssessments: [evaFixture],
+      procedures: [procedureFixture],
+    });
   });
 
   it("returns empty clinical datasets for in-progress encounters without associated records", async () => {
@@ -154,6 +162,14 @@ describe("getEncounterDetailData", () => {
     expect(result.vitalSigns).toEqual([]);
     expect(result.evaRecords).toEqual([]);
     expect(result.procedures).toEqual([]);
+    expect(result.inProgressInitialValues).toEqual({
+      encounterId: "enc-1",
+      clinicalNote: undefined,
+      reasonDisplay: "Control",
+      vitalSigns: [],
+      evaAssessments: [],
+      procedures: [],
+    });
   });
 
   it("for finished encounters, queries vitals by encounterId and returns repository records", async () => {
@@ -173,6 +189,27 @@ describe("getEncounterDetailData", () => {
     const result = await getEncounterDetailData(patientFixture.id, "enc-1");
 
     expect(repositories.vitalRepo.findAllByEncounterId).toHaveBeenCalledWith("enc-1");
+    expect(repositories.assessmentRepo.findEvaByEncounterId).toHaveBeenCalledWith("enc-1");
+    expect(repositories.procedureRepo.findAllByEncounterId).toHaveBeenCalledWith("enc-1");
     expect(result.vitalSigns).toEqual([otherEncounterVital]);
+    expect(result.inProgressInitialValues).toBeUndefined();
+  });
+
+  it("for planned encounters, does not load encounter-linked clinical datasets", async () => {
+    repositories.encounterRepo.findById.mockResolvedValue(
+      makeEncounter({ status: "planned", actualStartAt: undefined, actualEndAt: undefined }),
+    );
+
+    const { getEncounterDetailData } = await import("../data");
+    const result = await getEncounterDetailData(patientFixture.id, "enc-1");
+
+    expect(repositories.vitalRepo.findAllByEncounterId).not.toHaveBeenCalled();
+    expect(repositories.assessmentRepo.findEvaByEncounterId).not.toHaveBeenCalled();
+    expect(repositories.procedureRepo.findAllByEncounterId).not.toHaveBeenCalled();
+
+    expect(result.vitalSigns).toEqual([]);
+    expect(result.evaRecords).toEqual([]);
+    expect(result.procedures).toEqual([]);
+    expect(result.inProgressInitialValues).toBeUndefined();
   });
 });

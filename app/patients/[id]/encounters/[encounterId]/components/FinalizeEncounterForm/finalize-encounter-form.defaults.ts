@@ -4,6 +4,7 @@ import {
     isDateOnly,
 } from "../../../../../../../lib/date-time/date-time.utils";
 import { formatDate } from "../../../../../../../lib/patient/formatters/shared.formatters";
+import type { InProgressEncounterFormInitialValues } from "../../../../../../../lib/patient/mappers/in-progress-encounter-detail.mapper";
 
 interface InitialActualTiming {
     actualDate: string;
@@ -80,4 +81,47 @@ export function formatPlannedContext(
     }
 
     return `${formattedDate} ${plannedTime}`;
+}
+
+
+export interface FinalizeEncounterTemporalDefaults {
+    actualDate: string;
+    actualStartTime: string;
+}
+
+export interface FinalizeEncounterFormDefaultValues {
+    actualDate: string;
+    actualStartTime: string;
+    actualEndTime: string;
+    clinicalNote: string;
+    reasonDisplay: string;
+    evaScore?: number;
+    bloodPressureSystolic?: number;
+    bloodPressureDiastolic?: number;
+    heartRate?: number;
+    respiratoryRate?: number;
+    oxygenSaturation?: number;
+    bodyTemperature?: number;
+    procedures: InProgressEncounterFormInitialValues["procedures"];
+}
+
+export function buildFinalizeEncounterFormDefaultValues(
+    initialActualTiming: FinalizeEncounterTemporalDefaults,
+    initialValues?: InProgressEncounterFormInitialValues
+): FinalizeEncounterFormDefaultValues {
+    return {
+        actualDate: initialActualTiming.actualDate,
+        actualStartTime: initialActualTiming.actualStartTime,
+        actualEndTime: "",
+        clinicalNote: initialValues?.clinicalNote ?? "",
+        reasonDisplay: initialValues?.reasonDisplay ?? "",
+        evaScore: initialValues?.evaScore,
+        bloodPressureSystolic: initialValues?.bloodPressureSystolic,
+        bloodPressureDiastolic: initialValues?.bloodPressureDiastolic,
+        heartRate: initialValues?.heartRate,
+        respiratoryRate: initialValues?.respiratoryRate,
+        oxygenSaturation: initialValues?.oxygenSaturation,
+        bodyTemperature: initialValues?.bodyTemperature,
+        procedures: initialValues?.procedures ?? [],
+    };
 }

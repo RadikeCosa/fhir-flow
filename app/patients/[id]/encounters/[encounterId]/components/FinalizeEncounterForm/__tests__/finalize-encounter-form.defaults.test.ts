@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+    buildFinalizeEncounterFormDefaultValues,
     resolveInitialActualDate,
     resolveInitialActualTiming,
 } from "../finalize-encounter-form.defaults";
@@ -39,4 +40,56 @@ describe("finalize-encounter-form.defaults", () => {
             actualStartTime: "",
         });
     });
+
+    it("builds default form values with in-progress clinical initial values", () => {
+        const defaults = buildFinalizeEncounterFormDefaultValues(
+            {
+                actualDate: "2026-03-21",
+                actualStartTime: "10:30",
+            },
+            {
+                clinicalNote: "Nota previa",
+                reasonDisplay: "Dolor lumbar",
+                evaScore: 5,
+                heartRate: 84,
+                respiratoryRate: 18,
+                oxygenSaturation: 96,
+                bodyTemperature: 36.5,
+                bloodPressureSystolic: 120,
+                bloodPressureDiastolic: 80,
+                procedures: [
+                    {
+                        category: "fisioterapia",
+                        code: "laser",
+                        bodySite: "lumbar",
+                        note: "sin eventos",
+                    },
+                ],
+            }
+        );
+
+        expect(defaults).toEqual({
+            actualDate: "2026-03-21",
+            actualStartTime: "10:30",
+            actualEndTime: "",
+            clinicalNote: "Nota previa",
+            reasonDisplay: "Dolor lumbar",
+            evaScore: 5,
+            heartRate: 84,
+            respiratoryRate: 18,
+            oxygenSaturation: 96,
+            bodyTemperature: 36.5,
+            bloodPressureSystolic: 120,
+            bloodPressureDiastolic: 80,
+            procedures: [
+                {
+                    category: "fisioterapia",
+                    code: "laser",
+                    bodySite: "lumbar",
+                    note: "sin eventos",
+                },
+            ],
+        });
+    });
+
 });
