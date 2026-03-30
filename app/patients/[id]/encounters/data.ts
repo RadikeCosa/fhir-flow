@@ -82,17 +82,24 @@ export async function getEncountersPageData(
     ]);
 
     const encounterIds = new Set(encounters.map((encounter) => encounter.id));
+    const encounterDates = new Set(
+        encounters
+            .map((encounter) => getEncounterRepresentativeStart(encounter).slice(0, 10))
+            .filter((date) => /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(date))
+    );
 
     // Longitudinal series for the episode charts panel (active episode only).
     const vitalSigns = episodeVitalSigns.filter(
         (record) =>
-            typeof record.encounterId === "string" &&
-            encounterIds.has(record.encounterId)
+            (typeof record.encounterId === "string" &&
+                encounterIds.has(record.encounterId)) ||
+            encounterDates.has(record.date)
     );
     const evaRecords = episodeEvaRecords.filter(
         (record) =>
-            typeof record.encounterId === "string" &&
-            encounterIds.has(record.encounterId)
+            (typeof record.encounterId === "string" &&
+                encounterIds.has(record.encounterId)) ||
+            encounterDates.has(record.date)
     );
     const procedures = episodeProcedures.filter((procedure) =>
         encounterIds.has(procedure.encounterId)
