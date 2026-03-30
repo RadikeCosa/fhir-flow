@@ -59,7 +59,11 @@ export async function getEncounterDetailData(
     let evaRecords: EvaAssessment[] = [];
     let procedures: Procedure[] = [];
 
-    if (normalizedEncounter.status === "finished") {
+    const shouldLoadEncounterClinicalData =
+        normalizedEncounter.status === "finished" ||
+        normalizedEncounter.status === "in-progress";
+
+    if (shouldLoadEncounterClinicalData) {
         const vitalSignRepo = createVitalSignRecordRepository();
         const assessmentRepo = createAssessmentRepository();
         const procedureRepo = createProcedureRepository();

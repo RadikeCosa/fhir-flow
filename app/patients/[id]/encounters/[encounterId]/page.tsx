@@ -86,7 +86,8 @@ export default async function EncounterDetailPage({ params }: PageProps) {
     encounter.status === "planned" || encounter.status === "in-progress";
   const readOnly =
     encounter.status === "finished" || encounter.status === "cancelled";
-  const isFinished = encounter.status === "finished";
+  const shouldRenderClinicalBlocks =
+    encounter.status === "finished" || encounter.status === "in-progress";
   const encounterStatusBadge = getEncounterStatusBadge(encounter.status);
   const plannedSchedule = formatPlannedSchedule(
     encounter.plannedDate,
@@ -223,6 +224,24 @@ export default async function EncounterDetailPage({ params }: PageProps) {
               </div>
             </div>
           )}
+
+          {encounter.status === "in-progress" && shouldRenderClinicalBlocks && (
+            <>
+              {typeof encounter.clinicalNote === "string" &&
+                encounter.clinicalNote.trim() !== "" && (
+                  <EncounterClinicalNote note={encounter.clinicalNote} />
+                )}
+              {vitalSigns.length > 0 && (
+                <EncounterVitalSignsSection records={vitalSigns} />
+              )}
+              {evaRecords.length > 0 && (
+                <EncounterEvaSection records={evaRecords} />
+              )}
+              {procedures.length > 0 && (
+                <EncounterProcedures procedures={procedures} />
+              )}
+            </>
+          )}
         </div>
       )}
 
@@ -290,8 +309,7 @@ export default async function EncounterDetailPage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Render clinical blocks only for finished encounters */}
-          {isFinished && (
+          {shouldRenderClinicalBlocks && (
             <>
               {typeof encounter.clinicalNote === "string" &&
                 encounter.clinicalNote.trim() !== "" && (
