@@ -15,7 +15,7 @@ const makeObservation = (overrides: Partial<FhirEvaObservation> = {}): FhirEvaOb
 
 describe('mapFhirObservationsToEvaAssessments', () => {
     it('maps a valid observation to an EvaAssessment with expected fields', () => {
-        const obs = makeObservation();
+        const obs = makeObservation({ effectiveDateTime: '2022-01-01T10:30:00.000Z' });
         const result = mapFhirObservationsToEvaAssessments([obs]);
 
         expect(result).toHaveLength(1);
@@ -23,13 +23,22 @@ describe('mapFhirObservationsToEvaAssessments', () => {
             id: 'obs-1',
             patientId: 'p-001',
             type: 'eva',
-            date: '2022-01-01',
+            date: '2022-01-01T10:30:00.000Z',
             score: 5,
             recordedBy: {
                 id: 'pr-123',
                 display: 'Dr. Test',
             },
         });
+    });
+
+
+    it('preserves full effectiveDateTime when time precision is present', () => {
+        const obs = makeObservation({ effectiveDateTime: '2022-01-01T23:59:00Z' });
+        const result = mapFhirObservationsToEvaAssessments([obs]);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].date).toBe('2022-01-01T23:59:00Z');
     });
 
     it('skips an observation when effectiveDateTime is shorter than 10 characters', () => {
