@@ -17,7 +17,16 @@ export default function EncounterVitalSignsSection({ records }: Props) {
 
   return (
     <SectionCard title="Signos vitales">
-      <EncounterVitalSignsValueList record={records[0]} />
+      <div className="space-y-3">
+        {records.map((record, index) => (
+          <div key={record.id} className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+              Registro {index + 1}
+            </p>
+            <EncounterVitalSignsValueList record={record} />
+          </div>
+        ))}
+      </div>
     </SectionCard>
   );
 }
