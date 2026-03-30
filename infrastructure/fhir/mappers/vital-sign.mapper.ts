@@ -67,6 +67,7 @@ export function mapFhirObservationsToVitalSignRecords(
         if (!performerKey) continue;
 
         const groupKey = `${date}::${performerKey}`;
+        const encounterId = extractId(obs.encounter?.reference);
 
         let record = groups.get(groupKey);
         if (!record) {
@@ -83,9 +84,12 @@ export function mapFhirObservationsToVitalSignRecords(
                     id: recordedById || performerDisplay || "",
                     display: performerDisplay || "",
                 },
+                encounterId: encounterId || undefined,
             } as VitalSignRecord;
 
             groups.set(groupKey, record);
+        } else if (!record.encounterId && encounterId) {
+            record.encounterId = encounterId;
         }
 
         // set measurement values depending on type

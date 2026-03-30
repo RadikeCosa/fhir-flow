@@ -16,6 +16,7 @@ export function mapFhirObservationsToEvaAssessments(
     for (const obs of observations) {
         const id = obs.id;
         const patientId = extractId(obs.subject?.reference);
+        const encounterId = extractId(obs.encounter?.reference);
 
         // derive date from effectiveDateTime
         const dt = typeof obs.effectiveDateTime === "string" ? obs.effectiveDateTime : "";
@@ -40,6 +41,7 @@ export function mapFhirObservationsToEvaAssessments(
         results.push({
             id,
             patientId,
+            encounterId: encounterId || undefined,
             type: "eva",
             date,
             score,

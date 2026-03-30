@@ -30,6 +30,42 @@ export interface EncountersPageData {
     proceduresByEncounterId: Record<string, Procedure[]>;
 }
 
+function normalizeDateOnly(value: string): string {
+    return value.slice(0, 10);
+}
+
+function isLinkedByEncounterId(
+    encounterIds: Set<string>,
+    encounterId?: string
+): boolean {
+    return typeof encounterId === "string" && encounterIds.has(encounterId);
+}
+
+function isLongitudinallyLinkedByDate(
+    encounterDates: Set<string>,
+    date: string
+): boolean {
+    return encounterDates.has(normalizeDateOnly(date));
+}
+
+/**
+ * Longitudinal read mode (charts/history):
+ * keep records linked either by explicit encounterId OR by same-day fallback.
+ *
+ * NOTE: this fallback must stay local to longitudinal surfaces and must not
+ * leak into encounter-centric reads (patient detail / encounter detail).
+ */
+function filterLongitudinalRecordsByEpisode<T extends { date: string; encounterId?: string }>(
+    records: T[],
+    encounterIds: Set<string>,
+    encounterDates: Set<string>
+): T[] {
+    return records.filter((record) =>
+        isLinkedByEncounterId(encounterIds, record.encounterId)
+        || isLongitudinallyLinkedByDate(encounterDates, record.date)
+    );
+}
+
 export async function getEncountersPageData(
     patientId: string
 ): Promise<EncountersPageData> {
@@ -87,26 +123,25 @@ export async function getEncountersPageData(
             .map((encounter) => getEncounterRepresentativeStart(encounter).slice(0, 10))
             .filter((date) => /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(date))
     );
-    const normalizeDateOnly = (value: string) => value.slice(0, 10);
 
     // Longitudinal series for the episode charts panel (active episode only).
-    const vitalSigns = episodeVitalSigns.filter(
-        (record) =>
-            (typeof record.encounterId === "string" &&
-                encounterIds.has(record.encounterId)) ||
-            encounterDates.has(normalizeDateOnly(record.date))
+    const vitalSigns = filterLongitudinalRecordsByEpisode(
+        episodeVitalSigns,
+        encounterIds,
+        encounterDates
     );
-    const evaRecords = episodeEvaRecords.filter(
-        (record) =>
-            (typeof record.encounterId === "string" &&
-                encounterIds.has(record.encounterId)) ||
-            encounterDates.has(normalizeDateOnly(record.date))
+    const evaRecords = filterLongitudinalRecordsByEpisode(
+        episodeEvaRecords,
+        encounterIds,
+        encounterDates
     );
     const procedures = episodeProcedures.filter((procedure) =>
         encounterIds.has(procedure.encounterId)
     );
 
-    // Per-encounter maps
+    // Encounter-centric read mode:
+    // these maps are intentionally strict and only accept explicit encounterId.
+    // Date-based fallback is longitudinal-only (see filterLongitudinalRecordsByEpisode).
     const vitalsByEncounterId: Record<string, VitalSignRecord[]> = {};
     const evaByEncounterId: Record<string, EvaAssessment[]> = {};
     const proceduresByEncounterId: Record<string, Procedure[]> = {};

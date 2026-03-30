@@ -289,9 +289,61 @@ describe('getPatientDetailData re-assessment filtering', () => {
         repositories.encounterRepo.findLastByPatientIdAndPractitionerId.mockResolvedValue(finishedLast);
         repositories.encounterRepo.findAllByEpisodeOfCareId.mockResolvedValue([inProgress]);
 
+        const inProgressVital: VitalSignRecord = {
+            id: 'vs-in-progress',
+            patientId: patientFixture.id,
+            encounterId: inProgress.id,
+            date: '2026-03-18T11:35:00.000Z',
+            recordedBy: { id: 'prac-001', display: 'Dr. Test' },
+            heartRate: 88,
+        };
+        const inProgressEva: EvaAssessment = {
+            id: 'eva-in-progress',
+            patientId: patientFixture.id,
+            encounterId: inProgress.id,
+            type: 'eva',
+            date: '2026-03-18T11:40:00.000Z',
+            score: 4,
+            recordedBy: { id: 'prac-001', display: 'Dr. Test' },
+        };
+        const inProgressProcedure: Procedure = {
+            id: 'proc-in-progress',
+            patientId: patientFixture.id,
+            encounterId: inProgress.id,
+            code: {
+                text: 'Curación',
+                coding: [],
+                category: 'other',
+            },
+            status: 'completed',
+            performedDateTime: '2026-03-18T11:45:00.000Z',
+            performers: [],
+            bodySite: [],
+            notes: [],
+        };
+
+        repositories.vitalRepo.findAllByEncounterId.mockImplementation(async (encounterId: string) =>
+            encounterId === inProgress.id ? [inProgressVital] : []
+        );
+        repositories.assessmentRepo.findEvaByEncounterId.mockImplementation(async (encounterId: string) =>
+            encounterId === inProgress.id ? [inProgressEva] : []
+        );
+        repositories.procedureRepo.findAllByEncounterId.mockImplementation(async (encounterId: string) =>
+            encounterId === inProgress.id ? [inProgressProcedure] : []
+        );
+
         const result = await getPatientDetailData(patientFixture.id);
 
         expect(result.inProgressEncounter?.id).toBe(inProgress.id);
         expect(result.lastEncounter?.id).toBe(inProgress.id);
+        expect(repositories.vitalRepo.findAllByEncounterId).toHaveBeenCalledWith(inProgress.id);
+        expect(repositories.assessmentRepo.findEvaByEncounterId).toHaveBeenCalledWith(inProgress.id);
+        expect(repositories.procedureRepo.findAllByEncounterId).toHaveBeenCalledWith(inProgress.id);
+        expect(repositories.vitalRepo.findAllByEncounterId).not.toHaveBeenCalledWith(finishedLast.id);
+        expect(repositories.assessmentRepo.findEvaByEncounterId).not.toHaveBeenCalledWith(finishedLast.id);
+        expect(repositories.procedureRepo.findAllByEncounterId).not.toHaveBeenCalledWith(finishedLast.id);
+        expect(result.lastEncounterVitalSigns).toEqual([inProgressVital]);
+        expect(result.lastEncounterEvaRecords).toEqual([inProgressEva]);
+        expect(result.lastEncounterProcedures).toEqual([inProgressProcedure]);
     });
 });

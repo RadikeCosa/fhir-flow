@@ -195,4 +195,34 @@ describe("getEncountersPageData sorting", () => {
 
         expect(result.vitalSigns).toEqual([vitalWithTimestamp]);
     });
+
+    it("keeps date fallback scoped to longitudinal series and not encounter-centric maps", async () => {
+        const activeEncounter = makeEncounter({
+            id: "enc-longitudinal-only",
+            actualStartAt: "2026-03-15T12:00:00.000Z",
+        });
+
+        repositories.encounterRepo.findAllByEpisodeOfCareId.mockResolvedValue([
+            activeEncounter,
+        ]);
+
+        const vitalFromSameDateWithoutEncounter: VitalSignRecord = {
+            id: "vs-date-only",
+            patientId: patientFixture.id,
+            date: "2026-03-15T09:00:00.000Z",
+            recordedBy: { id: "pr-1", display: "Nurse" },
+            heartRate: 76,
+        };
+
+        repositories.vitalRepo.findAllByPatientId.mockResolvedValue([
+            vitalFromSameDateWithoutEncounter,
+        ]);
+        repositories.assessmentRepo.findEvaByPatientId.mockResolvedValue([]);
+
+        const { getEncountersPageData } = await import("../data");
+        const result = await getEncountersPageData(patientFixture.id);
+
+        expect(result.vitalSigns).toEqual([vitalFromSameDateWithoutEncounter]);
+        expect(result.vitalsByEncounterId[activeEncounter.id]).toEqual([]);
+    });
 });
