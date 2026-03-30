@@ -6,7 +6,7 @@ Este documento describe el estado real del sistema en relación a la arquitectur
 
 Este documento ofrece una validación honesta del estado real de la arquitectura: distingue lo válido hoy, lo transicional y la deuda conocida sin presentar el estado actual como cierre definitivo.
 
-Fecha: 2026-03-29
+Fecha: 2026-03-30
 
 Este documento reemplaza el enfoque de "aprobado total" por una validación honesta del estado actual.
 
@@ -36,6 +36,9 @@ Este documento reemplaza el enfoque de "aprobado total" por una validación hone
 | Save progress separado | **Válido hoy** | `saveEncounterProgressAction` existe como operación propia con snapshot transaccional y ownership metadata interoperable para recursos clínicos gestionados por esta app. | write-phase + código de acciones/rules/repositorio. | Mantener hardening de validaciones por estado y ownership. |
 | Transitional `planned -> finished` | **Deuda conocida** | Sigue permitido por compatibilidad transicional. No representa el lifecycle objetivo. | ADR + write-phase lo declaran explícitamente como transición. | Implementar `startEncounterAction` y migrar finalización para requerir `in-progress`. |
 | Canonical read (finished detail) | **Deuda conocida** | El detail es el target canónico por arquitectura, pero el cierre completo del canonical read de `finished` sigue abierto y no debe declararse como terminado. | ADR + write-phase (Canonical Read After Write) + pendiente explícito en backlog. | Cerrar hardening de canonical read por estado y validar cobertura end-to-end antes de marcar resuelto. |
+| Encounter-centric vs longitudinal read split | **Parcialmente válido** | Se consolidó la separación: patient/encounter detail operan encounter-centric y el fallback por fecha queda encapsulado para longitudinal. Aún hay deuda en hardening de límites para evitar regresiones de mezcla. | Checkpoint app + auditoría temporal + ajustes recientes en `encounters/data.ts` y patient detail. | Mantener tests de no-filtración del fallback temporal a surfaces encounter-centric. |
+| Clinical linkage (`encounterId`) in read mappers | **Parcialmente válido** | Vital signs y EVA ya hidratan `encounterId` cuando `Observation.encounter.reference` existe (incluyendo casos ausente/relativo/absoluto). Mejora coherencia encounter-centric pero no elimina deuda histórica sin referencia. | Mappers/schemas de lectura y tests endurecidos recientes. | Mantener fallback longitudinal controlado para históricos sin linkage y evaluar backfill futuro. |
+| In-progress encounter-centric read | **Parcialmente válido** | Patient detail ya alinea encounter mostrado y datasets clínicos con una única fuente (`inProgressEncounter ?? lastFinishedEncounter`). Encounter detail puede hidratar clínicos por `encounterId` también para `in-progress`, aunque UI mantiene bloques clínicos visibles en `finished`. | Loader patient detail + loader/render encounter detail tras cambios recientes. | No vender continuidad clínica completa de `in-progress` como cerrada hasta validación E2E de producto. |
 | Documentation drift | **Parcialmente válido** | Documentación alinea dirección, pero hubo deriva de tono (“todo aprobado”) y riesgo de leer transición como estado final. | Diferencia entre validación previa y lenguaje explícito de ADR/write-phase. | Mantener este documento como checklist vivo y actualizar por fase/ticket real. |
 
 ## Revisión explícita por tema solicitado
@@ -100,6 +103,26 @@ La intención arquitectónica está cerrada (detalle como fuente canónica para 
 
 La base documental principal (copilot instructions + write-phase + ADR) está alineada en dirección. El drift estuvo en validaciones con lenguaje excesivamente concluyente para temas que siguen transicionales o con deuda.
 
+### 10. Encounter-centric vs longitudinal (estado actual)
+
+**Estado:** Parcialmente válido
+
+Las superficies `patient detail` y `encounter detail` se sostienen como encounter-centric.
+El fallback por fecha permanece como estrategia longitudinal y no debe reutilizarse como source-of-truth encounter-centric.
+
+### 11. Linkage clínico en lectura (`encounterId`)
+
+**Estado:** Parcialmente válido
+
+La lectura de vitales y EVA ya conserva `encounterId` cuando FHIR trae `Observation.encounter.reference` (incluyendo referencias ausentes, relativas y absolutas en tests). Esto mejora consistencia del read model encounter-centric, pero no resuelve automáticamente históricos sin vínculo explícito.
+
+### 12. Soporte `in-progress` en lectura encounter-centric
+
+**Estado:** Parcialmente válido
+
+`patient detail` ya no mezcla encounter mostrado con datasets de otro encounter.
+`encounter detail` puede hidratar datasets clínicos por `encounterId` también en `in-progress`, pero el render clínico final sigue acotado a `finished`. Por eso, la continuidad clínica completa en `in-progress` sigue como deuda abierta.
+
 ## Pendientes del ADR / tickets siguientes
 
 1. Implementar transición operacional `planned -> in-progress` (`startEncounterAction`) para encounters creados como `planned`.
@@ -107,6 +130,8 @@ La base documental principal (copilot instructions + write-phase + ADR) está al
 3. Completar canonical read de `finished` por estado y cerrar la deuda de forma verificable.
 4. Tipar `ActionError.details` por variante/capa sin romper `ActionResult`.
 5. Cerrar consistencia total de practitioner context en todos los write inputs.
+6. Endurecer garantías de separación encounter-centric vs longitudinal para evitar regresiones de fallback temporal fuera de charts/historial.
+7. Definir cierre verificable de continuidad clínica `in-progress` en UI si producto lo requiere.
 
 ## Checklist vigente para validación de cambios
 

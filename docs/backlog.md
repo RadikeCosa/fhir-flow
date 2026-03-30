@@ -1,6 +1,6 @@
 # 📋 FHIR Flow — Backlog reordenado (post sprint register flow)
 
-Fecha de actualización: 2026-03-29
+Fecha de actualización: 2026-03-30
 
 ## 🧭 Convenciones
 - **Resuelto:** implementado y validado en el sprint de register flow.
@@ -51,6 +51,16 @@ Tracks:
   - Dirección cerrada: requerir `in-progress`.
   - Estado actual: sigue compatibilidad `planned -> finished` (transicional).
 
+### Track C — UI/UX & Polish (estado post avances read encounter-centric)
+- **(sin ID nuevo) Read encounter-centric en patient/encounter detail** → **Parcial**
+  - ✅ Ya implementado:
+    - separación más explícita encounter-centric vs longitudinal en `encounters/data.ts`;
+    - hidratación de `encounterId` en lectura de vitales y EVA cuando FHIR trae referencia;
+    - patient detail con una única fuente clínica (`inProgressEncounter ?? lastFinishedEncounter`) y datasets del mismo `encounterId`;
+    - encounter detail con hidratación mínima encounter-centric también para `in-progress`.
+  - 🔶 Aún abierto:
+    - continuidad clínica completa de `in-progress` en UI (incluida integración/rehidratación de save progress) no está cerrada.
+
 ---
 
 ## 🔴 Deuda abierta (no cerrar)
@@ -62,16 +72,23 @@ Tracks:
 ### Debt transversal documentada
 - **Canonical read completo de finished detail** → **Deuda abierta**
   - Detail es target canónico por arquitectura, pero el cierre completo sigue pendiente.
+- **Deuda longitudinal/histórica** → **Deuda abierta**
+  - El fallback temporal por fecha se mantiene como estrategia longitudinal; no debe reutilizarse como source-of-truth encounter-centric.
+  - Persisten casos históricos sin `encounterId` que requieren manejo controlado.
 
 ---
 
 ## 🚀 Siguiente fase (prioridad sugerida)
 
-1. **L1** — startEncounterAction.
-2. **L2** — endurecer finalize con plan de retiro del fallback transicional.
-3. Cerrar deuda de canonical read completo para `finished`.
-4. Tipado de `ActionError.details` por capa.
-5. Hardening incremental UI/UX (F2/F3/G2 y luego temporal UX/hardening/dashboard).
+1. **Bloque prioritario inmediato (read + UX clínica):**
+   - continuidad clínica real de `in-progress` en UI;
+   - integración/rehidratación de `saveEncounterProgressAction` en surfaces encounter-centric;
+   - validación de no-mezcla encounter/datasets en escenarios reales.
+2. **Cerrar deuda de canonical read para `finished`** (hardening por estado + validación end-to-end).
+3. **L1** — startEncounterAction.
+4. **L2** — endurecer finalize con retiro progresivo del fallback transicional.
+5. Tipado de `ActionError.details` por capa.
+6. Hardening incremental UI/UX (F2/F3/G2 y luego temporal UX/hardening/dashboard).
 
 ---
 
