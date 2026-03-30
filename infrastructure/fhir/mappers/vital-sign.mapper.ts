@@ -6,11 +6,11 @@ import { extractId } from "./shared/extract-helpers";
  * Map an array of validated FHIR Observation resources representing vital
  * signs into domain `VitalSignRecord` objects.
  *
- * Grouping: observations are grouped by the normalized date (YYYY-MM-DD)
- * and the first performer's reference/display. Unrecognized LOINC codes
- * are silently skipped. The `patientId` parameter is required because
- * Observations do not contain a normalized patient id suitable for the
- * domain model.
+ * Grouping: observations are grouped by their capture timestamp
+ * (`effectiveDateTime`) and the first performer's reference/display.
+ * Unrecognized LOINC codes are silently skipped. The `patientId`
+ * parameter is required because Observations do not contain a normalized
+ * patient id suitable for the domain model.
  *
  * Blood pressure observations are component-based and require both the
  * systolic (LOINC 8480-6) and diastolic (LOINC 8462-4) components to be
@@ -51,11 +51,12 @@ export function mapFhirObservationsToVitalSignRecords(
                 continue;
         }
 
-        // normalize date YYYY-MM-DD from effectiveDateTime
+        // keep full capture timestamp when available (ISO date or datetime)
         const dt = typeof obs.effectiveDateTime === "string" ? obs.effectiveDateTime : "";
         if (dt.length < 10) continue;
-        const date = dt.slice(0, 10);
-        if (!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(date)) continue;
+        const date = dt.trim();
+        const dateOnly = date.slice(0, 10);
+        if (!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(dateOnly)) continue;
 
         // performer key and recordedBy
         const perf = Array.isArray(obs.performer) && obs.performer.length > 0 ? obs.performer[0] : undefined;
@@ -126,8 +127,15 @@ export function mapFhirObservationsToVitalSignRecords(
         }
     }
 
-    // return sorted by date descending
+    // return sorted by date/capture timestamp descending
     const results = Array.from(groups.values());
-    results.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+    results.sort((a, b) => {
+        const aMs = Date.parse(a.date);
+        const bMs = Date.parse(b.date);
+        if (!Number.isNaN(aMs) && !Number.isNaN(bMs)) {
+            return bMs - aMs;
+        }
+        return a.date < b.date ? 1 : a.date > b.date ? -1 : 0;
+    });
     return results;
 }

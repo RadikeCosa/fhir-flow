@@ -28,15 +28,15 @@ export interface BloodPressureReading {
 }
 
 /**
- * Represents a grouped set of vital sign measurements for a visit/date.
+ * Represents a grouped set of vital sign measurements for a capture point.
  *
  * Notes:
  * - This model is intentionally independent from FHIR resource shapes.
- * - Grouping of multiple Observations by `date` (visit) is performed in
- *   the mapper; FHIR itself has no concept of a grouped visit record.
+ * - Grouping of multiple Observations by capture timestamp and performer is
+ *   performed in the mapper; FHIR itself has no concept of this grouped record.
  * - `id` is a synthetic key constructed by the mapper (for example
- *   using the date + patientId) because FHIR does not provide a
- *   canonical id for a grouped visit-level record.
+ *   using capture metadata) because FHIR does not provide a
+ *   canonical id for this grouped record.
  * - Blood pressure uses a nested `BloodPressureReading` because it is
  *   composed of two component observations (systolic/diastolic).
  * - All measurement fields are optional because not every visit records
@@ -50,8 +50,11 @@ export interface VitalSignRecord {
     patientId: string;
 
     /**
-     * Normalized date of the measurements in `YYYY-MM-DD` form. This is
-     * derived from the source `effectiveDateTime` values by the mapper.
+     * ISO capture date/time of the measurements.
+     *
+     * For date-only observations, the value may still be `YYYY-MM-DD`.
+     * For timestamped observations, this preserves full precision from
+     * source `effectiveDateTime`.
      */
     date: string;
 
