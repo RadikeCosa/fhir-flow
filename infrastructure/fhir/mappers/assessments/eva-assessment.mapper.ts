@@ -20,8 +20,9 @@ export function mapFhirObservationsToEvaAssessments(
         // derive date from effectiveDateTime
         const dt = typeof obs.effectiveDateTime === "string" ? obs.effectiveDateTime : "";
         if (dt.length < 10) continue;
-        const date = dt.slice(0, 10);
-        if (!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(date)) continue;
+        const datePortion = dt.slice(0, 10);
+        if (!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(datePortion)) continue;
+        const date = dt;
 
         // pull score
         const score = typeof obs.valueInteger === "number" ? obs.valueInteger : undefined;
