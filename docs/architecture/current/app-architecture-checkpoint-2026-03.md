@@ -234,8 +234,10 @@ This convention is now consistently present in the main patient/encounter routes
 
 This refactor round did **not** attempt to solve the following:
 
-### 1. canonical read for finished encounter detail (still open)
-The encounter detail route is the canonical target by architecture, but canonical read hardening for `finished` must remain open debt until the remaining gaps are explicitly closed and validated end-to-end.
+### 1. canonical read for finished encounter detail (validated, bounded scope)
+`finished encounter detail` quedó validado como path canónico encounter-centric en alcance acotado (lectura por `encounterId`, sin fallback temporal como source of truth, con pruebas de no-mezcla y aislamiento de paciente).
+
+Este cierre no implica completion del read model global: cualquier garantía fuera de este surface permanece abierta.
 
 ### 1.1. in-progress continuity remains intentionally partial
 Read hydration by `encounterId` is now available for `in-progress` as well, but full UI clinical continuity for in-progress should still be treated as open debt unless explicitly closed by product behavior and end-to-end validation.
@@ -295,12 +297,12 @@ When changing route-level UI in the patients/encounters area:
 - explicit separation between encounter-centric reads and longitudinal date fallback
 
 ### Still open
-- peripheral canonical-read cleanup outside finished detail core path (for example, history load shape)
+- canonical-read cleanup fuera de `finished encounter detail` (por ejemplo, history load shape y otras surfaces)
 - possible future redesign of `encounters/data.ts`
 - possible future slimming of `EncounterList`
 - possible future partitioning of `FinalizeEncounterForm`
 - lifecycle transition beyond the current transitional runtime model
-- complete in-progress clinical continuity in UI (do not treat as closed by hydration alone)
+- complete in-progress clinical continuity in UI (do not treat as closed by finished-detail validation)
 
 ---
 

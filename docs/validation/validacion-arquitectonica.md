@@ -35,7 +35,7 @@ Este documento reemplaza el enfoque de "aprobado total" por una validación hone
 | Register flow (`/encounters/register`) | **Válido hoy** | La separación de entry points está operativa: `/encounters/new` planifica y `/encounters/register` registra con `registerEncounterAction` y `completionMode` explícito (`start`/`complete`). | Estado de app layer + write-phase actualizado. | Mantener consistencia documental y evitar regresión semántica entre rutas. |
 | Save progress separado | **Válido hoy** | `saveEncounterProgressAction` existe como operación propia con snapshot transaccional y ownership metadata interoperable para recursos clínicos gestionados por esta app. | write-phase + código de acciones/rules/repositorio. | Mantener hardening de validaciones por estado y ownership. |
 | Lifecycle transition (`planned -> in-progress`) | **Válido hoy** | `startEncounterAction` ya está operativo para encounters planificados y la finalización exige `in-progress`. | Reglas de estado en actions/domain + write-phase actualizado. | Mantener hardening de regresiones y tests de estado. |
-| Canonical read (finished detail) | **Parcialmente válido** | El path específico `finished encounter detail` se preserva y sigue válido hoy; el hardening completo de canonical read de `finished` a nivel global permanece abierto. | ADR + write-phase + backlog vigente + validación encounter-centric acotada del sprint 2026-03. | Mantener el path preservado y cerrar hardening completo por estado/surfaces antes de marcar deuda totalmente resuelta. |
+| Canonical read (finished detail) | **Validado (alcance acotado)** | El path `finished encounter detail` quedó validado como lectura canónica encounter-centric por `encounterId`, sin fallback temporal como source of truth en ese surface. El hardening global de read model fuera de ese alcance permanece abierto. | ADR + write-phase + backlog vigente + validación específica del sprint 2026-03 (auditoría + tests). | Sostener cobertura de regresión en `finished detail` y mantener explícita la deuda global fuera de este surface. |
 | Encounter-centric vs longitudinal read split | **Parcialmente válido** | Se consolidó la separación: patient/encounter detail operan encounter-centric y el fallback por fecha queda encapsulado para longitudinal. Aún hay deuda en hardening de límites para evitar regresiones de mezcla. | Checkpoint app + auditoría temporal + ajustes recientes en `encounters/data.ts` y patient detail. | Mantener tests de no-filtración del fallback temporal a surfaces encounter-centric. |
 | Clinical linkage (`encounterId`) in read mappers | **Parcialmente válido** | Vital signs y EVA ya hidratan `encounterId` cuando `Observation.encounter.reference` existe (incluyendo casos ausente/relativo/absoluto). Mejora coherencia encounter-centric pero no elimina deuda histórica sin referencia. | Mappers/schemas de lectura y tests endurecidos recientes. | Mantener fallback longitudinal controlado para históricos sin linkage y evaluar backfill futuro. |
 | In-progress encounter-centric read | **Parcialmente válido** | Hay evidencia más fuerte de no-mezcla y continuidad básica `write -> read -> render` en surfaces encounter-centric activas, incluyendo tests de integración livianos; aun así, la continuidad clínica completa en UI `in-progress` sigue abierta. | Loader patient detail + loader/render encounter detail + sprint de validación E2E encounter-centric (2 tests de integración + validación manual). | Mantener explícito que no existe aún persistencia parcial operativa en la UI de completar visita ni cierre total de continuidad `in-progress`. |
@@ -93,10 +93,13 @@ La separación de entry points está implementada: `/encounters/new` planifica y
 
 ### 8. Canonical read de finished detail
 
-**Estado:** Parcialmente válido
+**Estado:** Validado (alcance acotado)
 
-El path `finished encounter detail` se mantiene preservado y válido hoy en alcance acotado, con continuidad encounter-centric verificada sin reapertura de ese recorrido específico.
-Aun así, el hardening completo de canonical read de `finished` (global, por estado/surfaces) sigue abierto y debe mantenerse explícito como deuda.
+El path `finished encounter detail` quedó validado como lectura canónica acotada: lectura clínica por `encounterId`, sin fallback temporal/longitudinal como source of truth en este surface, y render basado en datos rehidratados del loader.
+
+También quedó validado el fail-closed de ownership encounter → patient: ante mismatch, el loader retorna `encounter: null` y evita cargar datos clínicos.
+
+Este estado no se extiende al read model completo del sistema: fuera de `finished encounter detail` las garantías siguen siendo parciales y deben mantenerse como deuda abierta hasta nueva evidencia.
 
 ### 9. Documentation drift
 
@@ -128,7 +131,7 @@ Límite explícito: en la UI de completar visita, si el usuario vuelve, pierde d
 
 ## Pendientes del ADR / tickets siguientes
 
-1. Completar canonical read de `finished` por estado y cerrar la deuda de forma verificable.
+1. Mantener cerrado y protegido por tests el canonical read de `finished encounter detail`, sin extrapolar ese cierre a otras surfaces/estados.
 2. Tipar `ActionError.details` por variante/capa sin romper `ActionResult`.
 3. Cerrar consistencia total de practitioner context en todos los write inputs.
 4. Endurecer garantías de separación encounter-centric vs longitudinal para evitar regresiones de fallback temporal fuera de charts/historial.
@@ -151,6 +154,6 @@ Usar este checklist en cada cambio de write flow:
 
 La arquitectura **no está “todo aprobado”**.
 
-El sistema tiene bases sólidas en boundaries y responsabilidades, mantiene deuda explícita en lifecycle operativo, canonical read completo de `finished` y cierre del contrato de errores tipados. La validación correcta hoy es: **base válida + transición activa + deuda reconocida + pendientes concretos del ADR**.
+El sistema tiene bases sólidas en boundaries y responsabilidades, mantiene deuda explícita en lifecycle operativo, canonical read global fuera de `finished encounter detail` y cierre del contrato de errores tipados. La validación correcta hoy es: **base válida + transición activa + deuda reconocida + pendientes concretos del ADR**.
 
 Nota: los últimos refactors de la capa `app/` (loaders, contratos y convención de rutas en patients/encounters) están resumidos en `docs/architecture/current/app-architecture-checkpoint-2026-03.md`.
