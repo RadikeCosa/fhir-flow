@@ -1,6 +1,6 @@
 # 📋 FHIR Flow — Backlog reordenado (post sprint register flow)
 
-Fecha de actualización: 2026-03-30
+Fecha de actualización: 2026-03-31
 
 ## 🧭 Convenciones
 - **Resuelto:** implementado y validado en el sprint de register flow.
@@ -64,6 +64,29 @@ Tracks:
 
 ---
 
+
+## ✅ Sprint cerrado — Validación E2E de continuidad encounter-centric (2026-03)
+
+- **V1 — Continuidad básica `write -> read -> render`** → **Completado (alcance acotado)**
+  - Validación manual satisfactoria en flujos ya implementados.
+  - No se detectaron bugs concretos que exigieran hardening adicional en el sprint.
+
+- **V2 — No-mezcla encounter-centric en surfaces activas** → **Completado (alcance acotado)**
+  - `patient detail` y `encounter detail` validados sin mezcla de datasets entre encounters activos.
+
+- **V3 — Evidencia reproducible mínima** → **Completado**
+  - Test integrado: `app/patients/[id]/encounters/[encounterId]/__tests__/data.test.ts`
+    - `"hydrates only the clinical datasets of the requested encounterId"`.
+  - Test integrado: `app/patients/[id]/__tests__/data.test.ts`
+    - `"loads clinical datasets from inProgressEncounter instead of lastFinishedEncounter when both exist"`.
+
+- **Límite confirmado en UI de completar visita (sin cierre adicional)**
+  - El usuario puede finalizar o volver; si vuelve, pierde datos cargados.
+  - No hay persistencia parcial operativa en esa UI.
+  - El sprint valida ausencia de persistencia parcial accidental y persistencia correcta al finalizar; no cierra continuidad clínica completa de `in-progress`.
+
+---
+
 ## 🟡 Parcial / transición activa
 
 ### Track A — Lifecycle
@@ -86,23 +109,29 @@ Tracks:
 ## 🔴 Deuda abierta (no cerrar)
 
 ### Debt transversal documentada
-- **Canonical read completo de finished detail (path específico)** → **Cerrado (sprint canonical read finished 2026-03)**
-  - Se cerró de forma acotada en `finished encounter detail` con auditoría + hardening mínimo de render + tests locales.
-  - Este cierre no aplica automáticamente a deuda longitudinal/histórica ni a hardening E2E global.
+- **Canonical read hardening completo de `finished` (global)** → **Deuda abierta**
+  - El path `finished encounter detail` se mantiene preservado y validado en alcance acotado.
+  - Sigue pendiente el hardening completo por estado/surfaces y su validación E2E global.
 - **Deuda longitudinal/histórica** → **Deuda abierta**
   - El fallback temporal por fecha se mantiene como estrategia longitudinal; no debe reutilizarse como source-of-truth encounter-centric.
   - Persisten casos históricos sin `encounterId` que requieren manejo controlado.
 
 ## 🔴 Deuda abierta (post-sprint)
 
-- **Validación end-to-end del flujo clínico** → **Pendiente**
-  - Falta cerrar validación integral de punta a punta para continuidad de lectura/rehidratación/edición.
+- **Continuidad clínica completa de `in-progress` en UI** → **Pendiente**
+  - Sigue abierta la continuidad completa de edición/reanudación clínica en la UI de visita en curso.
+
+- **Canonical read hardening completo de `finished`** → **Pendiente**
+  - El cierre validado es acotado; falta hardening completo y cobertura integral en el conjunto de surfaces relevantes.
 
 - **Datos históricos sin `encounterId`** → **Pendiente**
   - Continúan existiendo casos legacy sin linkage completo que requieren estrategia explícita para no contaminar surfaces encounter-centric.
 
-- **Ausencia de test E2E** → **Pendiente**
-  - No hay cobertura E2E dedicada al circuito completo de rehidratación in-progress + no-mezcla.
+- **Cobertura E2E browser-level del circuito completo** → **Pendiente**
+  - Existen tests de integración livianos encounter-centric, pero no cobertura browser E2E del circuito completo.
+
+- **Tipado de `ActionError.details` por capa** → **Pendiente**
+  - `details` continúa transicional y sin tipado final por variante/capa.
 
 ---
 
