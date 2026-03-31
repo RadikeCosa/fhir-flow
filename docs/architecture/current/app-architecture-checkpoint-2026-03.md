@@ -245,10 +245,11 @@ En `encounter detail` para `in-progress`, el app layer ahora cuenta con:
 - path explícito de UI para guardar progreso;
 - rehidratación loader-based por `encounterId`;
 - sincronización del formulario basada en `reset(...)` cuando cambian valores canónicos derivados del loader.
+- consistencia encounter-centric validada en alcance acotado con patient detail para source switching (`inProgressEncounter ?? lastFinishedEncounter`).
 
 Esto cierra un tramo **acotado** de continuidad (`save -> reload/remount -> rehydrate`) en ese surface.
 
-Límite explícito: este avance **no** equivale a completar el read model ni a cerrar continuidad clínica system-wide fuera de encounter detail.
+Límite explícito: este avance **no** representa consolidación completa del read model ni garantías globales de continuidad system-wide.
 
 ### 2. final shape of `encounters/data.ts`
 The encounters loader still serves both:
