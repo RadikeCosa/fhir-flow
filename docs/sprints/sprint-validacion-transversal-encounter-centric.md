@@ -3,233 +3,253 @@
 - Fecha: 2026-03
 - Estado: Propuesto
 
+## 0. Surfaces bajo validación (hipótesis inicial)
+
+Clasificación preliminar para mantener el sprint en modo validación/hardening (no discovery abierto):
+
+### Encounter-centric (target de garantía en este sprint)
+
+- `encounter detail` (`in-progress` / `finished`) como surface clínica por encounter.
+- `patient detail` en los puntos donde renderiza/deriva estado clínico del encounter activo.
+
+### Longitudinales (permitidas como longitudinales, fuera de garantía encounter-específica)
+
+- `EpisodeChartsPanel` y vistas de tendencia/histórico.
+- Lecturas agregadas históricas que no prometen aislamiento estricto por `encounterId`.
+
+### Mixtas / de riesgo / inciertas (a validar en T1)
+
+- `encounters page` / history list cuando actúa como punto de entrada al encounter activo.
+- Lógica de grouping/listado alrededor de encounters (ordenado, agrupación o selección).
+- Cualquier boundary loader/composition que conecte lista longitudinal con navegación encounter-centric.
+
+> Nota: esta lista es hipótesis inicial basada en arquitectura/sprints previos; T1 confirma qué entra efectivamente en alcance.
+
 ## 1. Objetivo del sprint
 
-Validar de forma fuerte y acotada que el circuito encounter-centric ya endurecido en detalle finished e in-progress se sostiene de punta a punta entre surfaces críticas, sin mezcla entre encounters y sin fallback temporal como source of truth fuera del modo longitudinal.
+Validar de forma fuerte y acotada que el circuito encounter-centric ya endurecido en detalle `finished` e `in-progress` se sostiene entre surfaces clínicas globales relevantes, sin mezcla entre encounters y sin fallback temporal como source of truth en surfaces encounter-centric.
 
-El objetivo no es construir nuevas features, sino cerrar incertidumbre operativa sobre el comportamiento real del sistema cuando los flujos ya implementados se usan de manera encadenada.
+Este sprint no crea features nuevas ni rediseña el read model: valida fronteras y, solo si aplica, endurece gaps mínimos localizados.
 
-## 2. Problema que resuelve
+## 2. Problema / diagnóstico
 
 Los sprints previos cerraron slices acotados:
 
-- finished encounter detail validado como path canónico (bounded);
-- in-progress encounter detail validado en continuidad (save → reload → rehydrate).
+- `finished encounter detail` validado como path canónico (bounded);
+- `in-progress encounter detail` validado en continuidad (save → reload → rehydrate).
 
-La incertidumbre actual es transversal:
+La incertidumbre pendiente está en la integración entre surfaces fuera del detalle ya validado.
 
-¿estas garantías se sostienen cuando el usuario recorre múltiples surfaces del sistema?
+Riesgo real:
 
-Falta evidencia fuerte de que:
-
-- no hay mezcla entre encounters al navegar;
-- los loaders mantienen consistencia encounter-centric;
-- los paths ya validados no se contradicen entre sí en flujo real.
+- asumir garantías encounter-centric en surfaces globales sin evidencia explícita;
+- mezclar semántica longitudinal con semántica encounter-centric en puntos de navegación/listado;
+- declarar cierre sin distinguir gaps triviales vs estructurales.
 
 ## 3. Alcance
 
 ### Entra en este sprint
 
-- validación transversal del circuito encounter-centric ya implementado;
-
-- evidencia reproducible del flujo:
-
-  - planned
-    → startEncounterAction
-    → encounter detail (in-progress)
-    → saveEncounterProgressAction
-    → reload / rehydrate
-    → finalizeEncounterAction
-    → encounter detail (finished)
-- validación de no-mezcla entre encounters;
-- consistencia entre patient detail y encounter detail;
-- tests de integración acotados sobre surfaces críticas.
+- validación de la clasificación inicial de surfaces y su frontera semántica;
+- auditoría cross-surface del circuito crítico encounter-centric;
+- evidencia reproducible de continuidad y no-mezcla en surfaces auditadas;
+- corrección mínima local **solo** si T2 detecta gap trivial.
 
 ### No entra en este sprint
 
 - features nuevas;
-- refactor amplio de loaders/componentes;
-- browser E2E completo (Playwright, etc.);
-- hardening longitudinal/histórico global;
-- tipado de ActionError.details;
-- rediseño del lifecycle.
+- browser E2E completo (Playwright u otro);
+- refactor amplio de loaders/componentes/read model;
+- rediseño del lifecycle;
+- cleanup histórico/legacy integral;
+- tipado de `ActionError.details`;
+- rediseño visual de charts/UI.
 
-## 4. Hipótesis de trabajo
+## 4. Riesgos principales
 
-La base encounter-centric está endurecida a nivel de detalle.
+### Riesgo 1 — Scope creep por “hardening global”
 
-El riesgo remanente es de integración entre surfaces, no de modelado local.
+Mitigación: surfaces candidatas fijadas upfront + política de gaps explícita.
 
-Este sprint busca validar comportamiento sistémico sin expandir scope funcional.
+### Riesgo 2 — Confundir longitudinal con encounter-centric
 
-## 5. Nivel de evidencia esperado (definido upfront)
+Mitigación: frontera semántica validada en T1 y auditada en T2.
 
-### Evidencia aceptada
+### Riesgo 3 — False closure
 
-- tests de integración route/data/render;
-- validación de continuidad entre surfaces críticas;
-- tests que validen comportamiento encounter-centric en flujo completo;
-- mocks controlados de repositorios cuando sea necesario.
+Mitigación: DoD exige evidencia por surface auditada y documentación honesta de hallazgos no triviales.
 
-### Evidencia no requerida
+## 5. Política de manejo de gaps
 
-- browser E2E full-stack;
-- infraestructura nueva de testing;
-- tests puramente visuales o snapshots;
-- coverage total del sistema.
+Si T2 detecta desvíos, se aplica esta política:
 
-## 6. Riesgos principales
+### Gap trivial / mínimo (entra en sprint)
 
-### Riesgo 1 — sobrealcance
+Se puede corregir dentro del sprint **solo si**:
 
-Convertir el sprint en “E2E del sistema completo”.
+- está acotado a un boundary local (loader/composition/render);
+- no requiere rediseño de lifecycle/read model;
+- no abre efectos colaterales sistémicos.
 
-### Riesgo 2 — reabrir deuda cerrada
+Salida esperada: corrección mínima + tests/guardas de cierre (T3 condicional + T4).
 
-No reabrir finished detail o in-progress detail sin evidencia de regresión real.
+### Gap no trivial / estructural (no entra en sprint)
 
-### Riesgo 3 — mezclar con longitudinal
+No se corrige en este sprint.
 
-No usar fallback temporal como criterio de validación encounter-centric.
+Se clasifica como no trivial cualquier gap que:
 
-### Riesgo 4 — ambigüedad en evidencia
+- toque más de un boundary (`loader`/`composition`/`render`);
+- requiera cambio de contrato;
+- afecte más de una surface.
 
-Evitado definiendo upfront el nivel de integración aceptado.
+Se debe:
 
-## 7. Definición de done
+- documentar el gap con evidencia y alcance técnico;
+- registrar deuda/follow-up explícito para sprint posterior;
+- cerrar este sprint como validación acotada (sin absorber rediseño oculto).
 
-El sprint se considera cerrado si:
+## 6. Definición de done
 
-- existe evidencia reproducible del circuito completo encounter-centric;
-- no hay mezcla entre encounters en navegación y rehidratación;
-- patient detail y encounter detail permanecen alineados por encounterId;
-- los tests fallan si aparece fallback temporal en surfaces críticas;
-- los límites del alcance quedan explícitamente documentados.
+El sprint se considera cerrado únicamente si:
 
-## 8. Orden de ejecución
+- las surfaces auditadas quedan clasificadas y su estado final (validada / fuera de alcance / deuda) está documentado;
+- en surfaces encounter-centric auditadas, la lectura clínica se sostiene por `encounterId` y **no** usa fallback temporal como source of truth;
+- las surfaces longitudinales pueden permanecer longitudinales sin forzar convergencia artificial a encounter-centric;
+- T2 queda respaldado por evidencia reproducible y, si hubo gap trivial, la corrección mínima queda cubierta por pruebas;
+- si se detectaron gaps no triviales, quedan explícitos como deuda/follow-up (sin absorción silenciosa en alcance);
+- no se declara cierre global del read model ni hardening system-wide.
 
-1. definir contrato de validación transversal (T1);
-2. auditar circuito crítico (T2);
-3. construir evidencia positiva del flujo (T3);
-4. agregar guardas negativas (T4);
-5. cerrar documentación (T5).
+## 7. Orden de ejecución
 
-## 9. Tickets del sprint
+1. T1 — validar clasificación inicial y frontera semántica.
+2. T2 — auditar circuito/surfaces en alcance real.
+3. T3 (condicional) — aplicar corrección mínima si T2 detecta gap trivial apto.
+4. T4 — cerrar con pruebas/guardas según estado final (con o sin T3).
+5. T5 — cierre documental acotado y honesto.
 
-### T1 — Contrato de validación transversal encounter-centric
+## 8. Tickets del sprint
 
-Definir:
+### T1 — Validación de clasificación de surfaces y frontera semántica
 
-- qué surfaces entran en validación;
-- qué flujos se consideran críticos;
-- qué queda explícitamente fuera;
-- nivel de evidencia aceptado.
+Confirmar (no descubrir desde cero):
 
-### Criterios
+- clasificación preliminar encounter-centric / longitudinal / mixta;
+- frontera operativa entre semántica encounter-centric y longitudinal;
+- set final de surfaces que entra realmente en este sprint.
 
-- definición explícita de “validación transversal”;
-- separación clara entre encounter-centric vs longitudinal;
-- encounterId como source of truth;
-- nivel de integración de tests definido upfront.
+**Criterios:**
+
+- mapa final de surfaces candidatas con justificación;
+- separación explícita de garantías por tipo de surface;
+- si una surface mixta no impacta directamente el circuito crítico (navegación a `encounter detail` o lectura clínica activa), queda fuera de alcance en este sprint;
+- exclusiones documentadas para mantener alcance acotado.
 
 ### T2 — Auditoría cross-surface del circuito crítico
 
-Revisar flujo:
+Revisar continuidad y aislamiento en el circuito:
 
-- patient detail
-- startEncounterAction
-- encounter detail (in-progress)
-- save-progress
-- encounter detail (finished)
+- `encounters page` / history list (si participa como entrypoint);
+- `patient detail` ↔ `encounter detail`;
+- acciones/start-save-finalize y relectura de encounter.
 
-### Criterios
+**Criterios:**
 
-- identificación de puntos de posible ruptura;
-- documentación de surfaces/loaders involucrados;
-- no implementar correcciones salvo que sean mínimas y necesarias;
-- gaps mayores → quedan como deuda o siguiente sprint.
+- identificación de puntos de ruptura reales;
+- evidencia de comportamiento por surface auditada;
+- clasificación de hallazgos en trivial vs no trivial.
 
-### T3 — Validación positiva del circuito crítico
+### T3 — Corrección mínima local (condicional)
 
-Construir tests que validen que el flujo funciona correctamente:
+Se ejecuta **solo si** T2 detecta gap trivial compatible con hardening acotado.
 
-- start → in-progress → save → reload → finalize → read;
-- continuidad de datos en el mismo encounter;
-- consistencia entre surfaces.
+**Criterios:**
 
-### Criterios
+- cambio local en boundary afectado;
+- sin rediseño de lifecycle/read model;
+- si aparecen múltiples gaps triviales, se corrige solo el de mayor impacto en el circuito crítico; el resto queda documentado como follow-up;
+- alcance y trade-offs documentados.
 
-- cobertura del flujo completo;
-- evidencia de rehidratación correcta;
-- evidencia de alineación entre patient detail y encounter detail.
+### T4 — Cierre de pruebas y guardas (dependiente de resultado T2/T3)
 
-### T4 — Guardas negativas contra fallback y mezcla
+Consolidar guardas del estado final:
 
-Agregar tests que fallen si:
+- si no hubo gap: pruebas de validación del comportamiento auditado;
+- si hubo gap trivial corregido: pruebas sobre corrección + regresión negativa.
 
-- aparece fallback temporal como source of truth en surfaces encounter-centric;
-- hay mezcla entre encounters del mismo paciente;
-- se rompe aislamiento por encounterId.
+**Criterios:**
 
-### Criterios
+- cobertura de continuidad/no-mezcla en surfaces auditadas;
+- pruebas negativas contra fallback temporal en surfaces encounter-centric;
+- las pruebas validan proveniencia de datos en el read path (`encounterId`), no solo igualdad del payload final renderizado;
+- cuando aplique, se incluyen aserciones sobre parámetros de query/selección para evitar falsos positivos por fallback temporal;
+- sin duplicación innecesaria ni claims de cobertura global.
 
-- tests negativos claros;
-- protección contra regresión;
-- sin duplicar cobertura de T3.
+### T5 — Cierre documental del sprint
 
-### T5 — Cierre documental
+Actualizar únicamente artefactos de sprint para reflejar resultado real y límites.
 
-Actualizar:
+**Criterios:**
 
-- sprint doc
-- backlog
-- validación arquitectónica
-- checkpoint
+- cierre evidence-based y bounded;
+- límites/exclusiones explícitos;
+- todo gap no trivial queda registrado con descripción técnica, alcance afectado y sprint candidato de resolución;
+- deuda no trivial registrada como follow-up cuando corresponda.
 
-### Criterios
+### Gap estructural identificado (fuera de alcance del sprint)
 
-- cierre evidence-based y acotado;
-- no declarar E2E global;
-- no cerrar deuda longitudinal;
-- no sobredeclarar continuidad system-wide.
+Se detectó una divergencia semántica cross-surface en el criterio de “encounter de referencia”:
 
-## 10. Criterios de aceptación
+- `encounters page` está acotada al scope de `EpisodeOfCare` activo;
+- `patient detail` usa fallback clínico con scope `patient + practitioner`.
 
-- el flujo encounter-centric puede recorrerse sin contaminación;
-- la rehidratación se mantiene consistente entre surfaces;
-- no hay fallback temporal en surfaces críticas;
-- la evidencia es automatizada y reproducible;
-- los límites están explícitos.
+Surfaces afectadas:
 
-## 11. Evidencia mínima esperada
+- `encounters page` / history list;
+- `patient detail`.
 
-### Validación manual
+Clasificación del gap: **no trivial / estructural**, porque cruza boundaries de loader/composición y requiere alinear contrato semántico entre surfaces.
 
-- flujo completo in-progress con save-progress;
-- flujo de cierre y lectura en finished;
-- validación de dos encounters sin mezcla.
+Este gap **no rompe** el circuito actualmente validado en el sprint (encounter-centric en flujos auditados), pero queda **diferido de forma intencional** para mantener alcance bounded.
 
-### Tests mínimos
+Sprint de seguimiento sugerido: **Semantic alignment of encounter reference across surfaces**.
 
-- integración route/data entre patient y encounter detail;
-- continuidad save → reload → render;
-- no-mezcla entre encounters;
-- prueba negativa ante fallback temporal.
+## 9. Criterios de aceptación
 
-## 12. Límites explícitos del cierre
+- clasificación final de surfaces validada contra hipótesis inicial;
+- surfaces encounter-centric auditadas sin mezcla entre encounters;
+- ausencia de fallback temporal como truth source en surfaces encounter-centric auditadas;
+- surfaces longitudinales tratadas explícitamente como longitudinales (sin falsas garantías encounter-específicas);
+- evidencia automatizada/reproducible alineada al alcance;
+- hallazgos no triviales documentados sin expansión encubierta del sprint.
+
+## 10. Evidencia mínima esperada
+
+### Validación manual acotada
+
+- recorrido de navegación/listado a detalle encounter;
+- verificación de no-mezcla con al menos dos encounters del mismo paciente;
+- comprobación de comportamiento longitudinal en `EpisodeChartsPanel` sin usarlo como prueba de garantía encounter-centric.
+
+### Pruebas mínimas
+
+- integración route/data entre surfaces auditadas;
+- continuidad save → reload → read en encounter auditado;
+- guarda negativa de fallback temporal en surface encounter-centric;
+- prueba de no-contaminación cross-encounter.
+
+## 11. Límites explícitos del cierre
 
 Este sprint NO implica:
 
 - browser E2E completo;
-- continuidad system-wide total;
-- cierre de deuda longitudinal/histórica;
-- ausencia de problemas en datos legacy;
-- refactor global del read model.
+- hardening global de todo el read model clínico;
+- refactor amplio de loaders o composición;
+- rediseño de lifecycle;
+- cleanup histórico/legacy integral;
+- tipado de `ActionError.details`;
+- rediseño visual de charts o UI.
 
-## 13. Resultado esperado
+## 12. Resultado esperado
 
-Al cerrar el sprint:
-
-- las garantías encounter-centric dejan de ser locales;
-- pasan a estar validadas como flujo clínico transversal;
-- con evidencia fuerte, acotada y honesta.
+Al cerrar el sprint, existe una validación transversal **acotada y verificable** sobre surfaces clínicas globales candidatas, con clasificación semántica explícita, evidencia reproducible y tratamiento honesto de gaps (mínimos corregidos localmente; estructurales diferidos como deuda).
