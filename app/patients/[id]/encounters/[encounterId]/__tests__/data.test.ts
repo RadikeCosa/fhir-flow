@@ -195,6 +195,72 @@ describe("getEncounterDetailData", () => {
     expect(result.inProgressInitialValues).toBeUndefined();
   });
 
+  it("hydrates only the clinical datasets of the requested encounterId", async () => {
+    const requestedEncounterId = "enc-requested";
+    const otherEncounterId = "enc-other";
+
+    repositories.encounterRepo.findById.mockResolvedValue(
+      makeEncounter({ id: requestedEncounterId, status: "finished" }),
+    );
+
+    const requestedVital: VitalSignRecord = {
+      ...vitalFixture,
+      id: "vital-requested",
+      encounterId: requestedEncounterId,
+    };
+    const requestedEva: EvaAssessment = {
+      ...evaFixture,
+      id: "eva-requested",
+      encounterId: requestedEncounterId,
+    };
+    const requestedProcedure: Procedure = {
+      ...procedureFixture,
+      id: "proc-requested",
+      encounterId: requestedEncounterId,
+    };
+
+    const otherVital: VitalSignRecord = {
+      ...vitalFixture,
+      id: "vital-other",
+      encounterId: otherEncounterId,
+    };
+    const otherEva: EvaAssessment = {
+      ...evaFixture,
+      id: "eva-other",
+      encounterId: otherEncounterId,
+    };
+    const otherProcedure: Procedure = {
+      ...procedureFixture,
+      id: "proc-other",
+      encounterId: otherEncounterId,
+    };
+
+    repositories.vitalRepo.findAllByEncounterId.mockImplementation(async (encounterId: string) =>
+      encounterId === requestedEncounterId ? [requestedVital] : [otherVital],
+    );
+    repositories.assessmentRepo.findEvaByEncounterId.mockImplementation(async (encounterId: string) =>
+      encounterId === requestedEncounterId ? [requestedEva] : [otherEva],
+    );
+    repositories.procedureRepo.findAllByEncounterId.mockImplementation(async (encounterId: string) =>
+      encounterId === requestedEncounterId ? [requestedProcedure] : [otherProcedure],
+    );
+
+    const { getEncounterDetailData } = await import("../data");
+    const result = await getEncounterDetailData(patientFixture.id, requestedEncounterId);
+
+    expect(repositories.encounterRepo.findById).toHaveBeenCalledWith(requestedEncounterId);
+    expect(repositories.vitalRepo.findAllByEncounterId).toHaveBeenCalledWith(requestedEncounterId);
+    expect(repositories.assessmentRepo.findEvaByEncounterId).toHaveBeenCalledWith(requestedEncounterId);
+    expect(repositories.procedureRepo.findAllByEncounterId).toHaveBeenCalledWith(requestedEncounterId);
+
+    expect(result.vitalSigns).toEqual([requestedVital]);
+    expect(result.evaRecords).toEqual([requestedEva]);
+    expect(result.procedures).toEqual([requestedProcedure]);
+    expect(result.vitalSigns.every((record) => record.encounterId === requestedEncounterId)).toBe(true);
+    expect(result.evaRecords.every((record) => record.encounterId === requestedEncounterId)).toBe(true);
+    expect(result.procedures.every((record) => record.encounterId === requestedEncounterId)).toBe(true);
+  });
+
   it("for planned encounters, does not load encounter-linked clinical datasets", async () => {
     repositories.encounterRepo.findById.mockResolvedValue(
       makeEncounter({ status: "planned", actualStartAt: undefined, actualEndAt: undefined }),

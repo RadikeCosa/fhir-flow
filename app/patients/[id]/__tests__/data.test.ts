@@ -391,6 +391,95 @@ describe('getPatientDetailData re-assessment filtering', () => {
         expect(result.lastEncounterProcedures).toEqual([inProgressProcedure]);
     });
 
+    it('loads clinical datasets from inProgressEncounter instead of lastFinishedEncounter when both exist', async () => {
+        const inProgressEncounter = makeEncounter({
+            id: 'enc-in-progress-priority',
+            status: 'in-progress',
+            periodStart: '2026-03-19T09:00:00.000Z',
+            actualStartAt: '2026-03-19T09:05:00.000Z',
+        });
+        const lastFinishedEncounter = makeEncounter({
+            id: 'enc-finished-secondary',
+            status: 'finished',
+            periodStart: '2026-03-18T09:00:00.000Z',
+            actualStartAt: '2026-03-18T09:05:00.000Z',
+        });
+
+        repositories.encounterRepo.findLastByPatientIdAndPractitionerId.mockResolvedValue(
+            lastFinishedEncounter
+        );
+        repositories.encounterRepo.findAllByEpisodeOfCareId.mockResolvedValue([
+            inProgressEncounter,
+            lastFinishedEncounter,
+        ]);
+
+        const expectedVital: VitalSignRecord = {
+            id: 'vs-priority',
+            patientId: patientFixture.id,
+            encounterId: inProgressEncounter.id,
+            date: '2026-03-19T09:10:00.000Z',
+            recordedBy: { id: 'prac-001', display: 'Dr. Test' },
+            heartRate: 81,
+        };
+        const expectedEva: EvaAssessment = {
+            id: 'eva-priority',
+            patientId: patientFixture.id,
+            encounterId: inProgressEncounter.id,
+            type: 'eva',
+            date: '2026-03-19T09:11:00.000Z',
+            score: 5,
+            recordedBy: { id: 'prac-001', display: 'Dr. Test' },
+        };
+        const expectedProcedure: Procedure = {
+            id: 'proc-priority',
+            patientId: patientFixture.id,
+            encounterId: inProgressEncounter.id,
+            code: {
+                text: 'Procedimiento prioritario',
+                coding: [],
+                category: 'other',
+            },
+            status: 'completed',
+            performedDateTime: '2026-03-19T09:12:00.000Z',
+            performers: [],
+            bodySite: [],
+            notes: [],
+        };
+
+        repositories.vitalRepo.findAllByEncounterId.mockImplementation(async (encounterId: string) =>
+            encounterId === inProgressEncounter.id ? [expectedVital] : []
+        );
+        repositories.assessmentRepo.findEvaByEncounterId.mockImplementation(async (encounterId: string) =>
+            encounterId === inProgressEncounter.id ? [expectedEva] : []
+        );
+        repositories.procedureRepo.findAllByEncounterId.mockImplementation(async (encounterId: string) =>
+            encounterId === inProgressEncounter.id ? [expectedProcedure] : []
+        );
+
+        const result = await getPatientDetailData(patientFixture.id);
+
+        expect(repositories.vitalRepo.findAllByEncounterId).toHaveBeenCalledWith(inProgressEncounter.id);
+        expect(repositories.assessmentRepo.findEvaByEncounterId).toHaveBeenCalledWith(
+            inProgressEncounter.id
+        );
+        expect(repositories.procedureRepo.findAllByEncounterId).toHaveBeenCalledWith(
+            inProgressEncounter.id
+        );
+        expect(repositories.vitalRepo.findAllByEncounterId).not.toHaveBeenCalledWith(
+            lastFinishedEncounter.id
+        );
+        expect(repositories.assessmentRepo.findEvaByEncounterId).not.toHaveBeenCalledWith(
+            lastFinishedEncounter.id
+        );
+        expect(repositories.procedureRepo.findAllByEncounterId).not.toHaveBeenCalledWith(
+            lastFinishedEncounter.id
+        );
+        expect(result.lastEncounter?.id).toBe(inProgressEncounter.id);
+        expect(result.lastEncounterVitalSigns).toEqual([expectedVital]);
+        expect(result.lastEncounterEvaRecords).toEqual([expectedEva]);
+        expect(result.lastEncounterProcedures).toEqual([expectedProcedure]);
+    });
+
     it('falls back to last finished encounter for clinical datasets when there is no in-progress encounter', async () => {
         const finishedLast = makeEncounter({
             id: 'enc-finished-last-only',
