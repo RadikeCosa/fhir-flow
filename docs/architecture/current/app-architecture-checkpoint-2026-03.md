@@ -239,10 +239,16 @@ This refactor round did **not** attempt to solve the following:
 
 Este cierre no implica completion del read model global: cualquier garantía fuera de este surface permanece abierta.
 
-### 1.1. in-progress continuity remains intentionally partial
-Read hydration by `encounterId` is now available for `in-progress` as well, but full UI clinical continuity for in-progress should still be treated as open debt unless explicitly closed by product behavior and end-to-end validation.
+### 1.1. In-progress continuity (encounter detail) now has bounded closure
+En `encounter detail` para `in-progress`, el app layer ahora cuenta con:
 
-Addendum de continuidad (2026-03-31): el sprint de validación E2E encounter-centric cerró evidencia acotada de continuidad básica `write -> read -> render` y no-mezcla (manual + 2 tests de integración livianos), sin cambiar esta conclusión de deuda abierta para continuidad clínica completa en UI.
+- path explícito de UI para guardar progreso;
+- rehidratación loader-based por `encounterId`;
+- sincronización del formulario basada en `reset(...)` cuando cambian valores canónicos derivados del loader.
+
+Esto cierra un tramo **acotado** de continuidad (`save -> reload/remount -> rehydrate`) en ese surface.
+
+Límite explícito: este avance **no** equivale a completar el read model ni a cerrar continuidad clínica system-wide fuera de encounter detail.
 
 ### 2. final shape of `encounters/data.ts`
 The encounters loader still serves both:
@@ -303,6 +309,7 @@ When changing route-level UI in the patients/encounters area:
 - possible future partitioning of `FinalizeEncounterForm`
 - lifecycle transition beyond the current transitional runtime model
 - complete in-progress clinical continuity in UI (do not treat as closed by finished-detail validation)
+- continuidad system-wide fuera de encounter detail `in-progress` (incluye validación browser E2E y escenarios longitudinales/históricos)
 
 ---
 

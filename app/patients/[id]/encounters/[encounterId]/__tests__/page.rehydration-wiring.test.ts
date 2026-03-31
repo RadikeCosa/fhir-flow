@@ -142,6 +142,83 @@ describe("Encounter detail page rehydration wiring", () => {
     expect(html).toContain("finalize:nota mapeada");
   });
 
+  it("in-progress: rehydrates persisted values after reload/remount", async () => {
+    mapperMock.mockImplementation((source) => ({
+      clinicalNote: source.clinicalNote,
+      reasonDisplay: source.reasonDisplay,
+      procedures: [],
+    }));
+
+    vi.mocked(getEncounterDetailData)
+      .mockResolvedValueOnce({
+        ...baseData,
+        inProgressInitialValues: {
+          ...baseData.inProgressInitialValues,
+          clinicalNote: "nota inicial",
+        },
+      } as never)
+      .mockResolvedValueOnce({
+        ...baseData,
+        inProgressInitialValues: {
+          ...baseData.inProgressInitialValues,
+          clinicalNote: "nota persistida",
+        },
+      } as never);
+
+    const firstRender = await Page({
+      params: Promise.resolve({ id: "pat-1", encounterId: "enc-1" }),
+    });
+    const firstHtml = renderToStaticMarkup(firstRender);
+
+    const secondRender = await Page({
+      params: Promise.resolve({ id: "pat-1", encounterId: "enc-1" }),
+    });
+    const secondHtml = renderToStaticMarkup(secondRender);
+
+    expect(firstHtml).toContain("finalize:nota inicial");
+    expect(secondHtml).toContain("finalize:nota persistida");
+  });
+
+  it("in-progress: does not mix rehydration across encounterIds", async () => {
+    mapperMock.mockImplementation((source) => ({
+      clinicalNote: source.clinicalNote,
+      reasonDisplay: source.reasonDisplay,
+      procedures: [],
+    }));
+
+    vi.mocked(getEncounterDetailData).mockImplementation(
+      async (_patientId: string, encounterId: string) =>
+        ({
+          ...baseData,
+          encounter: {
+            ...baseData.encounter,
+            id: encounterId,
+          },
+          inProgressInitialValues: {
+            ...baseData.inProgressInitialValues,
+            encounterId,
+            clinicalNote:
+              encounterId === "enc-1" ? "nota encounter 1" : "nota encounter 2",
+          },
+        }) as never,
+    );
+
+    const enc1Element = await Page({
+      params: Promise.resolve({ id: "pat-1", encounterId: "enc-1" }),
+    });
+    const enc2Element = await Page({
+      params: Promise.resolve({ id: "pat-1", encounterId: "enc-2" }),
+    });
+
+    const enc1Html = renderToStaticMarkup(enc1Element);
+    const enc2Html = renderToStaticMarkup(enc2Element);
+
+    expect(enc1Html).toContain("finalize:nota encounter 1");
+    expect(enc1Html).not.toContain("finalize:nota encounter 2");
+    expect(enc2Html).toContain("finalize:nota encounter 2");
+    expect(enc2Html).not.toContain("finalize:nota encounter 1");
+  });
+
   it("planned: does not execute rehydration path", async () => {
     vi.mocked(getEncounterDetailData).mockResolvedValue({
       ...baseData,

@@ -2,11 +2,12 @@
 
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { FinalizeEncounterFormInput } from "./finalize-encounter-form.schema";
 import type { FinalizeEncounterFormValues } from "./finalize-encounter-form.schema";
 import { finalizeEncounterFormSchema } from "./finalize-encounter-form.schema";
 import { finalizeEncounterAction } from "../../actions/finalize-encounter.action";
+import { saveEncounterProgressAction } from "../../actions/save-encounter-progress.action";
 import type { ActionResult } from "../../../../../../../domain/shared/action-result.types";
 import { ProcedureCategoryValues } from "@/domain/procedures/procedure";
 import type {
@@ -74,13 +75,23 @@ export default function FinalizeEncounterForm({
   const [serverResult, setServerResult] = useState<ActionResult<void> | null>(
     null,
   );
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeIntent, setActiveIntent] = useState<
+    "save-progress" | "finalize" | null
+  >(null);
   const [showVitals, setShowVitals] = useState(true);
   const [showEva, setShowEva] = useState(true);
   const [showProcedures, setShowProcedures] = useState(true);
-  const initialActualTiming = resolveInitialActualTiming(
-    actualStartAt,
-    plannedDate,
+  const initialActualTiming = useMemo(
+    () => resolveInitialActualTiming(actualStartAt, plannedDate),
+    [actualStartAt, plannedDate],
+  );
+  const defaultValues = useMemo(
+    () =>
+      buildFinalizeEncounterFormDefaultValues(
+        initialActualTiming,
+        initialValues,
+      ),
+    [initialActualTiming, initialValues],
   );
 
   const form = useForm<
@@ -89,13 +100,10 @@ export default function FinalizeEncounterForm({
     FinalizeEncounterFormValues
   >({
     resolver: zodResolver(finalizeEncounterFormSchema),
-    defaultValues: buildFinalizeEncounterFormDefaultValues(
-      initialActualTiming,
-      initialValues,
-    ),
+    defaultValues,
   });
 
-  const { control, register, handleSubmit, formState, setValue } = form;
+  const { control, register, handleSubmit, formState, setValue, getValues, reset } = form;
   const { fields, append, remove } = useFieldArray<
     FinalizeEncounterFormInput,
     "procedures"
@@ -110,8 +118,12 @@ export default function FinalizeEncounterForm({
     defaultValue: [],
   });
 
+  useEffect(() => {
+    reset(defaultValues);
+  }, [defaultValues, reset]);
+
   const onSubmit = async (values: FinalizeEncounterFormValues) => {
-    setIsSubmitting(true);
+    setActiveIntent("finalize");
     setServerResult(null);
 
     const result = await finalizeEncounterAction(patientId, encounterId, {
@@ -119,7 +131,30 @@ export default function FinalizeEncounterForm({
     });
 
     setServerResult(result);
-    setIsSubmitting(false);
+    setActiveIntent(null);
+  };
+
+  const onSaveProgress = async () => {
+    setActiveIntent("save-progress");
+    setServerResult(null);
+
+    const values = getValues();
+
+    const result = await saveEncounterProgressAction(patientId, encounterId, {
+      clinicalNote: values.clinicalNote,
+      reasonDisplay: values.reasonDisplay,
+      evaScore: values.evaScore,
+      bloodPressureSystolic: values.bloodPressureSystolic,
+      bloodPressureDiastolic: values.bloodPressureDiastolic,
+      heartRate: values.heartRate,
+      respiratoryRate: values.respiratoryRate,
+      oxygenSaturation: values.oxygenSaturation,
+      bodyTemperature: values.bodyTemperature,
+      procedures: values.procedures,
+    });
+
+    setServerResult(result);
+    setActiveIntent(null);
   };
 
   const error = serverResult?.success === false ? serverResult.error : null;
@@ -613,13 +648,24 @@ export default function FinalizeEncounterForm({
           )}
         </div>
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-white disabled:opacity-50"
-        >
-          {isSubmitting ? "Guardando..." : "Finalizar visita"}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={onSaveProgress}
+            disabled={activeIntent !== null}
+            className="inline-flex items-center justify-center rounded-md border border-border px-4 py-2 text-foreground disabled:opacity-50"
+          >
+            {activeIntent === "save-progress" ? "Guardando..." : "Guardar progreso"}
+          </button>
+
+          <button
+            type="submit"
+            disabled={activeIntent !== null}
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-white disabled:opacity-50"
+          >
+            {activeIntent === "finalize" ? "Guardando..." : "Finalizar visita"}
+          </button>
+        </div>
       </form>
     </div>
   );

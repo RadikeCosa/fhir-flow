@@ -38,7 +38,7 @@ Este documento reemplaza el enfoque de "aprobado total" por una validación hone
 | Canonical read (finished detail) | **Validado (alcance acotado)** | El path `finished encounter detail` quedó validado como lectura canónica encounter-centric por `encounterId`, sin fallback temporal como source of truth en ese surface. El hardening global de read model fuera de ese alcance permanece abierto. | ADR + write-phase + backlog vigente + validación específica del sprint 2026-03 (auditoría + tests). | Sostener cobertura de regresión en `finished detail` y mantener explícita la deuda global fuera de este surface. |
 | Encounter-centric vs longitudinal read split | **Parcialmente válido** | Se consolidó la separación: patient/encounter detail operan encounter-centric y el fallback por fecha queda encapsulado para longitudinal. Aún hay deuda en hardening de límites para evitar regresiones de mezcla. | Checkpoint app + auditoría temporal + ajustes recientes en `encounters/data.ts` y patient detail. | Mantener tests de no-filtración del fallback temporal a surfaces encounter-centric. |
 | Clinical linkage (`encounterId`) in read mappers | **Parcialmente válido** | Vital signs y EVA ya hidratan `encounterId` cuando `Observation.encounter.reference` existe (incluyendo casos ausente/relativo/absoluto). Mejora coherencia encounter-centric pero no elimina deuda histórica sin referencia. | Mappers/schemas de lectura y tests endurecidos recientes. | Mantener fallback longitudinal controlado para históricos sin linkage y evaluar backfill futuro. |
-| In-progress encounter-centric read | **Parcialmente válido** | Hay evidencia más fuerte de no-mezcla y continuidad básica `write -> read -> render` en surfaces encounter-centric activas, incluyendo tests de integración livianos; aun así, la continuidad clínica completa en UI `in-progress` sigue abierta. | Loader patient detail + loader/render encounter detail + sprint de validación E2E encounter-centric (2 tests de integración + validación manual). | Mantener explícito que no existe aún persistencia parcial operativa en la UI de completar visita ni cierre total de continuidad `in-progress`. |
+| In-progress continuity (encounter detail) | **validado (alcance acotado)** | En encounter detail `in-progress` quedó validado el loop UI + loader + mapper: guardar progreso, recargar/remontar y rehidratar por `encounterId`, con evidencia de no-mezcla y parcialidad preservada. | Loader encounter-centric por `encounterId` + wiring UI (`save`/`finalize`) + tests de rehidratación/no-mezcla/parcialidad en encounter detail. | Mantener el alcance explícito: no implica cierre de continuidad global del sistema ni cobertura E2E browser. |
 | Documentation drift | **Parcialmente válido** | Documentación alinea dirección, pero hubo deriva de tono (“todo aprobado”) y riesgo de leer transición como estado final. | Diferencia entre validación previa y lenguaje explícito de ADR/write-phase. | Mantener este documento como checklist vivo y actualizar por fase/ticket real. |
 
 ## Revisión explícita por tema solicitado
@@ -93,7 +93,7 @@ La separación de entry points está implementada: `/encounters/new` planifica y
 
 ### 8. Canonical read de finished detail
 
-**Estado:** Validado (alcance acotado)
+**Estado:** validado (alcance acotado)
 
 El path `finished encounter detail` quedó validado como lectura canónica acotada: lectura clínica por `encounterId`, sin fallback temporal/longitudinal como source of truth en este surface, y render basado en datos rehidratados del loader.
 
@@ -120,14 +120,22 @@ El fallback por fecha permanece como estrategia longitudinal y no debe reutiliza
 
 La lectura de vitales y EVA ya conserva `encounterId` cuando FHIR trae `Observation.encounter.reference` (incluyendo referencias ausentes, relativas y absolutas en tests). Esto mejora consistencia del read model encounter-centric, pero no resuelve automáticamente históricos sin vínculo explícito.
 
-### 12. Soporte `in-progress` en lectura encounter-centric
+### 12. In-progress continuity (encounter detail)
 
-**Estado:** Parcialmente válido
+**Estado:** validado (alcance acotado)
 
-`patient detail` ya no mezcla encounter mostrado con datasets de otro encounter y `encounter detail` mantiene hidratación por `encounterId`.
-El sprint de validación E2E encounter-centric agregó evidencia reproducible mínima (2 tests de integración livianos) y validación manual satisfactoria de continuidad básica y no-mezcla.
+Para el surface de **encounter detail `in-progress`**, la continuidad quedó validada en alcance acotado:
 
-Límite explícito: en la UI de completar visita, si el usuario vuelve, pierde datos cargados en sesión; no hay persistencia parcial operativa en esa UI. Por eso, la continuidad clínica completa de `in-progress` permanece como deuda abierta.
+- UI con intents separados (`Guardar progreso` / `Finalizar visita`);
+- loader encounter-centric por `encounterId`;
+- mapeo y rehidratación de valores editables;
+- evidencia de loop `save -> reload/remount -> rehydrate`, no-mezcla por `encounterId` y preservación de parcialidad.
+
+Límites explícitos:
+
+- no hay cobertura E2E browser para este cierre;
+- no hay garantía system-wide fuera de encounter detail;
+- no se declara cerrado el read model global ni la continuidad longitudinal/histórica.
 
 ## Pendientes del ADR / tickets siguientes
 
