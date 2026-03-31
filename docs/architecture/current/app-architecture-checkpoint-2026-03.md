@@ -240,6 +240,8 @@ The encounter detail route is the canonical target by architecture, but canonica
 ### 1.1. in-progress continuity remains intentionally partial
 Read hydration by `encounterId` is now available for `in-progress` as well, but full UI clinical continuity for in-progress should still be treated as open debt unless explicitly closed by product behavior and end-to-end validation.
 
+Addendum de continuidad (2026-03-31): el sprint de validación E2E encounter-centric cerró evidencia acotada de continuidad básica `write -> read -> render` y no-mezcla (manual + 2 tests de integración livianos), sin cambiar esta conclusión de deuda abierta para continuidad clínica completa en UI.
+
 ### 2. final shape of `encounters/data.ts`
 The encounters loader still serves both:
 - longitudinal chart data
