@@ -87,6 +87,23 @@ Tracks:
 
 ---
 
+
+## ✅ Sprint cerrado — Canonical read hardening de `finished encounter detail` (2026-03)
+
+- **Resultado del sprint** → **Completado (alcance acotado)**
+  - Se validó el path canónico de lectura de `finished encounter detail` sin cambios de código productivo.
+  - Se confirmó lectura encounter-centric estricta por `encounterId` y ausencia de fallback temporal/longitudinal como source of truth en este surface.
+  - Se agregaron pruebas para proteger no-mezcla por misma fecha y aislamiento de paciente (ownership encounter → patient, fail-closed).
+
+- **Evidencia de regresión mínima agregada**
+  - `"does not mix clinical data when two encounters share the same date"`.
+  - `"returns null encounter when encounter does not belong to route patient"`.
+
+- **Límite explícito de cierre**
+  - El cierre aplica solo a `finished encounter detail`; no implica cierre global del read model ni de deuda longitudinal/histórica.
+
+---
+
 ## 🟡 Parcial / transición activa
 
 ### Track A — Lifecycle
@@ -109,9 +126,9 @@ Tracks:
 ## 🔴 Deuda abierta (no cerrar)
 
 ### Debt transversal documentada
-- **Canonical read hardening completo de `finished` (global)** → **Deuda abierta**
-  - El path `finished encounter detail` se mantiene preservado y validado en alcance acotado.
-  - Sigue pendiente el hardening completo por estado/surfaces y su validación E2E global.
+- **Canonical read hardening global de `finished` (fuera de detail cerrado)** → **Deuda abierta**
+  - `finished encounter detail` quedó validado y cerrado en alcance acotado.
+  - Permanece abierta la deuda global por otras surfaces/estados y su validación E2E integral.
 - **Deuda longitudinal/histórica** → **Deuda abierta**
   - El fallback temporal por fecha se mantiene como estrategia longitudinal; no debe reutilizarse como source-of-truth encounter-centric.
   - Persisten casos históricos sin `encounterId` que requieren manejo controlado.
@@ -121,8 +138,8 @@ Tracks:
 - **Continuidad clínica completa de `in-progress` en UI** → **Pendiente**
   - Sigue abierta la continuidad completa de edición/reanudación clínica en la UI de visita en curso.
 
-- **Canonical read hardening completo de `finished`** → **Pendiente**
-  - El cierre validado es acotado; falta hardening completo y cobertura integral en el conjunto de surfaces relevantes.
+- **Canonical read hardening global de `finished` (más allá de detail)** → **Pendiente**
+  - `finished encounter detail` ya quedó validado; sigue pendiente la cobertura/hardening global en surfaces restantes.
 
 - **Datos históricos sin `encounterId`** → **Pendiente**
   - Continúan existiendo casos legacy sin linkage completo que requieren estrategia explícita para no contaminar surfaces encounter-centric.

@@ -165,36 +165,37 @@ La deuda histórica y longitudinal que exceda ese path debe permanecer explícit
 
 ## 10. Ejecución y resultado del sprint
 
-Se cerró el hardening de canonical read para el path específico `finished encounter detail`, con evidencia combinada de auditoría, hardening mínimo de render read-only y tests automatizados locales.
+### Resumen de ejecución
 
-### Estado final por ticket
+Se cerró este sprint con validación del path canónico de lectura para **`finished encounter detail`**.
+La auditoría confirmó que el comportamiento productivo ya estaba alineado y que el cierre se sostiene con evidencia de validación + tests.
 
-- **T1 — Criterios de canonical read para `finished`** → **Resuelto**
-  - Se definió como lectura canónica: encounter-centric por `encounterId`, rehidratada desde source of truth, independiente de submit state, sin fallback longitudinal/temporal como source-of-truth, explícita en render read-only y con soporte de tests.
+### Hallazgos confirmados (sin cambios productivos)
 
-- **T2 — Auditoría de `finished encounter detail`** → **Resuelto**
-  - La auditoría confirmó que `app/patients/[id]/encounters/[encounterId]/data.ts` ya cargaba datos clínicos correctamente por `encounterId`.
-  - No se detectó fallback por fecha en este detail route.
-  - El gap real estaba en render/composición: bloques clínicos ocultos cuando vacíos y vital signs mostrando solo `records[0]`.
+- No se requirieron cambios en producción para este sprint (`data.ts` / `page.tsx` ya estaban alineados al objetivo).
+- `getEncounterDetailData(patientId, encounterId)` ya carga la lectura clínica de forma estrictamente encounter-centric por `encounterId`.
+- En el path canónico de `finished` no existe fallback temporal/longitudinal como source of truth.
+- El render en `finished` usa datos rehidratados del loader, no estado de formulario.
+- Se verifica aislamiento de ownership encounter → patient (fail-closed): si no pertenece al paciente de la ruta, retorna `encounter: null` y se omiten loaders clínicos.
 
-- **T3 — Hardening del loader/detail para `finished`** → **Sin cambios requeridos tras auditoría**
-  - No se implementaron cambios de loader para este ticket.
-  - Racional: el path ya era encounter-centric y alineado para este route.
+### Evidencia automatizada agregada
 
-- **T4 — Validación del render read-only clínico** → **Resuelto**
-  - Clinical note visible en `finished` con empty state explícito cuando está en blanco.
-  - Vital signs siempre visible y renderizando la colección completa.
-  - EVA visible con empty state explícito.
-  - Procedures visible con empty state explícito.
-  - Sin introducir fallback longitudinal ni cambios de lifecycle/write-flow.
+Se agregaron y ejecutaron exitosamente los siguientes tests:
 
-- **T5 — Tests de canonical read `finished`** → **Resuelto**
-  - Cobertura agregada para visibilidad de bloques clínicos canónicos en `finished` aun con datasets vacíos.
-  - Casos de empty state de vital signs, EVA y procedures.
-  - Caso de múltiples registros de vital signs (sin limitarse al primer registro).
+1. `"does not mix clinical data when two encounters share the same date"`
+   - Protege contra mezcla de datasets por colisión temporal.
+   - Refuerza que la lectura canónica usa `encounterId`, no fecha.
 
-### Límites de cierre (explícitos)
+2. `"returns null encounter when encounter does not belong to route patient"`
+   - Protege aislamiento de paciente en el read path.
+   - Refuerza comportamiento fail-closed ante mismatch de ownership.
 
-- Este cierre aplica al path `finished encounter detail`; no implica cierre general de deuda longitudinal/histórica.
-- Este cierre no equivale a hardening E2E completo del sistema.
-- Este cierre no modifica arquitectura de lifecycle ni write-flow.
+### Cierre acotado (límites explícitos)
+
+Este cierre aplica **solo** a `finished encounter detail`.
+No declara cierre de:
+
+- continuidad clínica completa de `in-progress` en UI;
+- deuda longitudinal/histórica (incluyendo casos sin `encounterId`);
+- validación E2E completa del sistema;
+- cierre global del read model fuera de esta surface.
