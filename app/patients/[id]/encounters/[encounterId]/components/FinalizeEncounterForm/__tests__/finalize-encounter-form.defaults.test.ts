@@ -92,4 +92,34 @@ describe("finalize-encounter-form.defaults", () => {
         });
     });
 
+    it("keeps missing persisted fields as missing in partial rehydration", () => {
+        const defaults = buildFinalizeEncounterFormDefaultValues(
+            {
+                actualDate: "2026-03-21",
+                actualStartTime: "10:30",
+            },
+            {
+                clinicalNote: "Solo nota",
+                reasonDisplay: "",
+                procedures: [],
+            }
+        );
+
+        expect(defaults).toEqual({
+            actualDate: "2026-03-21",
+            actualStartTime: "10:30",
+            actualEndTime: "",
+            clinicalNote: "Solo nota",
+            reasonDisplay: "",
+            evaScore: undefined,
+            bloodPressureSystolic: undefined,
+            bloodPressureDiastolic: undefined,
+            heartRate: undefined,
+            respiratoryRate: undefined,
+            oxygenSaturation: undefined,
+            bodyTemperature: undefined,
+            procedures: [],
+        });
+    });
+
 });

@@ -64,6 +64,27 @@ Tracks:
 
 ---
 
+## ✅ Sprint cerrado — In-progress continuity (2026-03)
+
+- **T3 — UI save-progress wiring** → **Completado**
+  - El encounter detail editable `in-progress` expone dos intenciones explícitas: guardar progreso y finalizar visita.
+  - La persistencia parcial dejó de depender exclusivamente del cierre final de visita.
+
+- **T4 — Hardening de rehidratación del form (`reset`)** → **Completado**
+  - El formulario se resincroniza con valores canónicos derivados del loader cuando cambian.
+  - Se reduce el riesgo de que estado local montado tape datos recargados.
+
+- **T5 — Tests de continuidad** → **Completado (alcance acotado)**
+  - Se agregó evidencia automatizada del loop save→reload/remount→rehydrate por `encounterId`.
+  - Se cubrió aislamiento entre encounters y preservación de datos parciales.
+
+### Evidence
+- Rehydration loop funcionando para el mismo `encounterId`.
+- No-mix entre encounters del mismo paciente.
+- Datos parciales preservados sin defaults inventados.
+
+---
+
 
 ## ✅ Sprint cerrado — Validación E2E de continuidad encounter-centric (2026-03)
 
@@ -147,8 +168,14 @@ Tracks:
 - **Cobertura E2E browser-level del circuito completo** → **Pendiente**
   - Existen tests de integración livianos encounter-centric, pero no cobertura browser E2E del circuito completo.
 
+- **Continuidad clínica full-system** → **Pendiente**
+  - El cierre de continuidad aplica solo a encounter detail `in-progress`; no hay garantía de continuidad transversal en todas las surfaces.
+
 - **Tipado de `ActionError.details` por capa** → **Pendiente**
   - `details` continúa transicional y sin tipado final por variante/capa.
+
+- **Canonical read de `finished` (global, fuera de detail acotado)** → **Pendiente**
+  - El cierre acotado de `finished encounter detail` no equivale a cierre global en todas las surfaces.
 
 ---
 
