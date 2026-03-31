@@ -340,6 +340,65 @@ describe("getEncounterDetailData", () => {
     expect(result.procedures).not.toContainEqual(siblingProcedure);
   });
 
+  it("finished canonical read guard: same-date sibling data must never be requested as primary source", async () => {
+    const requestedEncounterId = "enc-guard-requested";
+    const siblingEncounterId = "enc-guard-sibling";
+
+    repositories.encounterRepo.findById.mockResolvedValue(
+      makeEncounter({
+        id: requestedEncounterId,
+        status: "finished",
+        periodStart: "2026-03-10T10:00:00.000Z",
+        periodEnd: "2026-03-10T10:30:00.000Z",
+      }),
+    );
+
+    repositories.vitalRepo.findAllByEncounterId.mockImplementation(async (encounterId: string) => {
+      if (encounterId !== requestedEncounterId) {
+        throw new Error(`Unexpected encounter lookup: ${encounterId}`);
+      }
+
+      return [{
+        ...vitalFixture,
+        id: "vital-guard-requested",
+        encounterId: requestedEncounterId,
+      }];
+    });
+    repositories.assessmentRepo.findEvaByEncounterId.mockImplementation(async (encounterId: string) => {
+      if (encounterId !== requestedEncounterId) {
+        throw new Error(`Unexpected encounter lookup: ${encounterId}`);
+      }
+
+      return [{
+        ...evaFixture,
+        id: "eva-guard-requested",
+        encounterId: requestedEncounterId,
+      }];
+    });
+    repositories.procedureRepo.findAllByEncounterId.mockImplementation(async (encounterId: string) => {
+      if (encounterId !== requestedEncounterId) {
+        throw new Error(`Unexpected encounter lookup: ${encounterId}`);
+      }
+
+      return [{
+        ...procedureFixture,
+        id: "proc-guard-requested",
+        encounterId: requestedEncounterId,
+      }];
+    });
+
+    const { getEncounterDetailData } = await import("../data");
+    const result = await getEncounterDetailData(patientFixture.id, requestedEncounterId);
+
+    expect(result.encounter?.id).toBe(requestedEncounterId);
+    expect(result.vitalSigns.every((record) => record.encounterId === requestedEncounterId)).toBe(true);
+    expect(result.evaRecords.every((record) => record.encounterId === requestedEncounterId)).toBe(true);
+    expect(result.procedures.every((record) => record.encounterId === requestedEncounterId)).toBe(true);
+    expect(repositories.vitalRepo.findAllByEncounterId).not.toHaveBeenCalledWith(siblingEncounterId);
+    expect(repositories.assessmentRepo.findEvaByEncounterId).not.toHaveBeenCalledWith(siblingEncounterId);
+    expect(repositories.procedureRepo.findAllByEncounterId).not.toHaveBeenCalledWith(siblingEncounterId);
+  });
+
   it("returns null encounter when encounter does not belong to route patient and skips clinical loaders", async () => {
     repositories.encounterRepo.findById.mockResolvedValue(
       makeEncounter({

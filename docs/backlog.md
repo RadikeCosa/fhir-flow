@@ -125,6 +125,35 @@ Tracks:
 
 ---
 
+## ✅ Closed sprint — In-progress continuity (2026-03)
+
+- **T3 — Integrated flow validation** → **DONE**
+  - Flujo validado en alcance acotado:
+    - `planned -> start -> in-progress -> save -> reload/remount -> rehydrate`
+    - `in-progress -> finalize -> finished -> patient detail source switch`
+  - Continuidad encounter-centric sostenida por `encounterId` en surfaces validadas.
+
+- **T4 — Negative guards (fallback/mixing)** → **DONE**
+  - Guardas negativas para detectar regresión por fallback temporal/sibling y mezcla cross-encounter.
+
+### Evidence
+
+- Test integrado encounter-centric:
+  - `app/patients/[id]/encounters/[encounterId]/__tests__/critical-flow.integration.test.ts`
+- Guardas de regresión negativas:
+  - `app/patients/[id]/encounters/[encounterId]/__tests__/data.test.ts`
+  - `app/patients/[id]/__tests__/data.test.ts`
+
+### Open debt (post-sprint)
+
+- Browser E2E validation.
+- Full system continuity (beyond encounter-centric validated surfaces).
+- Canonical read hardening for finished (global, fuera del detail acotado).
+- Longitudinal/historical data consistency.
+- Typed `ActionError.details`.
+
+---
+
 ## 🟡 Parcial / transición activa
 
 ### Track A — Lifecycle
