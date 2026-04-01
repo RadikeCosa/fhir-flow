@@ -1,11 +1,11 @@
 # Sprint — Canonical read hardening de encounters finished
 
 Fecha: 2026-03-31  
-Estado: Propuesto
+Estado: Cerrado (diagnóstico documental)
 
 ## 1. Diagnóstico breve
 
-El sprint recién cerrado validó continuidad E2E encounter-centric en alcance acotado y confirmó no-mezcla en patient/encounter detail, pero no cerró canonical read completo de `finished encounter detail`. Priorizar ahora `in-progress` completo desviaría foco hacia continuidad clínica + persistencia parcial (deuda explícitamente abierta) y abriría features fuera de alcance. El próximo paso técnicamente honesto es endurecer el path canónico de lectura en `finished`, que ya está definido arquitectónicamente como target de lectura clínica.
+La auditoría de cierre confirmó que el path canónico de `finished encounter detail` ya estaba correctamente implementado en alcance acotado (lectura por `encounterId`, sin fallback temporal como source of truth, con no-mezcla y ownership fail-closed). En este sprint no se detectó gap runtime para hardening productivo y el cierre es documental/contractual.
 
 ## 2. Sprint propuesto completo
 
@@ -13,20 +13,17 @@ El sprint recién cerrado validó continuidad E2E encounter-centric en alcance a
 Sprint — Canonical read hardening de encounters finished
 
 ### Objetivo
-Consolidar `encounter detail` en estado `finished` como surface canónica de lectura clínica encounter-centric, con render read-only respaldado por evidencia reproducible.
+Confirmar y dejar explícito que `encounter detail` en estado `finished` es la surface canónica acotada de lectura clínica encounter-centric, y que otras surfaces (`patient detail`/history/charts) cumplen roles válidos de summary o longitudinal.
 
 ### Problema que resuelve
-Hoy existe riesgo de cierre falso: hay avances encounter-centric, pero falta cerrar de forma verificable que `finished encounter detail`:
-- usa lectura rehidratada por `encounterId` como source-of-truth;
-- evita fallback longitudinal/temporal como verdad clínica del detail;
-- renderiza clínica read-only sobre ese path canónico.
+El riesgo activo en este punto era documental: evitar reabrir como “deuda global rota” un tema que en runtime ya quedó cerrado en alcance acotado. La necesidad del sprint fue dejar esa frontera explícita y consistente en documentación.
 
 ### Alcance
 
 **Entra**
-- hardening del read-path de `finished encounter detail` (loader/composition boundary/render read-only, según gap real);
-- validación explícita de ausencia de fallback longitudinal como source-of-truth en ese detail;
-- tests de integración livianos para cierre de canonical read en `finished`.
+- diagnóstico de estado runtime/documentación para canonical read de `finished`;
+- corrección mínima de wording y contradicciones documentales;
+- cierre explícito de alcance (detail canónico acotado vs surfaces summary/longitudinal).
 
 **No entra**
 - features nuevas;
@@ -52,9 +49,9 @@ Se considera cerrado solo si:
 ### Orden de ejecución
 1. fijar contrato de canonical read `finished` (qué valida y qué excluye);
 2. auditar gap real en loader vs composition vs render;
-3. aplicar hardening mínimo solo en boundary afectado;
-4. reforzar tests de integración del path canónico;
-5. cerrar documentación con evidencia y límites explícitos.
+3. clasificar surfaces no canónicas por rol válido (summary/longitudinal);
+4. ajustar documentación para evitar deuda global falsa;
+5. cerrar con evidencia y límites explícitos.
 
 ## 3. Tickets T1–T5
 

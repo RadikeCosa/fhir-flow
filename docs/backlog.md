@@ -167,9 +167,8 @@ Tracks:
   - Cross-episode leakage en `patient detail`.
 
 - **Deuda abierta (vigente)**
-  - `encounter history` sigue sin alineación episode-scoped.
-  - Los charts continúan apoyándose en datos longitudinales/mixtos.
-  - Aún no hay alineación cross-surface completa.
+  - Los charts continúan apoyándose en datos longitudinales/mixtos (modelo separado por diseño).
+  - La alineación cross-surface quedó cerrada luego por contrato explícito + tests (ver sprint 2026-04 más abajo).
 
 ---
 
@@ -235,9 +234,10 @@ Tracks:
 ## 🔴 Deuda abierta (no cerrar)
 
 ### Debt transversal documentada
-- **Canonical read hardening global de `finished` (fuera de detail cerrado)** → **Deuda abierta**
+- **Canonical read de `finished`** → **Cerrado en alcance acotado (sin deuda runtime en este tema)**
   - `finished encounter detail` quedó validado y cerrado en alcance acotado.
-  - Permanece abierta la deuda global por otras surfaces/estados y su validación E2E integral.
+  - `patient detail`, `encounter history` y charts mantienen roles distintos (summary/longitudinal) y no se consideran debt de canonical detail para este tópico.
+  - Lo pendiente es mantener claridad contractual/documental cross-surface, no hardening productivo adicional en este alcance.
 - **Deuda longitudinal/histórica** → **Deuda abierta**
   - El fallback temporal por fecha se mantiene como estrategia longitudinal; no debe reutilizarse como source-of-truth encounter-centric.
   - Persisten casos históricos sin `encounterId` que requieren manejo controlado.
