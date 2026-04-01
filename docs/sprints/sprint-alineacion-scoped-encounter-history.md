@@ -5,7 +5,7 @@
 
 ## 1. Objetivo
 
-Alinear encounter history al criterio episode-scoped ya aplicado en patient detail, garantizando que la colección base de encounters y la navegación por item trabajen exclusivamente sobre el EpisodeOfCare activo, sin mezcla cross-episode.
+Validar y endurecer que la lista de encounters es episode-scoped en su membresía, y separar explícitamente ese dataset de los datasets longitudinales (charts) dentro de la misma route.
 
 Este sprint NO redefine charts ni UX de lista; se enfoca en consistencia semántica del dataset y navegación.
 
@@ -29,7 +29,11 @@ La surface combina:
 sin delimitación explícita.
 
 Este sprint debe identificar cuál de estos problemas existe (o si coexisten) y resolverlos sin expandir alcance.
-
+La membresía de encounters ya es episode-scoped (no es el problema principal)
+La deuda real está en:
+mezcla de datasets clínicos longitudinales en la misma route
+frontera conceptual entre lista vs charts
+representación parcial de planned encounters en UI
 ## 3. Alcance
 
 ### Entra
@@ -103,15 +107,23 @@ Dataset correcto pero lista visible parcial sin documentar.
 
 ## 7. Definición de Done
 
-El sprint se considera cerrado solo si:
+Todos los encounters visibles/navegables en history:
+pertenecen al EpisodeOfCare activo
+La lista NO depende de datasets longitudinales
+Charts NO influyen en:
+membresía
+orden
+navegación
+La separación lista vs charts es explícita en código
 
-- la colección base de encounter history está restringida al episodio activo;
-- todo encounter visible o navegable pertenece a ese episodio;
-- la navegación usa siempre el encounterId del item;
-- no aparecen encounters de otros episodios en la lista;
-- la separación lista vs charts queda explícita;
-- existen tests automatizados de no-mezcla cross-episode;
-- si la UI no muestra todos los encounters del episodio, ese límite queda documentado (sin modificar UX).
+Y NO incluir:
+
+mostrar todos los planned
+paginación
+cambios de UI
+redefinir charts
+
+La UI puede continuar mostrando un subconjunto de encounters (ej: planned colapsados), siempre que la membresía del dataset base sea correcta.
 
 ## 8. Orden de ejecución
 
