@@ -5,210 +5,222 @@
 
 ## 1. Objetivo
 
-Alinear encounter history al mismo criterio episode-scoped ya aplicado en patient detail, de modo que la lista de encounters y su navegación trabajen exclusivamente con encounters del EpisodeOfCare activo, sin introducir mezcla con lógica longitudinal fuera de los límites explícitos de la surface. La deuda abierta ya lo marca como pendiente fuera de patient detail.
+Alinear encounter history al criterio episode-scoped ya aplicado en patient detail, garantizando que la colección base de encounters y la navegación por item trabajen exclusivamente sobre el EpisodeOfCare activo, sin mezcla cross-episode.
+
+Este sprint NO redefine charts ni UX de lista; se enfoca en consistencia semántica del dataset y navegación.
 
 ## 2. Problema / diagnóstico
 
-El sprint anterior cerró patient detail como episode-scoped y dejó explícita la deuda pendiente en encounter history, además de la falta de alineación cross-surface completa. Los charts siguen siendo longitudinales/mixtos, lo cual es válido, pero encounter history no debería heredar esa semántica para su lista encounter-based.
+El sprint anterior eliminó el selector híbrido en patient detail y dejó abierta la deuda de alineación en otras surfaces.
 
-El riesgo acá no es un bug de datasets por encounterId en cada item, sino que la surface history siga combinando:
+En encounter history pueden coexistir dos problemas:
 
-- colección por episodio
-- navegación encounter-centric
-- contexto longitudinal
+### P1 — Dataset incorrecto
 
-sin fronteras suficientemente explícitas.
+La colección de encounters puede no estar estrictamente acotada al episodio activo.
+
+### P2 — Frontera conceptual difusa
+
+La surface combina:
+
+- lista encounter-based
+- charts longitudinales
+
+sin delimitación explícita.
+
+Este sprint debe identificar cuál de estos problemas existe (o si coexisten) y resolverlos sin expandir alcance.
 
 ## 3. Alcance
 
 ### Entra
 
-- revisar encounters/data.ts y composición de EncounterList
-- asegurar que la lista de encounters renderizada sea exclusivamente del EpisodeOfCare activo
-- validar que cada item navegue por su propio encounterId
-- reforzar la separación entre:
-	- lista/history encounter-based
-	- charts longitudinales
-- agregar tests de no-mezcla cross-episode en history/list
-- cierre documental del sprint
+- auditoría de encounters/data.ts y EncounterList
+- validación del dataset base de la lista
+- alineación episode-scoped del dataset (si aplica)
+- validación de navegación por encounterId
+- explicitación de frontera lista vs charts
+- tests de no-mezcla cross-episode
+- cierre documental
 
 ### No entra
 
-- rediseño de charts
-- mover EpisodeChartsPanel a otra pantalla
-- refactor global del read model
+- paginación o cambios de ventana visible de la lista
+- rediseño visual de history/list
+- mover o rediseñar EpisodeChartsPanel
 - cambios en patient detail
 - cambios en encounter detail
-- rediseño visual de history/list salvo ajuste mínimo imprescindible
+- refactor global del read model
 - browser E2E completo
 
-## 4. Decisión ya cerrada que este sprint implementa
+## 4. Decisión semántica (cerrada)
 
 Para encounter history:
 
-- la surface representa todos los encounters del EpisodeOfCare activo
-- cada item de la lista es encounter-centric
-- charts y agregados longitudinales quedan exentos y mantienen su semántica propia
-- la lista no define un “encounter de referencia” único; define una colección episode-scoped
+- la colección base debe ser episode-scoped (EpisodeOfCare activo)
+- cada item es encounter-centric (navega por encounterId)
+- charts permanecen longitudinales y exentos
+- la lista NO define un “encounter de referencia único”
 
-Esto sigue la separación ya documentada entre surfaces longitudinales y encounter-centric, y además encaja con el próximo sprint propuesto agregado en backlog.
+## 5. Política de implementación
 
-## 5. Riesgos principales
+### Regla 1 — Dataset restringido al episodio
 
-### R1 — Mezclar lista con charts
+La colección base de EncounterList debe provenir exclusivamente del episodio activo.
 
-Que la surface completa siga tratándose como longitudinal solo porque convive con EpisodeChartsPanel.
+### Regla 2 — Lo visible pertenece al episodio
 
-### R2 — Scope creep
+Todo encounter visible o navegable en la lista debe pertenecer al episodio activo.
 
-Que el sprint derive en rediseño de charts o refactor estructural de encounters/data.ts.
+### Regla 3 — Charts no redefinen la lista
+
+La presencia de EpisodeChartsPanel no altera el dataset de la lista.
+
+### Regla 4 — Navegación por identidad
+
+Cada item navega por su encounterId, sin derivaciones desde contexto longitudinal.
+
+### Regla 5 — Sin expansión funcional
+
+No se agregan features (paginación, agrupación, etc.).
+
+## 6. Riesgos principales
+
+### R1 — Dataset incorrecto oculto
+
+El problema puede no ser solo conceptual sino estructural.
+
+### R2 — Scope creep hacia charts
+
+Intentar resolver charts dentro de este sprint.
 
 ### R3 — Falso cierre
 
-Declarar “history alineado” sin probar que la lista excluye encounters de otros episodios.
+Declarar alineación sin tests de exclusión cross-episode.
 
-### R4 — Mezcla de concerns en la misma surface
+### R4 — UX engañosa
 
-Que item-level encounter-centric y page-level longitudinal queden otra vez implícitos y no delimitados.
-
-## 6. Política de implementación
-
-### Regla 1 — La lista manda por episodio
-
-EncounterList y su dataset deben resolverse exclusivamente desde encounters del EpisodeOfCare activo.
-
-### Regla 2 — Charts no redefinen la lista
-
-La presencia de EpisodeChartsPanel no puede alterar el criterio de inclusión/exclusión de encounters en history/list.
-
-### Regla 3 — Cada item navega por id
-
-La navegación a detail debe seguir anclada al encounterId del item seleccionado.
-
-### Regla 4 — Sin expansión a longitudinal global
-
-No se tocan reglas de fallback de charts salvo validación de frontera.
+Dataset correcto pero lista visible parcial sin documentar.
 
 ## 7. Definición de Done
 
 El sprint se considera cerrado solo si:
 
-- encounter history renderiza únicamente encounters del episodio activo;
-- cada item conserva navegación por encounterId;
+- la colección base de encounter history está restringida al episodio activo;
+- todo encounter visible o navegable pertenece a ese episodio;
+- la navegación usa siempre el encounterId del item;
 - no aparecen encounters de otros episodios en la lista;
-- la convivencia con charts queda explícitamente delimitada;
-- hay tests automatizados de no-mezcla cross-episode;
-- no se expandió el sprint a rediseño de charts o refactor global.
+- la separación lista vs charts queda explícita;
+- existen tests automatizados de no-mezcla cross-episode;
+- si la UI no muestra todos los encounters del episodio, ese límite queda documentado (sin modificar UX).
 
 ## 8. Orden de ejecución
 
 1. auditar dataset real de history/list;
-2. verificar frontera lista vs charts;
-3. implementar ajuste episode-scoped si hiciera falta;
-4. reforzar tests de no-mezcla y navegación;
-5. cerrar documentación y backlog.
+2. distinguir problema:
+	dataset vs frontera vs ambos;
+3. alinear dataset si corresponde;
+4. validar navegación por item;
+5. agregar guardas de no-mezcla;
+6. documentar límites reales de la UI;
+7. cerrar sprint.
 
 ## 9. Tickets
 
-### T1 — Auditoría puntual de encounters/data.ts y EncounterList
+### T1 — Auditoría de dataset y frontera
 
-Identificar:
+Identificar explícitamente:
 
-- qué encounters entran hoy en la lista
-- qué parte del loader responde a colección por episodio
-- qué parte responde a longitudinal/charts
-
-#### Criterios
-
-- dataset de lista localizado;
-- frontera lista/charts documentada;
-- riesgo de mezcla cross-episode identificado o descartado.
-
-### T2 — Alineación episode-scoped del dataset de history/list
-
-Ajustar la lista para que solo use encounters del episodio activo.
+- si el dataset base es episode-scoped o no;
+- si la UI oculta/submuestra encounters del episodio;
+- si hay mezcla por dataset, por frontera, o ambos.
 
 #### Criterios
 
-- lista acotada al episodio activo;
-- ningún fallback global/patient-level en la colección de items;
-- sin tocar charts más allá de preservar límites.
+- diagnóstico explícito (P1, P2 o ambos)
+- dataset identificado
+- frontera lista vs charts documentada
 
-### T3 — Hardening de navegación por item
+### T2 — Alineación episode-scoped del dataset
 
-Validar que cada card/fila siga navegando al encounterId propio del item.
-
-#### Criterios
-
-- navegación mantiene identidad por encounterId;
-- no se deriva encounter desde contexto longitudinal;
-- comportamiento cubierto por tests.
-
-### T4 — Guardas de no-mezcla cross-episode
-
-Agregar pruebas negativas para impedir contaminación desde otros episodios.
+Ajustar la colección base para que sea exclusivamente del episodio activo.
 
 #### Criterios
 
-- test de exclusión de encounters de otro episodio;
-- test de convivencia correcta lista + charts;
-- sin claims de hardening global del read model.
+- dataset sin fallback global
+- exclusión completa de otros episodios
+- sin tocar charts
+
+### T3 — Hardening de navegación
+
+Validar navegación por encounterId.
+
+#### Criterios
+
+- cada item navega por su id
+- sin derivación implícita
+- cubierto por tests
+
+### T4 — Guardas de no-mezcla
+
+Agregar tests negativos.
+
+#### Criterios
+
+- exclusión cross-episode validada
+- convivencia lista + charts validada
+- sin claims globales
 
 ### T5 — Cierre documental
 
-Actualizar sprint y backlog con resultado real y límites.
+Actualizar docs y backlog.
 
 #### Criterios
 
-- cierre bounded y evidence-based;
-- no sobredeclarar alineación cross-surface total;
-- dejar explícito qué queda todavía abierto si corresponde.
+- cierre acotado y honesto
+- límites explícitos
+- deuda restante clara
 
 ## 10. Criterios de aceptación
 
-- encounter history muestra solo encounters del episodio activo;
-- cada item representa su propio encounter;
-- la navegación a detail usa el encounterId del item;
-- charts permanecen longitudinales y explícitamente exentos;
-- no hay mezcla cross-episode en la lista;
-- el cierre documental refleja alcance real.
+- lista sin mezcla cross-episode
+- navegación correcta por encounter
+- charts no interfieren con dataset de lista
+- límites UX explícitos si existen
+- evidencia automatizada suficiente
 
-## 11. Evidencia mínima esperada
+## 11. Evidencia mínima
 
 ### Incluye
 
-- inspección de encounters/data.ts
-- tests de dataset de lista
-- tests de navegación por item
-- guardas de no-mezcla cross-episode
+- tests de dataset
+- tests de navegación
+- tests de exclusión cross-episode
 
 ### No incluye
 
-- rediseño de charts
-- migración de charts a otra pantalla
-- browser E2E
-- refactor global de loaders
+- E2E browser
+- rediseño UI
+- cambios estructurales globales
 
-## 12. Límites explícitos del cierre
+## 12. Límites explícitos
 
 Este sprint no implica:
 
-- alineación total de todas las surfaces
-- redefinición de charts
-- cierre de deuda longitudinal/histórica global
-- rediseño de EncounterList
-- cambios en patient detail o encounter detail
+- mostrar todos los encounters del episodio
+- introducir paginación
+- redefinir charts
+- cerrar deuda longitudinal global
+- rediseñar EncounterList
+- alinear todas las surfaces del sistema
 
 ## 13. Resultado esperado
 
-Al cerrar este sprint:
+- encounter history queda consistente como colección episode-scoped
+- navegación 100% encounter-centric por item
+- eliminación de mezcla cross-episode en la lista
+- frontera clara con charts longitudinales
+- avance controlado en alineación cross-surface
 
-- encounter history queda coherente como colección episode-scoped;
-- la navegación mantiene identidad encounter-centric por item;
-- la frontera con charts longitudinales queda más clara;
-- se reduce la deuda de alineación cross-surface sin abrir refactor estructural.
+## ✔️ Nota final (clave)
 
-Hay dos decisiones que conviene cerrar antes de mandarlo a ejecutar:
-
-- si la lista debe incluir todos los encounters del episodio o solo una ventana paginada inicial con “ver más”;
-- si en la misma pantalla querés mantener charts arriba o preferís dejar esa decisión fuera de este sprint.
+Este sprint no cambia qué se ve, cambia qué significa lo que se ve.
