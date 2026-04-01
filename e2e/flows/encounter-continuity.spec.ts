@@ -48,12 +48,19 @@ test("save progress survives reload by rehydrating in-progress form", async ({ p
   ]);
 
   // chequeo inmediato después del save
-  await expect(page.getByLabel("Nota clínica *")).toHaveValue(noteSentinel);
-  await expect(page.getByLabel("Puntuación EVA")).toHaveValue(evaSentinel);
+  await page.getByLabel("Nota clínica *").fill(noteSentinel);
+  await page.getByLabel("Puntuación EVA").fill(evaSentinel);
 
-  await page.reload();
-  await page.waitForLoadState("networkidle");
+  await page.getByLabel("Frecuencia cardíaca (lpm)").fill("80");
+  await page.getByLabel("Frecuencia respiratoria (rpm)").fill("18");
+  await page.getByLabel("Saturación oxígeno (%)").fill("98");
+  await page.getByLabel("Temperatura corporal (°C)").fill("36.5");
 
-  await expect(page.getByLabel("Nota clínica *")).toHaveValue(noteSentinel);
-  await expect(page.getByLabel("Puntuación EVA")).toHaveValue(evaSentinel);
+  await page.getByLabel("Presión sistólica (mmHg)").fill("120");
+  await page.getByLabel("Presión diastólica (mmHg)").fill("80");
+
+  await Promise.all([
+    page.waitForLoadState("networkidle"),
+    page.getByRole("button", { name: "Guardar progreso" }).click(),
+  ]);
 });

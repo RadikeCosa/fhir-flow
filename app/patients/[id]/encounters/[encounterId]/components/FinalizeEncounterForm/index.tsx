@@ -103,7 +103,15 @@ export default function FinalizeEncounterForm({
     defaultValues,
   });
 
-  const { control, register, handleSubmit, formState, setValue, getValues, reset } = form;
+  const {
+    control,
+    register,
+    handleSubmit,
+    formState,
+    setValue,
+    getValues,
+    reset,
+  } = form;
   const { fields, append, remove } = useFieldArray<
     FinalizeEncounterFormInput,
     "procedures"
@@ -139,7 +147,42 @@ export default function FinalizeEncounterForm({
     setServerResult(null);
 
     const values = getValues();
+
+    console.log(
+      "[save-progress][client] values =",
+      JSON.stringify(values, null, 2),
+    );
     console.log("[save-progress][client] clinicalNote =", values.clinicalNote);
+    console.log(
+      "[save-progress][client] reasonDisplay =",
+      values.reasonDisplay,
+    );
+    console.log("[save-progress][client] evaScore =", values.evaScore);
+    console.log(
+      "[save-progress][client] bloodPressureSystolic =",
+      values.bloodPressureSystolic,
+    );
+    console.log(
+      "[save-progress][client] bloodPressureDiastolic =",
+      values.bloodPressureDiastolic,
+    );
+    console.log("[save-progress][client] heartRate =", values.heartRate);
+    console.log(
+      "[save-progress][client] respiratoryRate =",
+      values.respiratoryRate,
+    );
+    console.log(
+      "[save-progress][client] oxygenSaturation =",
+      values.oxygenSaturation,
+    );
+    console.log(
+      "[save-progress][client] bodyTemperature =",
+      values.bodyTemperature,
+    );
+    console.log(
+      "[save-progress][client] procedures =",
+      JSON.stringify(values.procedures, null, 2),
+    );
 
     const result = await saveEncounterProgressAction(patientId, encounterId, {
       clinicalNote: values.clinicalNote,
@@ -157,7 +200,6 @@ export default function FinalizeEncounterForm({
     setServerResult(result);
     setActiveIntent(null);
   };
-
   const error = serverResult?.success === false ? serverResult.error : null;
 
   return (
@@ -169,7 +211,9 @@ export default function FinalizeEncounterForm({
             {practitionerName}
           </div>
           <div>
-            <span className="font-medium text-foreground">Agenda planificada:</span>{" "}
+            <span className="font-medium text-foreground">
+              Agenda planificada:
+            </span>{" "}
             {formatPlannedContext(plannedDate, plannedTime)}
           </div>
         </div>
@@ -198,10 +242,7 @@ export default function FinalizeEncounterForm({
             <legend className="text-sm font-medium text-foreground">
               Ejecución real de la visita
             </legend>
-            <p
-              id="actualTimingHint"
-              className="text-xs text-muted-foreground"
-            >
+            <p id="actualTimingHint" className="text-xs text-muted-foreground">
               Registrá fecha y horario real en formato 24 horas.
             </p>
 
@@ -656,7 +697,9 @@ export default function FinalizeEncounterForm({
             disabled={activeIntent !== null}
             className="inline-flex items-center justify-center rounded-md border border-border px-4 py-2 text-foreground disabled:opacity-50"
           >
-            {activeIntent === "save-progress" ? "Guardando..." : "Guardar progreso"}
+            {activeIntent === "save-progress"
+              ? "Guardando..."
+              : "Guardar progreso"}
           </button>
 
           <button
