@@ -97,4 +97,43 @@ describe("EncounterList finished sorting", () => {
         expect(html).toContain("Sesiones anteriores");
         expect(html.indexOf("En curso")).toBeLessThan(html.indexOf("Sesiones anteriores"));
     });
+
+    it("keeps planned encounters in base input while rendering only the first planned card + summary", () => {
+        const plannedFirst = makeEncounter({
+            id: "enc-planned-first",
+            status: "planned",
+            plannedDate: "2026-03-21",
+            plannedTime: "09:00",
+            periodStart: "2026-03-21T09:00:00.000Z",
+        });
+        const plannedSecond = makeEncounter({
+            id: "enc-planned-second",
+            status: "planned",
+            plannedDate: "2026-03-22",
+            plannedTime: "09:00",
+            periodStart: "2026-03-22T09:00:00.000Z",
+        });
+        const finished = makeEncounter({
+            id: "enc-finished-context",
+            status: "finished",
+            actualStartAt: "2026-03-20T09:00:00.000Z",
+            periodStart: "2026-03-20T09:00:00.000Z",
+        });
+
+        const baseCollection = [plannedFirst, plannedSecond, finished];
+        const html = renderToStaticMarkup(
+            React.createElement(EncounterList, {
+                encounters: baseCollection,
+                proceduresByEncounterId: {},
+                vitalsByEncounterId: {},
+                evaByEncounterId: {},
+            })
+        );
+
+        expect(baseCollection.map((encounter) => encounter.id)).toContain(plannedFirst.id);
+        expect(baseCollection.map((encounter) => encounter.id)).toContain(plannedSecond.id);
+        expect(html).toContain("enc-planned-first");
+        expect(html).not.toContain("enc-planned-second");
+        expect(html).toContain("+ 1 sesión más programada");
+    });
 });

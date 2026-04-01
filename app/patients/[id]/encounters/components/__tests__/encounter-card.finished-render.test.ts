@@ -72,4 +72,24 @@ describe("EncounterCard finished render", () => {
 
         expect(html).toContain('href="/patients/pat-42/encounters/enc-finished-nav-42"');
     });
+
+    it("keeps identity-driven navigation even for planned encounters", () => {
+        const html = renderToStaticMarkup(
+            React.createElement(EncounterCard, {
+                encounter: makeFinishedEncounter({
+                    id: "enc-planned-nav-77",
+                    patientId: "pat-77",
+                    status: "planned",
+                    plannedDate: "2026-03-25",
+                    plannedTime: "11:00",
+                    actualStartAt: undefined,
+                }),
+                procedures: [],
+                vitalSigns: [],
+                evaRecords: [],
+            })
+        );
+
+        expect(html).toContain('href="/patients/pat-77/encounters/enc-planned-nav-77"');
+    });
 });
