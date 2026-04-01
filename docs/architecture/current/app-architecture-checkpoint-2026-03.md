@@ -265,6 +265,9 @@ This is acceptable for now, but may deserve a future redesign if the route grows
 - “+N more” summary behavior
 
 This is currently considered an acceptable imperfection, not an urgent architectural problem.
+Cross-surface contract closure (2026-04) kept this behavior as valid runtime semantics:
+- history visible ordering may differ from patient-detail selector priority;
+- cross-surface consistency is validated by active-episode base membership + encounterId identity, not by forcing identical visual ordering.
 
 ### 4. `FinalizeEncounterForm` internal size
 `FinalizeEncounterForm` remains a relatively large client component.

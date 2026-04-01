@@ -188,9 +188,28 @@ Tracks:
   - Riesgo de leakage de fallback temporal hacia superficies encounter-centric dentro de la lista/cards.
 
 - **Qué deuda queda abierta (explícita)**
-  - Alineación cross-surface pendiente entre `patient detail` y `encounter history` como modelo de navegación unificado.
+  - Alineación cross-surface pendiente entre `patient detail` y `encounter history` como contrato explícito + blindaje de regresión.
   - Charts longitudinales continúan por diseño (decisión de modelo, no bug) y deben seguir documentados como tal.
   - Visibilidad parcial de planned encounters en history se mantiene como decisión UX (no issue de dataset).
+
+---
+
+## 🟢 Sprint cerrado — Contrato cross-surface explícito (`patient detail` ↔ `encounter history`) (2026-04)
+
+- **Resultado alcanzado**
+  - T1 confirmó que no había bug runtime en identidad/scoping/navegación.
+  - T2 dejó explícito el contrato runtime:
+    - selector de `patient detail`: `inProgressEncounter ?? lastFinishedEncounter`;
+    - datasets clínicos de `patient detail` por el mismo `encounterId` seleccionado;
+    - colección base de history por episodio activo;
+    - distinción explícita entre colección base y colección visible;
+    - ordering visible vigente de history: planned (si existe) → in-progress → previas.
+  - T4 agregó cobertura de regresión para fijar este contrato.
+  - T5 corrigió wording documental sin cambios de código productivo.
+
+- **Impacto**
+  - Cierre por contrato + tests + documentación.
+  - Sin hardening productivo adicional en este sprint.
 
 ---
 
@@ -225,13 +244,13 @@ Tracks:
 
 ## 🔴 Deuda abierta (post-sprint)
 
-- **Alineación cross-surface episode-scoped (`patient detail` ↔ `encounter history`)** → **Pendiente**
-  - Ambas surfaces ya operan episode-scoped, pero aún no existe un modelo de navegación/selección unificado.
-  - Persisten expectativas de navegación no totalmente alineadas entre surfaces (cross-surface).
+- **Alineación cross-surface episode-scoped (`patient detail` ↔ `encounter history`)** → **Cerrada (contrato + tests)**
+  - Cerrada en contrato runtime explícito y tests de regresión.
+  - No queda deuda de bug runtime en identidad/scoping/navegación para este alcance.
 
 - **Modelo longitudinal de charts (decisión explícita)** → **Pendiente de documentación transversal**
-  - Los charts permanecen longitudinales y no episode-scoped por diseño.
-  - Esto no es bug de membresía; es una decisión de modelo que debe mantenerse explícita en arquitectura/backlog.
+  - Los charts permanecen longitudinales (fuera del contrato encounter-centric estricto de lista/detail).
+  - Su composición puede incluir filtrado derivado del episodio activo en la route de history, sin convertirlos en source-of-truth de membresía de lista.
 
 - **Visibilidad de planned encounters en history (decisión UX)** → **Pendiente**
   - La lista sigue mostrando subset en planned por decisión de UX.

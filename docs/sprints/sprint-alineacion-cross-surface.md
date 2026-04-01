@@ -83,11 +83,11 @@ encounter history debe operar como surface de colección del episodio activo.
 
 La colección base esperada es la de encounters del episodio activo.
 
-Ordering esperado a verificar contra runtime:
+Ordering a verificar contra runtime (sin imponer rediseño UX):
 
-- in-progress primero, si existe
-- luego finished en orden descendente
-- luego otros estados, si aplican
+- sección planned primero, si existe (con visibilidad parcial posible)
+- luego in-progress
+- luego sesiones previas (finished/cancelled) en orden descendente
 
 Planned encounters:
 
@@ -101,7 +101,7 @@ El contrato cross-surface a verificar es:
 
 - el encounter seleccionado en patient detail debe pertenecer a la colección base de encounter history
 - su identidad debe preservarse por encounterId
-- su prioridad debe ser coherente con el ordering real de history
+- su relación con history debe validarse por membresía base (no por posición visible obligatoria)
 - la navegación debe mantenerse encounterId-driven
 
 Importante:
@@ -109,6 +109,7 @@ Importante:
 - colección base y colección visible no son lo mismo
 - un encounter válido en la base puede no estar visible por decisiones actuales de UX
 - eso solo es bug si contradice el contrato real implementado o rompe navegación/consistencia semántica
+- diferencias de ordering/presentación entre patient detail e history pueden ser válidas si se conserva identidad y membresía base
 
 ## 5. Alcance
 
@@ -224,8 +225,8 @@ Aplicar cambios locales únicamente si hay inconsistencia verificable.
 
 Posibles ajustes válidos:
 
-- corregir ordering real de history
-- asegurar prioridad de in-progress
+- corregir ordering real de history (solo si no coincide con el contrato runtime vigente)
+- asegurar prioridad de in-progress donde aplique por contrato de surface (sin forzar igualdad visual cross-surface)
 - corregir selector o pertenencia de encounter en patient detail
 - corregir href/navegación por encounterId
 - cerrar desalineaciones semánticas concretas entre surfaces
@@ -247,14 +248,14 @@ Con in-progress
 
 - patient detail selecciona in-progress
 - history lo contiene en la colección base
-- history lo prioriza según ordering real esperado
+- history mantiene ordering runtime vigente (planned si existe → in-progress → previas)
 - la navegación usa su encounterId
 
 Sin in-progress
 
 - patient detail selecciona el último finished
 - ese encounter pertenece a la colección base de history
-- su posición en history es coherente con ordering real
+- su posición en history es coherente con ordering real del runtime vigente
 
 Planned con visibilidad parcial
 
@@ -312,6 +313,15 @@ Al final del sprint debe quedar una de estas dos situaciones, ambas válidas:
 - se demuestra que el runtime ya está alineado
 - se corrige solo documentación drifted
 - se blindan contratos con tests
+
+## 11. Cierre real del sprint (T1→T5)
+
+- El diagnóstico confirmó coherencia runtime en identidad/scoping/navegación entre `patient detail` y `encounter history`.
+- No se requirió hardening de código productivo para cerrar este sprint.
+- El valor entregado fue:
+  - contrato cross-surface explícito y falsable;
+  - cobertura de regresión que fija ese contrato;
+  - corrección documental mínima para eliminar drift de wording (ordering y alcance de charts).
 
 ### Opción B — Hardening mínimo con cierre localizado
 
