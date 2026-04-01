@@ -22,21 +22,8 @@ export async function saveEncounterProgressAction(
     encounterId: string,
     formData: unknown
 ): Promise<ActionResult<void>> {
-    const rawClinicalNote =
-        typeof formData === "object" &&
-            formData !== null &&
-            "clinicalNote" in formData
-            ? (formData as { clinicalNote?: unknown }).clinicalNote
-            : undefined;
-    console.log("[save-progress][action][raw] clinicalNote =", rawClinicalNote);
-
     const parseResult = saveEncounterProgressSchema.safeParse(formData);
     if (!parseResult.success) {
-        console.log(
-            "[save-progress][action][validation-error] =",
-            JSON.stringify(parseResult.error.flatten(), null, 2)
-        );
-
         return {
             success: false,
             error: {
@@ -47,10 +34,6 @@ export async function saveEncounterProgressAction(
             } satisfies ActionError,
         };
     }
-    console.log(
-        "[save-progress][action][parsed] clinicalNote =",
-        parseResult.data.clinicalNote
-    );
 
     const repo = createEncounterRepository();
 
