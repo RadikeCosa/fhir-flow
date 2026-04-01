@@ -97,6 +97,7 @@ describe("LastEncounterSection planned render", () => {
         expect(html).toContain("22/03/2026");
         expect(html).toContain("14:30");
         expect(html).not.toContain("2099");
+        expect(html).toContain("No hay visitas registradas en el episodio activo");
     });
 
     it("renders 'Sin horario definido' when plannedTime is missing", () => {
@@ -113,5 +114,22 @@ describe("LastEncounterSection planned render", () => {
 
         expect(html).toContain("22/03/2026");
         expect(html).toContain("Sin horario definido");
+        expect(html).toContain("No hay visitas registradas en el episodio activo");
+    });
+
+    it("renders encounter-summary empty state when there is no last encounter and no planned encounter", () => {
+        const html = renderToStaticMarkup(
+            React.createElement(LastEncounterSection, {
+                lastEncounter: null,
+                nextPlannedEncounter: null,
+                patientId: "pat-1",
+                procedures: [],
+                evaRecords: [],
+                vitalSigns: [],
+            })
+        );
+
+        expect(html).toContain("No hay visitas registradas en el episodio activo");
+        expect(html).toContain("Visitas");
     });
 });

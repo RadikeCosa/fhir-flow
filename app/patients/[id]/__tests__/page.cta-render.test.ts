@@ -143,6 +143,12 @@ describe("Patient detail CTA render", () => {
         expect(html).toContain(">Registrar visita<");
         expect(html).toContain(">Planificar visita<");
         expect(html).not.toContain(">Completar visita<");
+        expect(html).toContain("personal");
+        expect(html).toContain("contact");
+        expect(html).toContain("episodes");
+        expect(html).toContain("last-encounter");
+        expect(html).toContain("initial");
+        expect(html).toContain("reassessments");
         expect(countOccurrences(html, 'href="/patients/pat-1/encounters/register"')).toBe(1);
         expect(countOccurrences(html, 'href="/patients/pat-1/encounters/new"')).toBe(1);
     });

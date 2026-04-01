@@ -480,15 +480,22 @@ describe('getPatientDetailData re-assessment filtering', () => {
         expect(result.lastEncounterProcedures).toEqual([expectedProcedure]);
     });
 
-    it('falls back to last finished encounter for clinical datasets when there is no in-progress encounter', async () => {
+    it('falls back to latest finished encounter from active episode when there is no in-progress encounter', async () => {
         const finishedLast = makeEncounter({
             id: 'enc-finished-last-only',
             status: 'finished',
             periodStart: '2026-03-12T09:00:00.000Z',
         });
 
-        repositories.encounterRepo.findLastByPatientIdAndPractitionerId.mockResolvedValue(finishedLast);
-        repositories.encounterRepo.findAllByEpisodeOfCareId.mockResolvedValue([]);
+        repositories.encounterRepo.findLastByPatientIdAndPractitionerId.mockResolvedValue(
+            makeEncounter({
+                id: 'enc-finished-outside-episode',
+                status: 'finished',
+                episodeOfCareId: 'episode-other',
+                periodStart: '2026-03-19T09:00:00.000Z',
+            })
+        );
+        repositories.encounterRepo.findAllByEpisodeOfCareId.mockResolvedValue([finishedLast]);
 
         const finishedVital: VitalSignRecord = {
             id: 'vs-finished-last-only',
@@ -537,6 +544,72 @@ describe('getPatientDetailData re-assessment filtering', () => {
         expect(result.lastEncounterVitalSigns).toEqual([finishedVital]);
         expect(result.lastEncounterEvaRecords).toEqual([finishedEva]);
         expect(result.lastEncounterProcedures).toEqual([finishedProcedure]);
+    });
+
+    it('selects the most recent finished encounter using end timestamp', async () => {
+        const finishedOlder = makeEncounter({
+            id: 'enc-finished-older',
+            status: 'finished',
+            periodStart: '2026-03-12T09:00:00.000Z',
+            actualEndAt: '2026-03-10T10:00:00.000Z',
+        });
+        const finishedNewest = makeEncounter({
+            id: 'enc-finished-newest',
+            status: 'finished',
+            periodStart: '2026-03-10T09:00:00.000Z',
+            actualEndAt: '2026-03-12T10:00:00.000Z',
+        });
+        const finishedMiddle = makeEncounter({
+            id: 'enc-finished-middle',
+            status: 'finished',
+            periodStart: '2026-03-11T09:00:00.000Z',
+            actualEndAt: '2026-03-11T10:00:00.000Z',
+        });
+
+        repositories.encounterRepo.findAllByEpisodeOfCareId.mockResolvedValue([
+            finishedOlder,
+            finishedNewest,
+            finishedMiddle,
+        ]);
+
+        repositories.vitalRepo.findAllByEncounterId.mockResolvedValue([]);
+        repositories.assessmentRepo.findEvaByEncounterId.mockResolvedValue([]);
+        repositories.procedureRepo.findAllByEncounterId.mockResolvedValue([]);
+
+        const result = await getPatientDetailData(patientFixture.id);
+
+        expect(result.inProgressEncounter).toBeNull();
+        expect(result.lastEncounter?.id).toBe(finishedNewest.id);
+        expect(repositories.vitalRepo.findAllByEncounterId).toHaveBeenCalledWith(finishedNewest.id);
+        expect(repositories.assessmentRepo.findEvaByEncounterId).toHaveBeenCalledWith(finishedNewest.id);
+        expect(repositories.procedureRepo.findAllByEncounterId).toHaveBeenCalledWith(finishedNewest.id);
+    });
+
+    it('uses deterministic id tie-break when finished encounters share equal end timestamp', async () => {
+        const finishedA = makeEncounter({
+            id: 'enc-finished-a',
+            status: 'finished',
+            actualEndAt: '2026-03-12T10:00:00.000Z',
+        });
+        const finishedB = makeEncounter({
+            id: 'enc-finished-b',
+            status: 'finished',
+            actualEndAt: '2026-03-12T10:00:00.000Z',
+        });
+
+        repositories.encounterRepo.findAllByEpisodeOfCareId.mockResolvedValue([
+            finishedA,
+            finishedB,
+        ]);
+        repositories.vitalRepo.findAllByEncounterId.mockResolvedValue([]);
+        repositories.assessmentRepo.findEvaByEncounterId.mockResolvedValue([]);
+        repositories.procedureRepo.findAllByEncounterId.mockResolvedValue([]);
+
+        const result = await getPatientDetailData(patientFixture.id);
+
+        expect(result.inProgressEncounter).toBeNull();
+        expect(result.lastEncounter?.id).toBe(finishedB.id);
+        expect(repositories.vitalRepo.findAllByEncounterId).toHaveBeenCalledWith(finishedB.id);
     });
 
     it('guard: with same-date sibling finished data present, patient detail must keep in-progress encounter as clinical source', async () => {

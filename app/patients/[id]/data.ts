@@ -55,6 +55,49 @@ function isPastEncounterDate(value: string, now: Date): boolean {
     return !Number.isNaN(timestamp) && timestamp < now.getTime();
 }
 
+function pickLatestFinishedEncounter(encounters: Encounter[]): Encounter | null {
+    const finishedEncounters = encounters.filter(
+        (encounter) => encounter.status === "finished"
+    );
+
+    if (finishedEncounters.length === 0) {
+        return null;
+    }
+
+    const resolveEncounterEnd = (encounter: Encounter): string | null =>
+        encounter.actualEndAt ?? encounter.periodEnd ?? null;
+
+    return finishedEncounters.reduce((latest, candidate) => {
+        const latestEnd = resolveEncounterEnd(latest);
+        const candidateEnd = resolveEncounterEnd(candidate);
+
+        const latestTimestamp = latestEnd ? Date.parse(latestEnd) : Number.NaN;
+        const candidateTimestamp = candidateEnd ? Date.parse(candidateEnd) : Number.NaN;
+
+        if (Number.isNaN(latestTimestamp) && Number.isNaN(candidateTimestamp)) {
+            return candidate.id > latest.id ? candidate : latest;
+        }
+
+        if (Number.isNaN(latestTimestamp)) {
+            return candidate;
+        }
+
+        if (Number.isNaN(candidateTimestamp)) {
+            return latest;
+        }
+
+        if (candidateTimestamp > latestTimestamp) {
+            return candidate;
+        }
+
+        if (candidateTimestamp < latestTimestamp) {
+            return latest;
+        }
+
+        return candidate.id > latest.id ? candidate : latest;
+    });
+}
+
 export async function getPatientDetailData(
     patientId: string
 ): Promise<PatientDetailData> {
@@ -80,11 +123,7 @@ export async function getPatientDetailData(
 
     const activeEpisode = episodes.find((episode) => episode.status === "active");
 
-    const [lastFinishedEncounter, nextPlannedEncounter, initialEncounter, activeEpisodeEncounters] = await Promise.all([
-        encounterRepo.findLastByPatientIdAndPractitionerId(
-            patientId,
-            currentPractitionerId
-        ),
+    const [nextPlannedEncounter, initialEncounter, activeEpisodeEncounters] = await Promise.all([
         encounterRepo.findNextPlannedByPatientIdAndPractitionerId(
             patientId,
             currentPractitionerId
@@ -100,6 +139,8 @@ export async function getPatientDetailData(
     const inProgressEncounter = activeEpisodeEncounters.find(
         (encounter) => encounter.status === "in-progress"
     ) ?? null;
+
+    const lastFinishedEncounter = pickLatestFinishedEncounter(activeEpisodeEncounters);
 
     const clinicalEncounterSource = inProgressEncounter ?? lastFinishedEncounter;
 

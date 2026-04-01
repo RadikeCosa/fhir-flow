@@ -47,32 +47,10 @@ export const LastEncounterSection: React.FC<Props> = ({
     nextPlannedEncounter?.plannedTime,
   );
 
-  // props are accepted for future UI enhancements; currently unused
-  // empty state handled below
-  if (!lastEncounter && !nextPlannedEncounter) {
-    return (
-      <SectionCard title="Visitas">
-        <p className="text-xs text-muted italic">
-          No hay visitas registradas aún
-        </p>
-        {patientId && (
-          <div className="mt-3 pt-3 border-t border-border flex justify-end">
-            <Link
-              href={`/patients/${patientId}/encounters`}
-              className="text-xs text-primary hover:underline"
-            >
-              Ver historial →
-            </Link>
-          </div>
-        )}
-      </SectionCard>
-    );
-  }
-
   return (
     <SectionCard title="Visitas">
       {/* last encounter block */}
-      {lastEncounter && (
+      {lastEncounter ? (
         <>
           <div className="text-xs font-semibold uppercase tracking-wide text-muted mb-2">
             {lastEncounterTitle}
@@ -134,6 +112,10 @@ export const LastEncounterSection: React.FC<Props> = ({
             <EncounterProcedures procedures={procedures} />
           )}
         </>
+      ) : (
+        <p className="text-xs text-muted italic">
+          No hay visitas registradas en el episodio activo
+        </p>
       )}
 
       {/* divider between blocks */}
