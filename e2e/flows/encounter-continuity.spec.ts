@@ -32,19 +32,6 @@ test("save progress survives reload by rehydrating in-progress form", async ({ p
   await page.getByLabel("Nota clínica *").fill(noteSentinel);
   await page.getByLabel("Puntuación EVA").fill(evaSentinel);
 
-  // completar BP para evitar payload parcial inválido
-  await page.getByLabel("Presión sistólica").fill("120");
-  await page.getByLabel("Presión diastólica").fill("80");
-
-  await Promise.all([
-    page.waitForLoadState("networkidle"),
-    page.getByRole("button", { name: "Guardar progreso" }).click(),
-  ]);
-
-  // chequeo inmediato después del save
-  await page.getByLabel("Nota clínica *").fill(noteSentinel);
-  await page.getByLabel("Puntuación EVA").fill(evaSentinel);
-
   await page.getByLabel("Frecuencia cardíaca (lpm)").fill("80");
   await page.getByLabel("Frecuencia respiratoria (rpm)").fill("18");
   await page.getByLabel("Saturación oxígeno (%)").fill("98");
@@ -57,4 +44,10 @@ test("save progress survives reload by rehydrating in-progress form", async ({ p
     page.waitForLoadState("networkidle"),
     page.getByRole("button", { name: "Guardar progreso" }).click(),
   ]);
+
+  await page.reload();
+  await page.waitForLoadState("networkidle");
+
+  await expect(page.getByLabel("Nota clínica *")).toHaveValue(noteSentinel);
+  await expect(page.getByLabel("Puntuación EVA")).toHaveValue(evaSentinel);
 });
