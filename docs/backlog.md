@@ -154,6 +154,25 @@ Tracks:
 
 ---
 
+## 🟢 Sprint cerrado — Alineación episode-scoped en patient detail (2026-03)
+
+- **Resultado alcanzado**
+  - `patient detail` quedó alineado al episodio activo/renderizado, evitando mezcla de datos entre episodios en esta superficie.
+
+- **Impacto arquitectónico**
+  - Se consolida el criterio episode-scoped en lectura de `patient detail` y se refuerza el límite con las vistas longitudinales.
+
+- **Deuda resuelta**
+  - Selector híbrido en `patient detail`.
+  - Cross-episode leakage en `patient detail`.
+
+- **Deuda abierta (vigente)**
+  - `encounter history` sigue sin alineación episode-scoped.
+  - Los charts continúan apoyándose en datos longitudinales/mixtos.
+  - Aún no hay alineación cross-surface completa.
+
+---
+
 ## 🟡 Parcial / transición activa
 
 ### Track A — Lifecycle
@@ -184,6 +203,11 @@ Tracks:
   - Persisten casos históricos sin `encounterId` que requieren manejo controlado.
 
 ## 🔴 Deuda abierta (post-sprint)
+
+- **Episode-scoping pendiente fuera de `patient detail`** → **Pendiente**
+  - `encounter history` no está alineado en modo episode-scoped.
+  - Los charts siguen dependiendo de lectura longitudinal/mixta.
+  - Todavía no existe alineación consistente entre surfaces (cross-surface).
 
 - **Continuidad clínica completa de `in-progress` en UI** → **Pendiente**
   - Sigue abierta la continuidad completa de edición/reanudación clínica en la UI de visita en curso.
@@ -222,6 +246,12 @@ Tracks:
 4. Hardening incremental UI/UX (F2/F3/G2 y luego temporal UX/hardening/dashboard).
 
 ## 🚀 Próximo sprint propuesto
+
+### Alineación episode-scoped de encounter history
+
+**Objetivo breve**
+- Llevar `encounter history` al mismo criterio episode-scoped ya aplicado en `patient detail`, evitando mezcla por default longitudinal.
+- Definir límites explícitos con charts y otras surfaces para preparar alineación cross-surface incremental.
 
 ### Validación clínica E2E y continuidad post-cierre de finished detail
 
