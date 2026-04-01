@@ -60,6 +60,16 @@ export default async function Page({ params }: Props) {
   } = data;
 
   const fullName = formatPatientName(patient.name);
+  const chartDatasets = {
+    vitalSigns,
+    evaRecords,
+  };
+  const encounterListDatasets = {
+    encounters,
+    proceduresByEncounterId,
+    vitalsByEncounterId,
+    evaByEncounterId,
+  };
 
   return (
     <>
@@ -68,14 +78,17 @@ export default async function Page({ params }: Props) {
       <h1 className="text-2xl font-semibold mb-6">Historial de Encuentros</h1>
 
       <div className="mb-8">
-        <EpisodeChartsPanel vitalSigns={vitalSigns} evaRecords={evaRecords} />
+        <EpisodeChartsPanel
+          vitalSigns={chartDatasets.vitalSigns}
+          evaRecords={chartDatasets.evaRecords}
+        />
       </div>
 
       <EncounterList
-        encounters={encounters}
-        proceduresByEncounterId={proceduresByEncounterId}
-        vitalsByEncounterId={vitalsByEncounterId}
-        evaByEncounterId={evaByEncounterId}
+        encounters={encounterListDatasets.encounters}
+        proceduresByEncounterId={encounterListDatasets.proceduresByEncounterId}
+        vitalsByEncounterId={encounterListDatasets.vitalsByEncounterId}
+        evaByEncounterId={encounterListDatasets.evaByEncounterId}
       />
     </>
   );

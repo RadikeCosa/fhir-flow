@@ -225,4 +225,70 @@ describe("getEncountersPageData sorting", () => {
         expect(result.vitalSigns).toEqual([vitalFromSameDateWithoutEncounter]);
         expect(result.vitalsByEncounterId[activeEncounter.id]).toEqual([]);
     });
+
+    it("keeps encounter list membership unchanged even when longitudinal datasets are empty", async () => {
+        const firstEncounter = makeEncounter({
+            id: "enc-membership-1",
+            actualStartAt: "2026-03-15T12:00:00.000Z",
+        });
+        const secondEncounter = makeEncounter({
+            id: "enc-membership-2",
+            actualStartAt: "2026-03-10T12:00:00.000Z",
+        });
+
+        repositories.encounterRepo.findAllByEpisodeOfCareId.mockResolvedValue([
+            secondEncounter,
+            firstEncounter,
+        ]);
+        repositories.vitalRepo.findAllByPatientId.mockResolvedValue([]);
+        repositories.assessmentRepo.findEvaByPatientId.mockResolvedValue([]);
+        repositories.procedureRepo.findAllByPatientId.mockResolvedValue([]);
+
+        const { getEncountersPageData } = await import("../data");
+        const result = await getEncountersPageData(patientFixture.id);
+
+        expect(result.encounters.map((encounter) => encounter.id)).toEqual([
+            "enc-membership-1",
+            "enc-membership-2",
+        ]);
+    });
+
+    it("does not let longitudinal filtering add encounters to list membership", async () => {
+        const episodeEncounter = makeEncounter({
+            id: "enc-episode-only",
+            actualStartAt: "2026-03-15T12:00:00.000Z",
+        });
+
+        repositories.encounterRepo.findAllByEpisodeOfCareId.mockResolvedValue([
+            episodeEncounter,
+        ]);
+        repositories.vitalRepo.findAllByPatientId.mockResolvedValue([
+            {
+                id: "vs-included-by-date",
+                patientId: patientFixture.id,
+                date: "2026-03-15T08:00:00.000Z",
+                recordedBy: { id: "pr-1", display: "Nurse" },
+                heartRate: 85,
+            },
+            {
+                id: "vs-not-related",
+                patientId: patientFixture.id,
+                date: "2026-03-30T08:00:00.000Z",
+                recordedBy: { id: "pr-1", display: "Nurse" },
+                heartRate: 78,
+            },
+        ]);
+        repositories.assessmentRepo.findEvaByPatientId.mockResolvedValue([]);
+        repositories.procedureRepo.findAllByPatientId.mockResolvedValue([]);
+
+        const { getEncountersPageData } = await import("../data");
+        const result = await getEncountersPageData(patientFixture.id);
+
+        expect(result.encounters.map((encounter) => encounter.id)).toEqual([
+            "enc-episode-only",
+        ]);
+        expect(result.vitalSigns.map((record) => record.id)).toEqual([
+            "vs-included-by-date",
+        ]);
+    });
 });

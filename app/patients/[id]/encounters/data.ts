@@ -22,9 +22,12 @@ export { PatientNotFoundError };
 export interface EncountersPageData {
     patient: Patient;
     activeEpisode: EpisodeOfCare | null;
+    // Encounter list dataset (encounter-centric, episode-scoped).
     encounters: Encounter[];
+    // Longitudinal datasets for charts (episode-related, can use date fallback).
     vitalSigns: VitalSignRecord[];
     evaRecords: EvaAssessment[];
+    // Encounter-centric clinical maps for per-card summaries (strict encounterId only).
     vitalsByEncounterId: Record<string, VitalSignRecord[]>;
     evaByEncounterId: Record<string, EvaAssessment[]>;
     proceduresByEncounterId: Record<string, Procedure[]>;
@@ -100,26 +103,32 @@ export async function getEncountersPageData(
         };
     }
 
+    // ---------------------------------------------------------------------
+    // 1) Encounter list dataset (authoritative membership source for UI list)
+    // ---------------------------------------------------------------------
     const encountersRaw = await encounterRepo.findAllByEpisodeOfCareId(
         activeEpisode.id
     );
 
     // Sort encounters newest first using representative start semantics.
-    const encounters = [...encountersRaw].sort(
+    const encounterList = [...encountersRaw].sort(
         (a, b) =>
             new Date(getEncounterRepresentativeStart(b)).getTime() -
             new Date(getEncounterRepresentativeStart(a)).getTime()
     );
 
+    // ---------------------------------------------------------------------
+    // 2) Longitudinal datasets (charts-only input)
+    // ---------------------------------------------------------------------
     const [episodeVitalSigns, episodeEvaRecords, episodeProcedures] = await Promise.all([
         vitalRepo.findAllByPatientId(patientId),
         assessmentRepo.findEvaByPatientId(patientId),
         procedureRepo.findAllByPatientId(patientId),
     ]);
 
-    const encounterIds = new Set(encounters.map((encounter) => encounter.id));
+    const encounterIds = new Set(encounterList.map((encounter) => encounter.id));
     const encounterDates = new Set(
-        encounters
+        encounterList
             .map((encounter) => getEncounterRepresentativeStart(encounter).slice(0, 10))
             .filter((date) => /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(date))
     );
@@ -139,6 +148,9 @@ export async function getEncountersPageData(
         encounterIds.has(procedure.encounterId)
     );
 
+    // ---------------------------------------------------------------------
+    // 3) Encounter-centric per-card maps (must stay independent from charts)
+    // ---------------------------------------------------------------------
     // Encounter-centric read mode:
     // these maps are intentionally strict and only accept explicit encounterId.
     // Date-based fallback is longitudinal-only (see filterLongitudinalRecordsByEpisode).
@@ -146,7 +158,7 @@ export async function getEncountersPageData(
     const evaByEncounterId: Record<string, EvaAssessment[]> = {};
     const proceduresByEncounterId: Record<string, Procedure[]> = {};
 
-    encounters.forEach((encounter) => {
+    encounterList.forEach((encounter) => {
         vitalsByEncounterId[encounter.id] = [];
         evaByEncounterId[encounter.id] = [];
         proceduresByEncounterId[encounter.id] = [];
@@ -169,7 +181,7 @@ export async function getEncountersPageData(
     return {
         patient,
         activeEpisode,
-        encounters,
+        encounters: encounterList,
         vitalSigns,
         evaRecords,
         vitalsByEncounterId,
