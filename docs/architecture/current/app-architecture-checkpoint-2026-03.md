@@ -307,7 +307,7 @@ When changing route-level UI in the patients/encounters area:
 - explicit separation between encounter-centric reads and longitudinal date fallback
 
 ### Still open
-- canonical-read cleanup fuera de `finished encounter detail` (por ejemplo, history load shape y otras surfaces)
+- claridad contractual/documental cross-surface fuera de `finished encounter detail` (sin gap runtime confirmado en este tema)
 - possible future redesign of `encounters/data.ts`
 - possible future slimming of `EncounterList`
 - possible future partitioning of `FinalizeEncounterForm`
