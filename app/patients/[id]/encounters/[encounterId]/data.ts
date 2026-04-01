@@ -77,6 +77,16 @@ export async function getEncounterDetailData(
             assessmentRepo.findEvaByEncounterId(encounterId),
             procedureRepo.findAllByEncounterId(encounterId),
         ]);
+        console.info("[eva-read][loader][evaRecords]", {
+            encounterId,
+            count: evaRecords.length,
+            items: evaRecords.map((item) => ({
+                id: item.id,
+                date: item.date,
+                score: item.score,
+                encounterId: item.encounterId,
+            })),
+        });
     }
 
     const inProgressInitialValues: InProgressEncounterDetailInitialValues | undefined =
@@ -90,6 +100,19 @@ export async function getEncounterDetailData(
                   procedures,
               }
             : undefined;
+
+    if (inProgressInitialValues) {
+        console.info("[eva-read][loader][initial-evaAssessments]", {
+            encounterId,
+            count: inProgressInitialValues.evaAssessments.length,
+            items: inProgressInitialValues.evaAssessments.map((item) => ({
+                id: item.id,
+                date: item.date,
+                score: item.score,
+                encounterId: item.encounterId,
+            })),
+        });
+    }
 
     return {
         encounter: normalizedEncounter,
