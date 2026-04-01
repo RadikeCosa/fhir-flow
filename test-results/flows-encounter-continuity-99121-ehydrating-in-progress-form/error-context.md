@@ -7,7 +7,7 @@
 # Test info
 
 - Name: flows/encounter-continuity.spec.ts >> save progress survives reload by rehydrating in-progress form
-- Location: e2e/flows/encounter-continuity.spec.ts:26:5
+- Location: e2e/flows/encounter-continuity.spec.ts:29:5
 
 # Error details
 
@@ -15,7 +15,7 @@
 Error: expect(locator).toHaveValue(expected) failed
 
 Locator:  getByLabel('Nota clínica *')
-Expected: "E2E continuity note 1046"
+Expected: "E2E continuity note 1065"
 Received: ""
 Timeout:  5000ms
 
@@ -165,7 +165,7 @@ Call log:
 ```ts
   1  | import { expect, test, type Page } from "@playwright/test";
   2  | 
-  3  | const ENCOUNTER_URL = "/patients/pac-1/encounters/1046";
+  3  | const ENCOUNTER_URL = "/patients/pac-1/encounters/1065";
   4  | 
   5  | async function ensureEncounterInProgress(page: Page) {
   6  |   await page.goto(ENCOUNTER_URL);
@@ -178,40 +178,49 @@ Call log:
   13 | 
   14 |     await startButton.click();
   15 |     await page.waitForLoadState("networkidle");
-  16 |   }
-  17 | 
-  18 |   await expect(page.getByRole("heading", { name: "Finalizar visita" })).toBeVisible();
-  19 |   await expect(page.getByRole("button", { name: "Guardar progreso" })).toBeVisible();
-  20 | }
-  21 | 
-  22 | test("planned encounter can be started and becomes in-progress", async ({ page }) => {
-  23 |   await ensureEncounterInProgress(page);
-  24 | });
-  25 | 
-  26 | test("save progress survives reload by rehydrating in-progress form", async ({ page }) => {
-  27 |   await ensureEncounterInProgress(page);
+  16 | 
+  17 |     console.log(await page.locator("body").innerText());
+  18 |     await page.screenshot({ path: "debug-after-start.png", fullPage: true });
+  19 |   }
+  20 | 
+  21 |   await expect(page.getByRole("heading", { name: "Finalizar visita" })).toBeVisible();
+  22 |   await expect(page.getByRole("button", { name: "Guardar progreso" })).toBeVisible();
+  23 | }
+  24 | 
+  25 | test("planned encounter can be started and becomes in-progress", async ({ page }) => {
+  26 |   await ensureEncounterInProgress(page);
+  27 | });
   28 | 
-  29 |   const noteSentinel = "E2E continuity note 1046";
-  30 |   const evaSentinel = "7";
-  31 | 
-  32 |   await page.getByLabel("Nota clínica *").fill(noteSentinel);
-  33 |   await page.getByLabel("Puntuación EVA").fill(evaSentinel);
+  29 | test("save progress survives reload by rehydrating in-progress form", async ({ page }) => {
+  30 |   page.on("console", (msg) => {
+  31 |     console.log("[browser console]", msg.text());
+  32 |   });
+  33 |   await ensureEncounterInProgress(page);
   34 | 
-  35 |   await Promise.all([
-  36 |     page.waitForLoadState("networkidle"),
-  37 |     page.getByRole("button", { name: "Guardar progreso" }).click(),
-  38 |   ]);
-  39 | 
-  40 |   // nuevo chequeo: estado inmediatamente después del save
-  41 |   await expect(page.getByLabel("Nota clínica *")).toHaveValue(noteSentinel);
-  42 |   await expect(page.getByLabel("Puntuación EVA")).toHaveValue(evaSentinel);
-  43 | 
-  44 |   await page.reload();
-  45 |   await page.waitForLoadState("networkidle");
-  46 | 
-> 47 |   await expect(page.getByLabel("Nota clínica *")).toHaveValue(noteSentinel);
+  35 |   const noteSentinel = "E2E continuity note 1065";
+  36 |   const evaSentinel = "7";
+  37 | 
+  38 |   await page.getByLabel("Nota clínica *").fill(noteSentinel);
+  39 |   await page.getByLabel("Puntuación EVA").fill(evaSentinel);
+  40 | 
+  41 |   // completar BP para evitar payload parcial inválido
+  42 |   await page.getByLabel("Presión sistólica").fill("120");
+  43 |   await page.getByLabel("Presión diastólica").fill("80");
+  44 | 
+  45 |   await Promise.all([
+  46 |     page.waitForLoadState("networkidle"),
+  47 |     page.getByRole("button", { name: "Guardar progreso" }).click(),
+  48 |   ]);
+  49 | 
+  50 |   // chequeo inmediato después del save
+  51 |   await expect(page.getByLabel("Nota clínica *")).toHaveValue(noteSentinel);
+  52 |   await expect(page.getByLabel("Puntuación EVA")).toHaveValue(evaSentinel);
+  53 | 
+  54 |   await page.reload();
+  55 |   await page.waitForLoadState("networkidle");
+  56 | 
+> 57 |   await expect(page.getByLabel("Nota clínica *")).toHaveValue(noteSentinel);
      |                                                   ^ Error: expect(locator).toHaveValue(expected) failed
-  48 |   await expect(page.getByLabel("Puntuación EVA")).toHaveValue(evaSentinel);
-  49 | });
-  50 | 
+  58 |   await expect(page.getByLabel("Puntuación EVA")).toHaveValue(evaSentinel);
+  59 | });
 ```

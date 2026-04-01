@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-const ENCOUNTER_URL = "/patients/pac-1/encounters/1046";
+const ENCOUNTER_URL = "/patients/pac-1/encounters/1065";
 
 async function ensureEncounterInProgress(page: Page) {
   await page.goto(ENCOUNTER_URL);
@@ -13,6 +13,9 @@ async function ensureEncounterInProgress(page: Page) {
 
     await startButton.click();
     await page.waitForLoadState("networkidle");
+
+    console.log(await page.locator("body").innerText());
+    await page.screenshot({ path: "debug-after-start.png", fullPage: true });
   }
 
   await expect(page.getByRole("heading", { name: "Finalizar visita" })).toBeVisible();
@@ -24,20 +27,27 @@ test("planned encounter can be started and becomes in-progress", async ({ page }
 });
 
 test("save progress survives reload by rehydrating in-progress form", async ({ page }) => {
+  page.on("console", (msg) => {
+    console.log("[browser console]", msg.text());
+  });
   await ensureEncounterInProgress(page);
 
-  const noteSentinel = "E2E continuity note 1046";
+  const noteSentinel = "E2E continuity note 1065";
   const evaSentinel = "7";
 
   await page.getByLabel("Nota clínica *").fill(noteSentinel);
   await page.getByLabel("Puntuación EVA").fill(evaSentinel);
+
+  // completar BP para evitar payload parcial inválido
+  await page.getByLabel("Presión sistólica").fill("120");
+  await page.getByLabel("Presión diastólica").fill("80");
 
   await Promise.all([
     page.waitForLoadState("networkidle"),
     page.getByRole("button", { name: "Guardar progreso" }).click(),
   ]);
 
-  // nuevo chequeo: estado inmediatamente después del save
+  // chequeo inmediato después del save
   await expect(page.getByLabel("Nota clínica *")).toHaveValue(noteSentinel);
   await expect(page.getByLabel("Puntuación EVA")).toHaveValue(evaSentinel);
 
