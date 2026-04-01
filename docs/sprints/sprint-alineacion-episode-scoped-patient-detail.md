@@ -209,3 +209,63 @@ eliminación de selector híbrido
 coherencia total entre selección y datos clínicos
 alineación completa con el contrato semántico previo
 implementación incremental sin impacto estructural
+## 14. Cierre del sprint
+
+### Estado
+
+Sprint cerrado.
+
+### Resultado alcanzado
+
+- `patient detail` dejó de usar un selector híbrido.
+- El encounter de referencia quedó alineado al contrato:
+  - `in-progress` del EpisodeOfCare activo, si existe;
+  - en caso contrario, último `finished` del EpisodeOfCare activo.
+- El fallback patient-global / practitioner-global dejó de participar en esta surface.
+- Los datasets clínicos encounter-based (`procedures`, `EVA`, `vital signs`) quedaron alineados al mismo `encounterId` seleccionado.
+- La selección del último `finished` quedó endurecida con criterio explícito:
+  - comparación por timestamp de cierre;
+  - desempate determinístico.
+- Se incorporó estado vacío controlado en el resumen encounter-based:
+  - **No hay visitas registradas en el episodio activo**
+
+### Evidencia
+
+- Tests de selector:
+  - prioridad de `in-progress`
+  - fallback a latest `finished` del episodio activo
+  - exclusión de encounters de otros episodios
+  - selección por end timestamp
+  - tie-break determinístico
+- Tests de render:
+  - empty state en `LastEncounterSection`
+  - preservación del render general de página
+
+### Impacto técnico real
+
+- Cambio implementado de forma **incremental**.
+- No se requirieron cambios en repositorios.
+- No se modificaron contracts de datos.
+- No se tocaron otras surfaces.
+
+### Lo que NO se hizo (intencionalmente)
+
+- No se modificó `encounter history` / `encounters page`
+- No se modificó `EpisodeChartsPanel`
+- No se modificó `encounter detail`
+- No se hizo rediseño UI general de `patient detail`
+- No se alteró el contrato semántico ya definido en el sprint previo
+
+### Resultado de arquitectura
+
+- `patient detail` quedó consistente con el contrato episode-scoped ya decidido.
+- Se eliminó la mezcla entre selección por episodio y selección patient-global dentro de esta surface.
+- La implementación se mantuvo bounded y sin expansión estructural.
+
+### Próximo paso
+
+Si se requiere continuidad, el siguiente paso natural es un sprint separado para:
+
+**Alineación episode-scoped de encounter history / navegación cross-surface**
+
+solo si el roadmap lo prioriza.
