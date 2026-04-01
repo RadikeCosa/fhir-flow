@@ -55,7 +55,10 @@ el sprint actual no rompe el comportamiento previamente estable de este path.
 
 ## 4. Evidencia automatizada agregada
 
-Se incorporaron tests de integración livianos para reforzar garantías clave del modelo:
+Se incorporó y fortaleció evidencia automatizada en dos niveles para reforzar garantías clave del modelo:
+
+- tests de integración livianos (alcance de repositorios/loaders);
+- validación E2E browser-level acotada del loop `save -> reload -> rehydrate` en `encounter detail` in-progress.
 
 ### 4.1 Encounter detail — aislamiento encounter-centric
 
@@ -74,6 +77,21 @@ patient detail utiliza una única fuente clínica:
 inProgressEncounter ?? lastFinishedEncounter
 cuando existe un encounter in-progress, los datasets clínicos se cargan desde ese encounter;
 no se mezclan datos con el último encounter finalizado.
+
+### 4.3 Browser E2E (encounter detail in-progress) — continuidad de rehidratación
+
+Se validó en runtime real de browser, para el mismo `encounterId`, el loop:
+
+`save -> reload -> rehydrate`
+
+con evidencia post-reload de:
+
+- `Nota clínica *`
+- `Puntuación EVA`
+- `Frecuencia cardíaca (lpm)`
+- `Frecuencia respiratoria (rpm)`
+- `Presión sistólica (mmHg)`
+- `Presión diastólica (mmHg)`
 
 ## 5. Comportamiento observado relevante
 
@@ -120,9 +138,13 @@ Este sprint no cubre:
 
 persistencia parcial de progreso clínico en in-progress;
 reanudación de formularios de edición;
-validación E2E completa en browser;
+validación E2E browser-level completa transversal de toda la app;
 hardening completo del canonical read de finished;
 migración o normalización de datos históricos sin encounterId.
+
+También queda abierto como trabajo acotado posterior:
+
+- validación browser-level mínima y determinística de `in-progress -> finalize -> finished` (sin forzarla en este cierre).
 
 ## 9. Definición de done alcanzada
 
@@ -139,6 +161,7 @@ no se declaró cierre de deuda fuera del alcance validado.
 Permanece abierta:
 
 continuidad clínica completa en in-progress a nivel de UI;
+validación browser-level de finalize (`in-progress -> finalize -> finished`) en escenario determinístico;
 canonical read hardening completo de finished;
 tipado estructurado de ActionError.details;
 manejo explícito de datos históricos sin linkage a encounterId.
