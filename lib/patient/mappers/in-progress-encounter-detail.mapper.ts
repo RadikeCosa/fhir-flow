@@ -33,8 +33,26 @@ export interface InProgressEncounterFormInitialValues {
 export function mapInProgressEncounterDetailToFormInitialValues(
     source: InProgressEncounterDetailInitialValues,
 ): InProgressEncounterFormInitialValues {
+    console.info("[eva-read][mapper][source-evaAssessments]", {
+        count: source.evaAssessments.length,
+        items: source.evaAssessments.map((item) => ({
+            id: item.id,
+            date: item.date,
+            score: item.score,
+            encounterId: item.encounterId,
+        })),
+    });
     const latestVital = pickLatestVitalSign(source.vitalSigns);
     const latestEva = pickLatestEvaAssessment(source.evaAssessments);
+    console.info("[eva-read][mapper][latestEva]", latestEva
+        ? {
+            id: latestEva.id,
+            date: latestEva.date,
+            score: latestEva.score,
+            encounterId: latestEva.encounterId,
+        }
+        : null);
+    console.info("[eva-read][mapper][evaScore]", latestEva?.score);
 
     return {
         clinicalNote: source.clinicalNote ?? "",
