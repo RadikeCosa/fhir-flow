@@ -1,214 +1,211 @@
-# Sprint — Alineación episode-scoped de patient detail
+Sprint — Alineación episode-scoped de patient detail
 
-- Fecha: 2026-03-31
-- Estado: Propuesto
+Fecha: 2026-03-31
+Estado: Propuesto
 
-## 1. Objetivo
+1. Objetivo
 
-Implementar en patient detail el contrato semántico ya definido para el encounter de referencia, de modo que el resumen clínico de la pantalla se base exclusivamente en la última visita finished del EpisodeOfCare activo, con selección determinística y datasets clínicos alineados al mismo encounterId.
+Implementar en patient detail el contrato semántico ya definido para el encounter de referencia, asegurando que el resumen clínico se base en:
 
-Este sprint no redefine semántica: la implementa.
+in-progress ?? último finished del EpisodeOfCare activo
 
-## 2. Problema / diagnóstico
+con selección determinística, scope estrictamente episode-scoped y datasets clínicos alineados al mismo encounterId.
 
-El sprint anterior cerró el contrato semántico cross-surface y definió que patient detail debe tomar como encounter de referencia el más reciente dentro del episodio activo, acotando la surface a semántica episode-scoped.
+Este sprint implementa el contrato; no lo redefine.
 
-El runtime actual todavía conserva una desalineación en patient detail:
+2. Problema / diagnóstico
 
-- detecta el episodio activo,
-- pero el fallback clínico de “última visita” sigue dependiendo de una lógica patient + practitioner,
-- lo que contradice el contrato cerrado y mantiene un selector híbrido dentro de la misma surface.
+El contrato semántico cerrado establece:
 
-El problema a resolver ya no es de diseño: es de alineación de selector y composición clínica dentro de patient detail.
+prioridad de in-progress sobre finished
+scope restringido al EpisodeOfCare activo
 
-## 3. Alcance
+El runtime actual presenta una desalineación:
 
-### Entra en este sprint
+detecta el episodio activo
+pero el fallback de “última visita” sigue dependiendo de lógica patient + practitioner
+generando un selector híbrido (episode + global) dentro de la misma surface
 
-- ajustar el selector de encounter de referencia en patient detail;
-- restringir el selector al EpisodeOfCare activo;
-- considerar solo encounters en estado finished;
-- definir desempate determinístico por fecha y hora;
-- alinear datasets clínicos (observations, EVA, procedimientos, etc.) al encounterId seleccionado;
-- agregar estado vacío controlado cuando no haya visitas finalizadas registradas;
-- incorporar tests de regresión de patient detail.
+El problema es de selector + composición, no de diseño.
 
-### No entra en este sprint
+3. Alcance
+Entra en este sprint
+ajustar el selector de encounter de referencia en patient detail;
+implementar regla: in-progress ?? lastFinished (episode-scoped);
+restringir completamente el selector al EpisodeOfCare activo;
+definir desempate determinístico para finished;
+alinear datasets clínicos al encounterId seleccionado;
+definir e implementar empty state cuando no haya encounters válidos;
+agregar tests de regresión.
+No entra
+encounter history / encounters page;
+charts / longitudinal;
+encounter detail;
+refactor estructural de repositorios;
+rediseño UX/UI;
+cambios de lifecycle.
+4. Regla de selector (implementación)
 
-- encounter history / encounters page;
-- EpisodeChartsPanel o surfaces longitudinales;
-- encounter detail;
-- refactor global de repositorios;
-- cambios estructurales de arquitectura;
-- rediseño UX/UI de patient detail;
-- rediseño de CTA operativa salvo ajuste mínimo imprescindible por consistencia.
+El encounter de referencia en patient detail se determina así:
 
-## 4. Decisión ya cerrada que este sprint implementa
+Si existe un encounter in-progress en el EpisodeOfCare activo → usar ese
+Si no existe → usar el último encounter finished del EpisodeOfCare activo
+Si no existe ninguno → renderizar empty state
+5. Desempate (solo para finished)
 
-patient detail debe mostrar como encounter de referencia:
+El “último finished” se define con orden determinístico:
 
-- la última visita finished del EpisodeOfCare activo;
-- si hay múltiples candidatas, gana la más reciente;
-- si comparten la misma fecha, desempata la hora más reciente;
-- si no existe ninguna visita finished en el episodio activo, se muestra estado vacío controlado.
+ordenar por fecha/hora de finalización
+campo explícito a usar: period.end (o equivalente canónico del dominio)
+si existe empate exacto → usar criterio estable secundario (ej: id)
 
-Mensaje de estado vacío:
+Este criterio debe quedar implementado y cubierto por tests.
 
-No hay visitas finalizadas registradas
+6. Riesgos principales
+R1 — Necesidad de ajuste en repositorio
 
-## 5. Riesgos principales
+El repositorio podría no exponer una query clara para:
 
-### Riesgo 1 — Ajustar solo el selector y no la composición
+encounters por EpisodeOfCare
+filtrados por status
 
-Que el encounter elegido sea correcto pero los datasets clínicos sigan viniendo de otro origen.
+Si no puede resolverse en app layer de forma limpia, podría requerir ajuste de infraestructura.
 
-### Riesgo 2 — Empate mal resuelto
+R2 — Desalineación selector vs datasets
 
-Que el criterio de “última visita” no sea estable si hay múltiples finished cercanos o con misma fecha.
+Elegir correctamente el encounter pero seguir cargando datos clínicos desde otra fuente.
 
-### Riesgo 3 — Reabrir scope innecesario
+R3 — Scope creep
 
-Que el sprint derive en cambios sobre history, charts o refactor de queries sin necesidad demostrada.
+Extender cambios a:
 
-### Riesgo 4 — Mezclar semántica con UX
+history
+charts
+repositorio sin necesidad real
+R4 — Mezcla con decisiones de UX
 
-Que se intenten aprovechar estos cambios para rediseñar visualmente patient detail.
+Aprovechar el cambio para rediseñar patient detail.
 
-## 6. Política de implementación
+7. Política de implementación
+Regla 1 — Resolver en loader/composición
 
-### Regla 1 — Resolver primero en loader/composición
+Preferencia por resolver en app/patients/[id]/data.ts.
 
-La preferencia es resolver la alineación en app/patients/[id]/data.ts o boundary equivalente de composición.
+Regla 2 — Verificar antes de tocar repositorio
 
-### Regla 2 — No tocar repositorio salvo necesidad demostrada
+El repositorio solo se modifica si T1 demuestra que el selector no es expresable correctamente.
 
-Solo se modifica contrato o query de repositorio si el selector episode-scoped no puede expresarse razonablemente con capacidades ya existentes.
+Regla 3 — Single source of truth
 
-### Regla 3 — Misma fuente para selección y datasets
+El encounterId seleccionado es la única fuente de datos clínicos encounter-based.
 
-El encounter seleccionado debe ser la única fuente de verdad para los datos clínicos encounter-based de patient detail.
+Regla 4 — Sin fallback global
 
-### Regla 4 — Sin fallback fuera del episodio activo
+Prohibido usar:
 
-Si no hay finished en el episodio activo, no se reutiliza ninguna visita de otro episodio ni lógica patient-global.
-
-## 7. Definición de Done
-
-El sprint se considera cerrado solo si:
-
-- patient detail selecciona el encounter de referencia exclusivamente dentro del EpisodeOfCare activo;
-- el selector considera únicamente visitas finished;
-- el desempate por fecha/hora queda definido y cubierto;
-- todos los datasets clínicos encounter-based de patient detail se leen desde el mismo encounterId seleccionado;
-- si no existe finished en el episodio activo, se renderiza el estado vacío controlado;
-- existen tests automatizados que cubren selección, desempate, no-contaminación entre episodios y alineación de datasets;
-- no se expandió el sprint a history, charts o rediseño UI.
-
-## 8. Orden de ejecución
-
-1. validar path actual de selector en patient detail;
-2. reemplazar selector híbrido por selector episode-scoped finished;
-3. definir y aplicar desempate estable;
-4. alinear datasets clínicos al encounter seleccionado;
-5. implementar estado vacío controlado;
-6. agregar y ejecutar tests de regresión;
-7. cerrar documentación de sprint.
-
-## 9. Tickets del sprint
-
-### T1 — Auditoría puntual del selector actual de patient detail
-
-Identificar exactamente dónde se compone hoy el encounter de referencia y cómo se conectan los datasets clínicos a ese selector.
-
-#### Criterios
-
-- selector actual localizado;
-- dependencia patient-global identificada;
-- punto exacto de composición clínica documentado.
-
-### T2 — Implementación del selector episode-scoped finished
-
-Cambiar la lógica de selección para que patient detail use solo encounters finished del episodio activo.
-
-#### Criterios
-
-- selección restringida al EpisodeOfCare activo;
-- in-progress, planned y patient-global quedan fuera del selector de referencia;
-- no hay fallback a otros episodios.
-
-### T3 — Desempate determinístico por fecha y hora
-
-Definir y aplicar el criterio de “última visita” cuando existan múltiples finished.
-
-#### Criterios
-
-- orden estable por fecha más reciente;
-- empate resuelto por hora más reciente;
-- comportamiento determinístico cubierto por tests.
-
-### T4 — Alineación de datasets clínicos + estado vacío
-
-Asegurar que los datos clínicos encounter-based de patient detail provengan del mismo encounterId seleccionado y renderizar el estado vacío si no existe finished.
-
-#### Criterios
-
-- datasets alineados al selector;
-- no contaminación desde otro episodio o encounter;
-- mensaje vacío visible:
-	No hay visitas finalizadas registradas
-
-### T5 — Tests y cierre documental
-
-Agregar evidencia automatizada y dejar cierre acotado del sprint.
-
-#### Criterios
-
-- tests de selección y desempate;
-- tests de exclusión de otro episodio;
-- tests de alineación de datasets;
-- test de empty state;
-- cierre documental sin sobredeclarar cambios fuera de patient detail.
-
-## 10. Criterios de aceptación
-
-- patient detail muestra como referencia solo la última visita finished del episodio activo;
-- si hay múltiples candidatas, la selección es estable y reproducible;
-- los datos clínicos mostrados pertenecen al mismo encounter seleccionado;
-- no se reutiliza una visita más reciente de otro episodio;
-- si no hay visitas finished, se muestra el empty state definido;
-- el cambio queda cubierto por tests automatizados.
-
-## 11. Evidencia mínima esperada
-
-### Incluye
-
-- diff focalizado en patient detail loader/composición;
-- tests unitarios o de integración liviana del selector;
-- pruebas de alineación encounter → datasets;
-- prueba de empty state.
-
-### No incluye
-
-- cambios en history/list;
-- cambios en charts;
-- E2E browser-level;
-- refactor estructural.
-
-## 12. Límites explícitos del cierre
-
-Este sprint no implica:
-
-- alineación completa de todas las surfaces;
-- rediseño de la UX de patient detail;
-- cambios en el contrato semántico ya cerrado;
-- reabrir encounter history o EpisodeChartsPanel;
-- refactor global de consultas o loaders.
-
-## 13. Resultado esperado
-
-Al cerrar este sprint:
-
-- patient detail deja de usar una referencia híbrida;
-- el resumen clínico queda correctamente episode-scoped;
-- la selección del encounter de referencia pasa a ser determinística, verificable y consistente con el contrato ya decidido;
-- el sistema reduce una divergencia técnica concreta sin necesidad de rediseño estructural.
+patient-global
+practitioner-global
+otros episodios
+8. Definición de Done
+selector implementado como in-progress ?? lastFinished (episode-scoped)
+ningún uso de selector patient-global en patient detail
+desempate determinístico implementado
+datasets clínicos alineados al mismo encounterId
+empty state renderizado correctamente cuando no hay encounters válidos
+tests cubriendo selección, desempate, no-contaminación y empty state
+sin cambios fuera de patient detail
+9. Orden de ejecución
+auditar selector actual
+validar capacidades del repositorio
+implementar selector episode-scoped
+implementar desempate
+alinear datasets
+implementar empty state
+agregar tests
+cerrar documentación
+10. Tickets
+T1 — Auditoría de selector y repositorio
+
+Identificar:
+
+dónde se construye el selector actual
+si existe soporte repo para:
+episode-scoped queries
+filtrado por status
+
+Criterios
+
+selector actual localizado
+dependencia global identificada
+decisión clara: resolver en app o requiere repo
+T2 — Implementación de selector episode-scoped
+
+Aplicar:
+
+in-progress ?? lastFinished
+ambos dentro del episodio activo
+
+Criterios
+
+ningún fallback global
+prioridad de in-progress respetada
+T3 — Implementación de desempate
+
+Aplicar orden determinístico para finished.
+
+Criterios
+
+uso explícito de period.end
+comportamiento estable
+cubierto por tests
+T4 — Alineación de datasets + empty state
+datasets clínicos alineados al encounter seleccionado
+implementación de empty state
+
+Empty state
+
+Mensaje:
+
+No hay visitas registradas en el episodio activo
+
+Ubicación:
+
+dentro del componente que renderiza el resumen clínico encounter-based (ej: LastEncounterSection o equivalente)
+no en nivel de página completo
+T5 — Tests y cierre documental
+
+Tests mínimos:
+
+prioriza in-progress
+fallback a finished
+desempate correcto
+no toma encounter de otro episodio
+datasets alineados
+empty state
+
+Cierre documental
+
+Actualizar:
+
+backlog.md (nuevo sprint técnico + estado)
+validacion-arquitectonica.md (alineación episode-scoped en patient detail)
+11. Criterios de aceptación
+patient detail refleja correctamente el encounter activo o el último cerrado del episodio
+nunca muestra datos de otro episodio
+la selección es determinística
+los datos clínicos corresponden al encounter seleccionado
+el empty state aparece solo cuando corresponde
+12. Límites explícitos
+
+Este sprint no incluye:
+
+cambios en history/list
+cambios en charts
+rediseño UI
+refactor global
+cambios en contrato semántico
+13. Resultado esperado
+eliminación de selector híbrido
+coherencia total entre selección y datos clínicos
+alineación completa con el contrato semántico previo
+implementación incremental sin impacto estructural
