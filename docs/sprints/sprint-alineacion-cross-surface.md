@@ -1,224 +1,323 @@
-# Sprint — Alineación cross-surface episode-scoped (patient detail ↔ encounter history)
+# Sprint — Diagnóstico y alineación cross-surface episode-scoped (patient detail ↔ encounter history)
 
 ## 1. Objetivo
 
-Alinear semántica y navegación entre patient detail y encounter history bajo el modelo episode-scoped, asegurando coherencia entre:
+Verificar y, solo si hace falta, endurecer la coherencia cross-surface entre patient detail y encounter history bajo el modelo episode-scoped, tomando como punto de partida el estado real implementado y no solo la documentación existente.
 
-- encounter relevante del episodio (surface de resumen)
-- colección de encounters del episodio (surface de listado)
-- navegación hacia encounter detail
+Este sprint busca responder con evidencia si ambas surfaces están efectivamente alineadas en:
 
-Sin unificar comportamiento ni introducir cambios de UX.
+- pertenencia al mismo episodio activo
+- selección del encounter relevante
+- ordering esperado
+- visibilidad operativa
+- navegación por encounterId
+
+Sin rediseñar UX ni alterar el modelo longitudinal de charts.
 
 ## 2. Problema a resolver
 
-Tras los sprints previos:
+La documentación y el backlog ya reconocen deuda abierta de alineación cross-surface entre patient detail y encounter history, mientras que ambas surfaces fueron endurecidas por separado en sprints previos.
 
-- ambas surfaces (patient detail y encounter history) ya operan correctamente en modo episode-scoped
-- los datasets están separados y sin mezcla
+El riesgo actual no es solo conceptual. Puede existir drift entre:
 
-Sin embargo:
+- lo documentado como comportamiento esperado
+- lo realmente implementado en loaders, selectors y componentes
+- lo que el usuario termina viendo o navegando
 
-- no existe un contrato explícito cross-surface
-- la coherencia entre:
-	- encounter destacado en patient detail
-	- ordering, visibilidad y CTA en encounter history
-- no está formalmente validada
+Por lo tanto, este sprint no debe asumir que el contrato cross-surface ya está claro ni que la documentación vigente refleja perfectamente el runtime.
 
-El riesgo principal es semántico, pero este sprint debe verificar si esa deuda se manifiesta además como:
+La primera responsabilidad del sprint es diagnosticar con precisión:
 
-- gap de ordering
-- gap de visibilidad
-- gap de navegación
+- qué comportamiento está efectivamente implementado hoy
+- qué parte coincide con la documentación
+- qué parte es drift documental
+- qué parte es inconsistencia real del sistema
 
-entre ambas surfaces.
+## 3. Autoridad y criterio de lectura
 
-## 3. Definición de comportamiento esperado
+Para este sprint, la evaluación debe distinguir entre:
 
-### 3.1 Patient detail
+### 3.1 Documentos de autoridad
 
-Surface de resumen clínico
+Usar como autoridad normativa:
 
-Selecciona un único encounter relevante:
+- ADR-001-encounter-lifecycle-and-write-architecture.md
+- write-phase-architecture.md
+- guia-rapida.md
 
-- in-progress si existe
-- en caso contrario, último finished del episodio activo
+Estos documentos mandan cuando existe duda de dirección arquitectónica.
 
-### 3.2 Encounter history
+### 3.2 Documentos de estado actual
 
-Surface de colección
+Usar como referencia de implementación y deuda abierta:
 
-Lista encounters del episodio activo
+- app-architecture-checkpoint-2026-03.md
+- backlog.md
 
-Ordering esperado:
+Estos documentos describen estado y pendientes, pero pueden tener drift respecto al runtime y por eso deben ser verificados, no asumidos.
 
-- in-progress primero (si existe)
-- luego finished ordenados por fecha descendente
-- luego otros estados si aplican
+### 3.3 Regla operativa del sprint
+
+Si hay divergencia entre documentación y runtime:
+
+- primero se clasifica como drift documental o gap real
+- no se modifica código productivo hasta cerrar ese diagnóstico
+- no se reescribe arquitectura global por una diferencia local
+
+## 4. Definición de comportamiento esperado a validar
+
+### 4.1 Patient detail
+
+patient detail debe operar como surface de resumen clínico encounter-centric dentro del episodio activo.
+
+Selector esperado según estado ya documentado:
+
+- usar inProgressEncounter si existe
+- en caso contrario, usar lastFinishedEncounter
+
+Los datasets clínicos mostrados en esta surface deben provenir de ese mismo encounterId, sin fallback temporal como source of truth.
+
+### 4.2 Encounter history
+
+encounter history debe operar como surface de colección del episodio activo.
+
+La colección base esperada es la de encounters del episodio activo.
+
+Ordering esperado a verificar contra runtime:
+
+- in-progress primero, si existe
+- luego finished en orden descendente
+- luego otros estados, si aplican
 
 Planned encounters:
 
-- Los encounters planned pertenecen a la colección del episodio activo
-- Su visibilidad parcial puede mantenerse según la implementación actual (ej: subset + “+N sesiones más”)
-- Este sprint NO redefine ese comportamiento de UI
+- pertenecen a la colección base del episodio activo
+- su visibilidad parcial puede seguir siendo válida por decisión de UX
+- este sprint no redefine esa UX
 
-Comportamiento especial:
+### 4.3 Relación entre surfaces
 
-- in-progress debe ser visible arriba y con CTA para finalizar
+El contrato cross-surface a verificar es:
 
-### 3.3 Relación entre surfaces
-
-Ambas operan sobre el mismo episodio activo
-
-Coherencia semántica:
-
-El encounter relevante en patient detail:
-
-- debe pertenecer a la colección base de encounter history
-- debe ser consistente con el ordering esperado
+- el encounter seleccionado en patient detail debe pertenecer a la colección base de encounter history
+- su identidad debe preservarse por encounterId
+- su prioridad debe ser coherente con el ordering real de history
+- la navegación debe mantenerse encounterId-driven
 
 Importante:
 
-- “Colección base” ≠ “colección visible”
-- Si una decisión UX (ej: colapso de planned) oculta elementos:
-	- no se considera bug en este sprint
-	- se documenta como límite de visibilidad
+- colección base y colección visible no son lo mismo
+- un encounter válido en la base puede no estar visible por decisiones actuales de UX
+- eso solo es bug si contradice el contrato real implementado o rompe navegación/consistencia semántica
 
-Navegación:
-
-- Siempre basada en encounterId
-- Independiente de charts o selección implícita
-
-## 4. Alcance
+## 5. Alcance
 
 ### Incluye
 
-- Auditoría de coherencia entre:
-	- selector de patient detail
-	- ordering, visibilidad y CTA de encounter history
-- Validación de:
-	- prioridad de in-progress
-	- fallback a último finished
-- Validación de navegación basada en encounterId
-- Tests de consistencia cross-surface
-- Hardening mínimo si se detectan gaps reales
+- diagnóstico del estado real cross-surface
+- contraste documentación vs runtime
+- auditoría de selector en patient detail
+- auditoría de ordering, visibilidad y CTA en encounter history
+- validación de pertenencia al mismo episodio
+- validación de navegación por encounterId
+- tests de consistencia cross-surface
+- fixes mínimos únicamente si el diagnóstico detecta inconsistencias reales
 
 ### No incluye
 
-- Rediseño UX
-- Cambios en charts (siguen longitudinales)
-- Paginación o cambios de listado
-- Refactor global de loaders
-- Modelado de navegación ida/vuelta (browser-level)
-- Explicitar semántica en UI
+- rediseño UX
+- cambios en charts longitudinales
+- refactor global de loaders
+- unificación artificial de ambas surfaces
+- paginación o rediseño de listados
+- browser-level navigation model
+- reescritura masiva de documentación no relacionada
 
-## 5. Riesgos
+## 6. Riesgos a controlar
 
-- Intentar unificar comportamiento entre surfaces (incorrecto)
-- Introducir lógica compartida innecesaria
-- Confundir colección base con colección visible
-- Expandir el sprint por decisiones UX existentes
+- asumir que la documentación describe exactamente el runtime
+- tratar drift documental como bug productivo
+- confundir colección base con colección visible
+- intentar “unificar” dos surfaces con responsabilidades distintas
+- expandir el sprint hacia charts, lifecycle o canonical read global
 
-## 6. Estrategia
+## 7. Estrategia de ejecución
 
-- Auditar comportamiento actual (read-only)
-- Evaluar contra contrato definido
-- Clasificar hallazgos:
-	- OK
-	- gap de ordering
-	- gap de visibilidad
-	- gap de navegación
-- Aplicar fixes mínimos solo si hay inconsistencias reales
-- Blindar con tests
+Orden obligatorio:
 
-## 7. Tareas
+1. Diagnóstico del sprint
+2. Clasificación de hallazgos
+3. Hardening mínimo si aplica
+4. Blindaje con tests
+5. Documentación mínima correctiva
 
-### T1 — Auditoría cross-surface (read-only)
+Tipos de hallazgo permitidos:
 
-Verificar:
+- OK → runtime y contrato esperado alineados
+- Drift documental → el runtime está bien, la documentación quedó atrás
+- Gap de ordering
+- Gap de visibilidad
+- Gap de navegación
+- Gap semántico cross-surface
 
-- selector de patient detail
-- ordering real en encounter history
-- comportamiento en escenarios:
-	- solo finished
-	- con in-progress
-	- con planned visibles/no visibles
-- diferencia entre:
-	- colección base
-	- colección visible
-- navegación desde cada item (href basado en encounterId)
+## 8. Tareas
 
-#### Salida:
+### T1 — Diagnóstico cross-surface y auditoría documentación ↔ runtime
 
-- diagnóstico explícito:
-	- OK / gaps (con tipo: ordering, visibilidad, navegación)
+Objetivo: establecer el estado real antes de modificar nada.
 
-### T2 — Hardening mínimo (si aplica)
+Verificar en código y tests actuales:
 
-Solo si T1 detecta inconsistencias reales:
+- selector efectivo de patient detail
+- fuente real de datasets clínicos en patient detail
+- colección base real usada por encounter history
+- ordering real de history
+- reglas actuales de visibilidad para planned encounters
+- CTA y prioridad visual de in-progress
+- href/navegación de cada item por encounterId
+- coincidencia o drift respecto de:
+	- backlog
+	- checkpoint de arquitectura
+	- sprint proposal actual
 
-- ajustar ordering en history
+Escenarios mínimos a auditar:
+
+- solo finished
+- in-progress + finished
+- planned + finished
+- planned + in-progress + finished
+- encounter relevante presente en colección base pero oculto en visible list
+- mismo paciente con múltiples encounters del mismo episodio
+- caso negativo de no mezcla inter-episode si hay evidencia relevante en loader/selector
+
+Salida obligatoria de T1:
+
+Diagnóstico explícito con esta forma:
+
+- comportamiento implementado hoy
+- documentos alineados
+- documentos con drift
+- gaps reales detectados
+- recomendación: no tocar / hardening local / doc-only correction
+
+### T2 — Contrato cross-surface explícito
+
+Objetivo: traducir el diagnóstico en reglas verificables.
+
+A partir de T1, dejar fijado un contrato mínimo y falsable entre surfaces:
+
+- qué significa “mismo encounter” cross-surface
+- qué significa “pertenece a history”
+- cuándo un elemento oculto sigue siendo válido
+- cuándo hay inconsistencia real
+- qué ordering mínimo debe sostenerse
+- qué comportamiento de navegación se considera correcto
+
+Restricción:
+
+- no introducir shared abstractions innecesarias
+- no forzar una lógica común si hoy ambas surfaces deben seguir diferenciadas
+
+### T3 — Hardening mínimo (solo si T1/T2 detectan gap real)
+
+Aplicar cambios locales únicamente si hay inconsistencia verificable.
+
+Posibles ajustes válidos:
+
+- corregir ordering real de history
 - asegurar prioridad de in-progress
-- alinear comportamiento con selector de patient detail
+- corregir selector o pertenencia de encounter en patient detail
+- corregir href/navegación por encounterId
+- cerrar desalineaciones semánticas concretas entre surfaces
 
-#### Restricciones:
+Restricciones:
 
-- cambios locales
-- sin refactor
-- sin alterar UX existente
+- sin refactor global
+- sin cambios de UX no necesarios
+- sin tocar charts
+- sin rediseñar loaders enteros
 
-### T3 — Tests de consistencia cross-surface
+### T4 — Tests de consistencia cross-surface
 
-Agregar tests que prueben:
+Agregar o ajustar tests que prueben contratos explícitos.
 
-- con in-progress:
-	- es el seleccionado en patient detail
-	- aparece primero en history
-- sin in-progress:
-	- último finished es seleccionado en patient detail
-	- aparece primero en history
-- el encounter seleccionado en patient detail:
-	- pertenece a la colección base de history
+Casos mínimos:
 
-Caso importante:
+Con in-progress
 
-- si pertenece a la colección base pero no a la colección visible:
-	- el test debe reflejarlo como comportamiento válido
-	- no como fallo
+- patient detail selecciona in-progress
+- history lo contiene en la colección base
+- history lo prioriza según ordering real esperado
+- la navegación usa su encounterId
 
-Navegación:
+Sin in-progress
 
-- sigue siendo estrictamente por encounterId
+- patient detail selecciona el último finished
+- ese encounter pertenece a la colección base de history
+- su posición en history es coherente con ordering real
 
-### T4 — Documentación mínima
+Planned con visibilidad parcial
 
-- explicitar contrato cross-surface
-- documentar límites (colección base vs visible)
-- no reescribir arquitectura global
+- si el encounter pertenece a la base pero no a la visible list:
+	- el test debe distinguir base vs visible
+	- no debe marcarlo automáticamente como bug
 
-## 8. Criterios de aceptación
+Guardas negativas
 
-- patient detail y encounter history operan sobre el mismo episodio
-- el encounter relevante de patient detail:
-	- pertenece a la colección base de history
-	- es coherente con el ordering esperado
-- in-progress:
-	- tiene prioridad en ambas surfaces según su rol
-- navegación consistente basada en encounterId
-- no hay mezcla con datasets longitudinales
-- comportamiento UX existente se mantiene
+- no mezclar encounter seleccionado con datasets de otro encounterId
+- no introducir fallback temporal en surfaces encounter-centric
+- no perder navegación encounterId-driven
+
+### T5 — Documentación mínima correctiva
+
+Actualizar solo lo estrictamente necesario según hallazgos.
+
+Posibles salidas:
+
+- si el runtime está bien pero la doc no: corregir backlog/checkpoint/sprint doc
+- si hubo gap real: documentar el contrato cross-surface ya endurecido
+- explicitar de forma mínima:
+	- colección base vs visible
+	- ordering esperado
+	- límite de visibilidad planned
+	- dependencia de navegación por encounterId
+
+No reescribir arquitectura general.
+
+## 9. Criterios de aceptación
+
+El sprint se considera cerrado cuando se demuestra con evidencia que:
+
+- patient detail y encounter history operan sobre el mismo episodio activo
+- el encounter relevante de patient detail pertenece a la colección base de history
+- la selección en patient detail y el ordering de history son coherentes con el contrato definido
+- in-progress tiene prioridad cross-surface cuando existe
+- la navegación se mantiene estrictamente basada en encounterId
+- cualquier diferencia entre documentación y runtime quedó clasificada como:
+	- drift documental
+	- o gap real corregido
+- no se introdujo mezcla con datasets longitudinales
+- la UX existente se conserva salvo ajuste mínimo estrictamente necesario
 
 Importante:
 
-- si el encounter relevante no aparece en la colección visible por decisión UX:
-	- se documenta como límite del sistema
-	- no como fallo del sprint
+Si el encounter relevante no aparece en la colección visible por decisión UX vigente, eso solo invalida el sprint si rompe el contrato explícito definido en T2.
 
-## 9. Resultado esperado
+## 10. Resultado esperado
 
-- coherencia semántica explícita entre surfaces
-- navegación predecible
-- separación clara entre:
-	- colección base
-	- colección visible
-- base sólida para evolución futura sin regresiones
+Al final del sprint debe quedar una de estas dos situaciones, ambas válidas:
+
+### Opción A — Diagnóstico fuerte sin cambios productivos
+
+- se demuestra que el runtime ya está alineado
+- se corrige solo documentación drifted
+- se blindan contratos con tests
+
+### Opción B — Hardening mínimo con cierre localizado
+
+- se detecta gap real
+- se corrige con cambio local
+- se documenta el contrato resultante
+- se agregan tests de regresión
+
+En ambos casos, el valor del sprint es dejar de hablar de “alineación cross-surface” como intuición y pasar a tenerla como contrato verificable.
