@@ -139,6 +139,7 @@ export default function FinalizeEncounterForm({
     setServerResult(null);
 
     const values = getValues();
+    console.log("[save-progress][client] clinicalNote =", values.clinicalNote);
 
     const result = await saveEncounterProgressAction(patientId, encounterId, {
       clinicalNote: values.clinicalNote,
