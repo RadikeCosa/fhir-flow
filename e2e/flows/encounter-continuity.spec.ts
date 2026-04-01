@@ -13,9 +13,6 @@ async function ensureEncounterInProgress(page: Page) {
 
     await startButton.click();
     await page.waitForLoadState("networkidle");
-
-    console.log(await page.locator("body").innerText());
-    await page.screenshot({ path: "debug-after-start.png", fullPage: true });
   }
 
   await expect(page.getByRole("heading", { name: "Finalizar visita" })).toBeVisible();
@@ -27,9 +24,6 @@ test("planned encounter can be started and becomes in-progress", async ({ page }
 });
 
 test("save progress survives reload by rehydrating in-progress form", async ({ page }) => {
-  page.on("console", (msg) => {
-    console.log("[browser console]", msg.text());
-  });
   await ensureEncounterInProgress(page);
 
   const noteSentinel = "E2E continuity note 1065";

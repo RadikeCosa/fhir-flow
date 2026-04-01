@@ -148,42 +148,6 @@ export default function FinalizeEncounterForm({
 
     const values = getValues();
 
-    console.log(
-      "[save-progress][client] values =",
-      JSON.stringify(values, null, 2),
-    );
-    console.log("[save-progress][client] clinicalNote =", values.clinicalNote);
-    console.log(
-      "[save-progress][client] reasonDisplay =",
-      values.reasonDisplay,
-    );
-    console.log("[save-progress][client] evaScore =", values.evaScore);
-    console.log(
-      "[save-progress][client] bloodPressureSystolic =",
-      values.bloodPressureSystolic,
-    );
-    console.log(
-      "[save-progress][client] bloodPressureDiastolic =",
-      values.bloodPressureDiastolic,
-    );
-    console.log("[save-progress][client] heartRate =", values.heartRate);
-    console.log(
-      "[save-progress][client] respiratoryRate =",
-      values.respiratoryRate,
-    );
-    console.log(
-      "[save-progress][client] oxygenSaturation =",
-      values.oxygenSaturation,
-    );
-    console.log(
-      "[save-progress][client] bodyTemperature =",
-      values.bodyTemperature,
-    );
-    console.log(
-      "[save-progress][client] procedures =",
-      JSON.stringify(values.procedures, null, 2),
-    );
-
     const result = await saveEncounterProgressAction(patientId, encounterId, {
       clinicalNote: values.clinicalNote,
       reasonDisplay: values.reasonDisplay,
