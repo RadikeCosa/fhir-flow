@@ -56,4 +56,20 @@ describe("EncounterCard finished render", () => {
 
         expect(html).toContain("11/03/2026");
     });
+
+    it("builds detail navigation strictly with encounterId and patientId", () => {
+        const html = renderToStaticMarkup(
+            React.createElement(EncounterCard, {
+                encounter: makeFinishedEncounter({
+                    id: "enc-finished-nav-42",
+                    patientId: "pat-42",
+                }),
+                procedures: [],
+                vitalSigns: [],
+                evaRecords: [],
+            })
+        );
+
+        expect(html).toContain('href="/patients/pat-42/encounters/enc-finished-nav-42"');
+    });
 });

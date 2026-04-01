@@ -1,6 +1,6 @@
 # 📋 FHIR Flow — Backlog reordenado (post sprint register flow)
 
-Fecha de actualización: 2026-03-31
+Fecha de actualización: 2026-04-01
 
 ## 🧭 Convenciones
 - **Resuelto:** implementado y validado en el sprint de register flow.
@@ -173,6 +173,27 @@ Tracks:
 
 ---
 
+## 🟢 Sprint cerrado — Alineación episode-scoped de encounter history (2026-03)
+
+- **Resultado alcanzado**
+  - Se confirmó y endureció que la membresía de `encounter history` es episode-scoped y proviene solo de `findAllByEpisodeOfCareId(activeEpisode.id)`.
+  - Se explicitó la separación entre dataset encounter-centric (lista) y datasets longitudinales (charts: vitales/EVA/procedimientos) sin cambios de UX.
+
+- **Impacto técnico**
+  - Quedó formalizado el límite entre lectura de lista (encounter-based) y lectura longitudinal.
+  - Se reforzó que las cards usan mapas strict por `encounterId` y que la navegación se mantiene encounterId-driven.
+
+- **Qué deuda se resolvió**
+  - Ambigüedad de frontera de datos en la ruta de history (lista vs charts).
+  - Riesgo de leakage de fallback temporal hacia superficies encounter-centric dentro de la lista/cards.
+
+- **Qué deuda queda abierta (explícita)**
+  - Alineación cross-surface pendiente entre `patient detail` y `encounter history` como modelo de navegación unificado.
+  - Charts longitudinales continúan por diseño (decisión de modelo, no bug) y deben seguir documentados como tal.
+  - Visibilidad parcial de planned encounters en history se mantiene como decisión UX (no issue de dataset).
+
+---
+
 ## 🟡 Parcial / transición activa
 
 ### Track A — Lifecycle
@@ -204,10 +225,17 @@ Tracks:
 
 ## 🔴 Deuda abierta (post-sprint)
 
-- **Episode-scoping pendiente fuera de `patient detail`** → **Pendiente**
-  - `encounter history` no está alineado en modo episode-scoped.
-  - Los charts siguen dependiendo de lectura longitudinal/mixta.
-  - Todavía no existe alineación consistente entre surfaces (cross-surface).
+- **Alineación cross-surface episode-scoped (`patient detail` ↔ `encounter history`)** → **Pendiente**
+  - Ambas surfaces ya operan episode-scoped, pero aún no existe un modelo de navegación/selección unificado.
+  - Persisten expectativas de navegación no totalmente alineadas entre surfaces (cross-surface).
+
+- **Modelo longitudinal de charts (decisión explícita)** → **Pendiente de documentación transversal**
+  - Los charts permanecen longitudinales y no episode-scoped por diseño.
+  - Esto no es bug de membresía; es una decisión de modelo que debe mantenerse explícita en arquitectura/backlog.
+
+- **Visibilidad de planned encounters en history (decisión UX)** → **Pendiente**
+  - La lista sigue mostrando subset en planned por decisión de UX.
+  - No corresponde a problema de dataset ni de scoping.
 
 - **Continuidad clínica completa de `in-progress` en UI** → **Pendiente**
   - Sigue abierta la continuidad completa de edición/reanudación clínica en la UI de visita en curso.
@@ -246,6 +274,18 @@ Tracks:
 4. Hardening incremental UI/UX (F2/F3/G2 y luego temporal UX/hardening/dashboard).
 
 ## 🚀 Próximo sprint propuesto
+
+### Sprint — Alineación cross-surface episode-scoped (patient detail ↔ encounter history)
+
+**Objetivo breve**
+- Alinear navegación y semántica entre `patient detail` y `encounter history` bajo un único modelo episode-scoped.
+- Eliminar ambigüedad de selección/referencia entre surfaces sin duplicar lógica.
+
+**Scope inicial**
+- alinear lógica de referencia de encounter entre surfaces;
+- asegurar expectativas de navegación consistentes;
+- sin rediseño UX;
+- sin cambios al modelo longitudinal de charts.
 
 ### Alineación episode-scoped de encounter history
 
