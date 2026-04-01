@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test("planned encounter can be started and becomes in-progress", async ({ page }) => {
   await page.goto("/patients/pac-4/encounters/enc-pac4-4");
 
-  await expect(page.getByRole("heading", { name: "Próximo paso" })).toBeVisible();
+  await expect(page.getByText("Visita planificada")).toBeVisible();
   await expect(page.getByRole("button", { name: "Iniciar visita" })).toBeVisible();
 
   const startDate = page.getByLabel("Fecha real");
