@@ -62,6 +62,16 @@ Por lo tanto, el resultado válido del sprint puede ser:
 - o
 - múltiples reglas explícitas con fronteras claras
 
+## 4.1 Decisión semántica cerrada (T3)
+
+Decisión oficial del sprint:
+
+- La “última visita” en **patient detail** se define como:
+  - el encounter más reciente dentro del **EpisodeOfCare activo**;
+  - con prioridad de `in-progress` por sobre `finished`.
+
+Esta decisión queda cerrada para este sprint y reemplaza cualquier ambigüedad previa sobre referencia patient-global.
+
 ## 5. Riesgos
 
 ### R1 — Resolver como bug local
@@ -95,11 +105,78 @@ Después se evalúa el impacto (sin implementar)
 Se considera cerrado solo si:
 
 - existe una definición explícita de “encounter de referencia”
+- cada surface tiene regla de selección definida y verificable
+- el scope por episodio se aplica de forma consistente donde corresponde
 - surfaces obligadas están definidas
 - surfaces exentas están definidas y justificadas
+- surfaces longitudinales están explícitamente exentas
 - boundary técnico identificado
 - impacto técnico clasificado (no diseñado)
+- no queda concepto ambiguo de “encounter de referencia”
 - no se sobredeclara implementación
+
+## 7.1 Contrato semántico por surface (cerrado)
+
+### 1) Patient detail
+
+- Propósito: surface de **resumen clínico**.
+- Regla de selección:
+  - seleccionar el encounter más reciente dentro del **EpisodeOfCare activo**;
+  - priorizar `in-progress` sobre `finished`.
+- Proveniencia de datos:
+  - los datos clínicos se leen por `encounterId`.
+- Límite explícito:
+  - no opera a nivel patient-global;
+  - opera con scope de episodio.
+
+### 2) Encounter history / list
+
+- Propósito: surface de **colección por episodio**.
+- Regla de selección:
+  - incluir todos los encounters del **EpisodeOfCare activo**.
+- Ordenamiento y paginación:
+  - son preocupaciones de presentación, no de semántica de referencia.
+- Proveniencia de datos:
+  - cada ítem es encounter-centric.
+- Límite explícito:
+  - surface episode-scoped;
+  - no selecciona un único encounter de referencia.
+
+### 3) Encounter detail
+
+- Propósito: vista **autoritativa** de un encounter.
+- Regla de selección:
+  - el encounter se determina estrictamente por `encounterId` de ruta.
+- Proveniencia de datos:
+  - los datos clínicos se leen por `encounterId`.
+- Límite explícito:
+  - es la fuente de verdad para un encounter individual.
+
+### 4) Contrato de navegación
+
+- patient detail → encounter detail:
+  - navega usando el encounter seleccionado en patient detail.
+- history/list → encounter detail:
+  - navega usando el encounter del ítem seleccionado.
+- Convergencia obligatoria:
+  - ambos caminos convergen a la misma semántica por `encounterId` una vez dentro de detail.
+- Divergencia permitida:
+  - antes de navegar se permite divergencia por diseño, acotada por el contrato de cada surface.
+
+### 5) Superficies longitudinales / analíticas
+
+- EpisodeChartsPanel y surfaces equivalentes son **longitudinales**.
+- No definen “encounter de referencia”.
+- Pueden usar agregación temporal y fallback longitudinal.
+- Restricción explícita:
+  - el fallback longitudinal está prohibido en surfaces encounter-centric;
+  - sólo está permitido en surfaces declaradas explícitamente como longitudinales.
+
+## 7.2 Reglas de frontera (obligatorias)
+
+- Las surfaces encounter-centric no pueden usar fallback temporal como fuente de verdad.
+- La selección de encounter debe ser explícita (por id o por regla selectora declarada).
+- No se permite mezclar selección por episodio y selección patient-global dentro de la misma surface.
 
 ## 8. Orden de ejecución
 
@@ -145,11 +222,12 @@ Evaluar:
 
 ### T3 — Decisión de contrato semántico
 
-Definir la regla oficial.
+Regla oficial definida y cerrada.
 
 #### Criterios
 
-- contrato explícito
+- contrato explícito por surface y navegación
+- patient detail: referencia cerrada al encounter más reciente del episodio activo, con prioridad `in-progress` > `finished`
 - surfaces obligadas definidas
 - surfaces exentas definidas
 - longitudinales explícitamente excluidas (ej: EpisodeChartsPanel)
@@ -186,6 +264,8 @@ Actualizar doc y backlog.
 - surfaces obligadas claras
 - surfaces exentas claras
 - longitudinales explícitamente fuera (charts, históricos)
+- regla de selección por surface explícita y sin ambigüedad
+- aplicación consistente del scope de episodio donde corresponde
 - siguiente paso técnico definido
 
 ## 11. Evidencia mínima
@@ -224,3 +304,50 @@ Orden sugerido:
 - T3 → decisión (esto lo revisamos juntos)
 - T4 → clasificación impacto
 - T5 → documentación
+
+## 13. Cierre del sprint
+
+### Estado
+
+Sprint cerrado.
+
+### Resultado alcanzado
+
+- Se eliminó la ambigüedad sobre el “encounter de referencia” entre surfaces.
+- Se definió un contrato semántico explícito y reusable.
+- Se establecieron reglas claras por surface:
+  - patient detail: último encounter del EpisodeOfCare activo (prioridad in-progress > finished)
+  - encounter history/list: colección completa por episodio
+  - encounter detail: autoritativo por encounterId
+- Se delimitaron explícitamente las superficies longitudinales como exentas.
+
+### Impacto técnico
+
+- El impacto fue clasificado como **INCREMENTAL**.
+- No se requiere rediseño estructural del sistema.
+- El ajuste principal se concentra en:
+  - selector de patient detail
+  - lógica de navegación/CTA derivada
+
+### Lo que NO se hizo (intencionalmente)
+
+- No se implementaron cambios en código.
+- No se modificaron repositorios ni contratos de datos.
+- No se ajustaron loaders ni navegación en runtime.
+- No se tocaron superficies longitudinales.
+
+### Gap residual
+
+- No quedan gaps semánticos abiertos dentro del alcance del sprint.
+- El gap previo de divergencia cross-surface fue resuelto a nivel de contrato.
+
+### Próximo paso
+
+Se propone un nuevo sprint técnico:
+
+**Sprint — Alineación episode-scoped de patient detail y navegación clínica**
+
+Objetivo:
+
+- Implementar el contrato definido en este sprint,
+- alineando selectores y navegación sin introducir cambios estructurales.
