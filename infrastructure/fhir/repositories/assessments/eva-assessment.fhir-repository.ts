@@ -77,12 +77,6 @@ export class EvaAssessmentFhirRepository implements AssessmentRepository {
         });
 
         const resources = await fetchAllPages<FhirResource>(this.client, bundle);
-
-        console.info("[eva-read][repo][raw-count]", {
-            encounterId,
-            count: resources.length,
-        });
-
         const valid: FhirEvaObservation[] = [];
 
         for (const res of resources) {
@@ -92,24 +86,6 @@ export class EvaAssessmentFhirRepository implements AssessmentRepository {
             }
         }
 
-        console.info("[eva-read][repo][parsed-count]", {
-            encounterId,
-            count: valid.length,
-        });
-
-        const mapped = mapFhirObservationsToEvaAssessments(valid);
-
-        console.info("[eva-read][repo][mapped]", {
-            encounterId,
-            count: mapped.length,
-            items: mapped.map((item) => ({
-                id: item.id,
-                date: item.date,
-                score: item.score,
-                encounterId: item.encounterId,
-            })),
-        });
-
-        return mapped;
+        return mapFhirObservationsToEvaAssessments(valid);
     }
 }

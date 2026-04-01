@@ -100,11 +100,14 @@ Tracks:
     - `"hydrates only the clinical datasets of the requested encounterId"`.
   - Test integrado: `app/patients/[id]/__tests__/data.test.ts`
     - `"loads clinical datasets from inProgressEncounter instead of lastFinishedEncounter when both exist"`.
+  - Test E2E browser-level: `e2e/flows/encounter-continuity.spec.ts`
+    - `"save progress survives reload by rehydrating in-progress form"` valida `save -> reload -> rehydrate` por `encounterId` para nota clínica, EVA y signos vitales seleccionados.
 
 - **Límite confirmado en UI de completar visita (sin cierre adicional)**
   - El usuario puede finalizar o volver; si vuelve, pierde datos cargados.
   - No hay persistencia parcial operativa en esa UI.
   - El sprint valida ausencia de persistencia parcial accidental y persistencia correcta al finalizar; no cierra continuidad clínica completa de `in-progress`.
+  - La validación E2E browser-level de finalize (`in-progress -> finalize -> finished`) queda explícitamente abierta para un escenario determinístico posterior.
 
 ---
 

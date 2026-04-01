@@ -16,9 +16,6 @@ async function ensureEncounterInProgress(page: Page) {
     await page.waitForLoadState("networkidle");
   }
 
-  console.log(await page.locator("body").innerText());
-  await page.screenshot({ path: "debug-ensure-in-progress.png", fullPage: true });
-
   await expect(page.getByRole("button", { name: "Guardar progreso" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Finalizar visita" })).toBeVisible();
 }
@@ -32,17 +29,25 @@ test("save progress survives reload by rehydrating in-progress form", async ({ p
 
   const noteSentinel = "E2E continuity note 1065";
   const evaSentinel = "7";
+  const heartRateSentinel = "80";
+  const respiratoryRateSentinel = "18";
+  const bloodPressureSystolicSentinel = "120";
+  const bloodPressureDiastolicSentinel = "80";
 
   await page.getByLabel("Nota clínica *").fill(noteSentinel);
   await page.getByLabel("Puntuación EVA").fill(evaSentinel);
 
-  await page.getByLabel("Frecuencia cardíaca (lpm)").fill("80");
-  await page.getByLabel("Frecuencia respiratoria (rpm)").fill("18");
+  await page.getByLabel("Frecuencia cardíaca (lpm)").fill(heartRateSentinel);
+  await page.getByLabel("Frecuencia respiratoria (rpm)").fill(respiratoryRateSentinel);
   await page.getByLabel("Saturación oxígeno (%)").fill("98");
   await page.getByLabel("Temperatura corporal (°C)").fill("36.5");
 
-  await page.getByLabel("Presión sistólica (mmHg)").fill("120");
-  await page.getByLabel("Presión diastólica (mmHg)").fill("80");
+  await page
+    .getByLabel("Presión sistólica (mmHg)")
+    .fill(bloodPressureSystolicSentinel);
+  await page
+    .getByLabel("Presión diastólica (mmHg)")
+    .fill(bloodPressureDiastolicSentinel);
 
   await Promise.all([
     page.waitForLoadState("networkidle"),
@@ -54,4 +59,16 @@ test("save progress survives reload by rehydrating in-progress form", async ({ p
 
   await expect(page.getByLabel("Nota clínica *")).toHaveValue(noteSentinel);
   await expect(page.getByLabel("Puntuación EVA")).toHaveValue(evaSentinel);
+  await expect(page.getByLabel("Frecuencia cardíaca (lpm)")).toHaveValue(
+    heartRateSentinel
+  );
+  await expect(page.getByLabel("Frecuencia respiratoria (rpm)")).toHaveValue(
+    respiratoryRateSentinel
+  );
+  await expect(page.getByLabel("Presión sistólica (mmHg)")).toHaveValue(
+    bloodPressureSystolicSentinel
+  );
+  await expect(page.getByLabel("Presión diastólica (mmHg)")).toHaveValue(
+    bloodPressureDiastolicSentinel
+  );
 });
