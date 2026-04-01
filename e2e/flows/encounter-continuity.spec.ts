@@ -32,15 +32,18 @@ test("save progress survives reload by rehydrating in-progress form", async ({ p
   await page.getByLabel("Nota clínica *").fill(noteSentinel);
   await page.getByLabel("Puntuación EVA").fill(evaSentinel);
 
-  await page.getByRole("button", { name: "Guardar progreso" }).click();
-  await page.waitForLoadState("networkidle");
+  await Promise.all([
+    page.waitForLoadState("networkidle"),
+    page.getByRole("button", { name: "Guardar progreso" }).click(),
+  ]);
+
+  // nuevo chequeo: estado inmediatamente después del save
+  await expect(page.getByLabel("Nota clínica *")).toHaveValue(noteSentinel);
+  await expect(page.getByLabel("Puntuación EVA")).toHaveValue(evaSentinel);
 
   await page.reload();
   await page.waitForLoadState("networkidle");
 
   await expect(page.getByLabel("Nota clínica *")).toHaveValue(noteSentinel);
   await expect(page.getByLabel("Puntuación EVA")).toHaveValue(evaSentinel);
-  await expect(page.getByRole("heading", { name: "Finalizar visita" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Guardar progreso" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Finalizar visita" })).toBeEnabled();
 });

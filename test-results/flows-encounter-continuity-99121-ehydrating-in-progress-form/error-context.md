@@ -197,18 +197,21 @@ Call log:
   32 |   await page.getByLabel("Nota clínica *").fill(noteSentinel);
   33 |   await page.getByLabel("Puntuación EVA").fill(evaSentinel);
   34 | 
-  35 |   await page.getByRole("button", { name: "Guardar progreso" }).click();
-  36 |   await page.waitForLoadState("networkidle");
-  37 | 
-  38 |   await page.reload();
-  39 |   await page.waitForLoadState("networkidle");
-  40 | 
-> 41 |   await expect(page.getByLabel("Nota clínica *")).toHaveValue(noteSentinel);
-     |                                                   ^ Error: expect(locator).toHaveValue(expected) failed
+  35 |   await Promise.all([
+  36 |     page.waitForLoadState("networkidle"),
+  37 |     page.getByRole("button", { name: "Guardar progreso" }).click(),
+  38 |   ]);
+  39 | 
+  40 |   // nuevo chequeo: estado inmediatamente después del save
+  41 |   await expect(page.getByLabel("Nota clínica *")).toHaveValue(noteSentinel);
   42 |   await expect(page.getByLabel("Puntuación EVA")).toHaveValue(evaSentinel);
-  43 |   await expect(page.getByRole("heading", { name: "Finalizar visita" })).toBeVisible();
-  44 |   await expect(page.getByRole("button", { name: "Guardar progreso" })).toBeVisible();
-  45 |   await expect(page.getByRole("button", { name: "Finalizar visita" })).toBeEnabled();
-  46 | });
-  47 | 
+  43 | 
+  44 |   await page.reload();
+  45 |   await page.waitForLoadState("networkidle");
+  46 | 
+> 47 |   await expect(page.getByLabel("Nota clínica *")).toHaveValue(noteSentinel);
+     |                                                   ^ Error: expect(locator).toHaveValue(expected) failed
+  48 |   await expect(page.getByLabel("Puntuación EVA")).toHaveValue(evaSentinel);
+  49 | });
+  50 | 
 ```
