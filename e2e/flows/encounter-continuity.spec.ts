@@ -4,6 +4,7 @@ const ENCOUNTER_URL = "/patients/pac-1/encounters/1065";
 
 async function ensureEncounterInProgress(page: Page) {
   await page.goto(ENCOUNTER_URL);
+  await page.waitForLoadState("networkidle");
 
   const startButton = page.getByRole("button", { name: "Iniciar visita" });
 
@@ -15,8 +16,11 @@ async function ensureEncounterInProgress(page: Page) {
     await page.waitForLoadState("networkidle");
   }
 
-  await expect(page.getByRole("heading", { name: "Finalizar visita" })).toBeVisible();
+  console.log(await page.locator("body").innerText());
+  await page.screenshot({ path: "debug-ensure-in-progress.png", fullPage: true });
+
   await expect(page.getByRole("button", { name: "Guardar progreso" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Finalizar visita" })).toBeVisible();
 }
 
 test("planned encounter can be started and becomes in-progress", async ({ page }) => {

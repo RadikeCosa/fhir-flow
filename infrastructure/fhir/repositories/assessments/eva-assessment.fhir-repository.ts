@@ -1,7 +1,10 @@
 import FhirClient, { type FhirResource } from "../../../../lib/fhir/fhir-client";
 import { Logger, defaultLogger } from "../../../../lib/logger";
 import { fetchAllPages } from "../../../../lib/fhir/bundle-utils";
-import { fhirEvaObservationSchema, type FhirEvaObservation } from "../../schemas/assessments/eva-assessment.schema";
+import {
+    fhirEvaObservationSchema,
+    type FhirEvaObservation,
+} from "../../schemas/assessments/eva-assessment.schema";
 import { mapFhirObservationsToEvaAssessments } from "../../mappers/assessments/eva-assessment.mapper";
 
 import type { AssessmentRepository } from "../../../../domain/assessments/assessment.repository";
@@ -74,10 +77,12 @@ export class EvaAssessmentFhirRepository implements AssessmentRepository {
         });
 
         const resources = await fetchAllPages<FhirResource>(this.client, bundle);
-        this.logger.info("[eva-read][repo][raw-count]", {
+
+        console.info("[eva-read][repo][raw-count]", {
             encounterId,
             count: resources.length,
         });
+
         const valid: FhirEvaObservation[] = [];
 
         for (const res of resources) {
@@ -87,12 +92,14 @@ export class EvaAssessmentFhirRepository implements AssessmentRepository {
             }
         }
 
-        this.logger.info("[eva-read][repo][parsed-count]", {
+        console.info("[eva-read][repo][parsed-count]", {
             encounterId,
             count: valid.length,
         });
+
         const mapped = mapFhirObservationsToEvaAssessments(valid);
-        this.logger.info("[eva-read][repo][mapped]", {
+
+        console.info("[eva-read][repo][mapped]", {
             encounterId,
             count: mapped.length,
             items: mapped.map((item) => ({
