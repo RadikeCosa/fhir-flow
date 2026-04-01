@@ -312,7 +312,7 @@ When changing route-level UI in the patients/encounters area:
 - possible future slimming of `EncounterList`
 - possible future partitioning of `FinalizeEncounterForm`
 - lifecycle transition beyond the current transitional runtime model
-- complete in-progress clinical continuity in UI (do not treat as closed by finished-detail validation)
+- continuidad in-progress system-wide fuera del contrato encounter-centric acotado (el path acotado ya está operativo; pendiente validación/garantía global)
 - continuidad system-wide fuera de encounter detail `in-progress` (incluye validación browser E2E y escenarios longitudinales/históricos)
 
 ---

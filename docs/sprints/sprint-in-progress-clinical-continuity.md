@@ -1,4 +1,4 @@
-# Sprint — Diagnóstico y hardening selectivo de continuidad clínica en in-progress
+# Sprint — Diagnóstico y formalización del contrato de continuidad clínica en in-progress
 
 ## 1. Objetivo
 
@@ -183,3 +183,15 @@ Eliminar ambigüedad sobre el estado real de in-progress:
 - qué sigue abierto
 - qué es diferencia válida entre surfaces
 - qué es deuda real de continuidad clínica
+
+## 10. Cierre del sprint (estado actual)
+
+Resultado efectivo del sprint:
+
+- se confirmó que la continuidad clínica de `in-progress` en alcance encounter-centric acotado ya estaba operativa;
+- se formalizó el contrato explícito de ese alcance (sin expandirlo a continuidad system-wide);
+- no fue necesario hardening de código productivo para cerrar este sprint;
+- las diferencias entre surfaces se mantienen como límites válidos por responsabilidad:
+  - encounter detail: superficie canónica editable de continuidad `in-progress`;
+  - patient detail: superficie de resumen con source selection (`inProgressEncounter ?? lastFinishedEncounter`);
+  - charts/history longitudinales: fuera del contrato acotado de continuidad `in-progress`.

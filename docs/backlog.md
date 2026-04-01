@@ -220,14 +220,14 @@ Tracks:
   - Se elimina la suposición transicional de cierre directo `planned -> finished` para encounters ya planificados.
 
 ### Track C — UI/UX & Polish (estado post avances read encounter-centric)
-- **(sin ID nuevo) Read encounter-centric en patient/encounter detail** → **Parcial**
+- **(sin ID nuevo) Read encounter-centric en patient/encounter detail** → **Resuelto (alcance acotado + contrato explícito)**
   - ✅ Ya implementado:
     - separación más explícita encounter-centric vs longitudinal en `encounters/data.ts`;
     - hidratación de `encounterId` en lectura de vitales y EVA cuando FHIR trae referencia;
     - patient detail con una única fuente clínica (`inProgressEncounter ?? lastFinishedEncounter`) y datasets del mismo `encounterId`;
     - encounter detail con hidratación mínima encounter-centric también para `in-progress`.
-  - 🔶 Aún abierto:
-    - continuidad clínica completa de `in-progress` en UI (incluida integración/rehidratación de save progress) no está cerrada.
+  - 🔶 Límite vigente:
+    - el cierre aplica a continuidad encounter-centric acotada (no a continuidad system-wide en todas las surfaces).
 
 ---
 
@@ -256,8 +256,9 @@ Tracks:
   - La lista sigue mostrando subset en planned por decisión de UX.
   - No corresponde a problema de dataset ni de scoping.
 
-- **Continuidad clínica completa de `in-progress` en UI** → **Pendiente**
-  - Sigue abierta la continuidad completa de edición/reanudación clínica en la UI de visita en curso.
+- **Continuidad clínica de `in-progress` (scope global)** → **Pendiente (solo fuera del alcance acotado)**
+  - La continuidad encounter-centric acotada ya está operativa (detalle editable + save/reload/remount/rehydrate + source switch post-finalize).
+  - Lo pendiente corresponde a cobertura/garantías system-wide, no a bug runtime en el path acotado.
 
 - **Canonical read hardening global de `finished` (más allá de detail)** → **Pendiente**
   - `finished encounter detail` ya quedó validado; sigue pendiente la cobertura/hardening global en surfaces restantes.
@@ -281,10 +282,10 @@ Tracks:
 
 ## 🚀 Siguiente fase (prioridad sugerida)
 
-1. **Bloque prioritario inmediato (read + UX clínica):**
-   - continuidad clínica real de `in-progress` en UI;
-   - integración/rehidratación de `saveEncounterProgressAction` en surfaces encounter-centric;
-   - validación de no-mezcla encounter/datasets:
+1. **Bloque prioritario inmediato (claridad contractual + validación amplia):**
+   - mantener explícito el contrato de continuidad encounter-centric acotada para `in-progress`;
+   - expandir validación browser-level/E2E del circuito completo (sin reabrir path acotado ya cerrado);
+   - validación de no-mezcla encounter/datasets en alcance system-wide:
 - patient detail: datasets pertenecen al mismo encounterId renderizado
 - encounter detail: no fallback temporal si existe linkage
 - charts: fallback permitido solo en modo longitudinal
