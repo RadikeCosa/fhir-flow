@@ -1,33 +1,39 @@
 import { expect, test, type Page } from "@playwright/test";
+import { loadContinuityMinimalSeed } from "../support/load-continuity-minimal-seed";
 
-const ENCOUNTER_URL = "/patients/pac-1/encounters/1065";
+const PATIENT_ID = "e2e-continuity-patient-1";
+const ENCOUNTER_ID = "e2e-continuity-encounter-1";
+const ENCOUNTER_URL = `/patients/${PATIENT_ID}/encounters/${ENCOUNTER_ID}`;
 
-async function ensureEncounterInProgress(page: Page) {
+async function startEncounterFromPlanned(page: Page) {
   await page.goto(ENCOUNTER_URL);
   await page.waitForLoadState("networkidle");
 
   const startButton = page.getByRole("button", { name: "Iniciar visita" });
+  await expect(startButton).toBeVisible();
 
-  if (await startButton.isVisible()) {
-    await page.getByLabel("Fecha real").fill("2026-04-01");
-    await page.getByLabel("Hora real").fill("10:00");
+  await page.getByLabel("Fecha real").fill("2026-04-02");
+  await page.getByLabel("Hora real").fill("10:00");
 
-    await startButton.click();
-    await page.waitForLoadState("networkidle");
-  }
+  await startButton.click();
+  await page.waitForLoadState("networkidle");
 
   await expect(page.getByRole("button", { name: "Guardar progreso" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Finalizar visita" })).toBeVisible();
 }
 
+test.beforeEach(async () => {
+  await loadContinuityMinimalSeed();
+});
+
 test("planned encounter can be started and becomes in-progress", async ({ page }) => {
-  await ensureEncounterInProgress(page);
+  await startEncounterFromPlanned(page);
 });
 
 test("save progress survives reload by rehydrating in-progress form", async ({ page }) => {
-  await ensureEncounterInProgress(page);
+  await startEncounterFromPlanned(page);
 
-  const noteSentinel = "E2E continuity note 1065";
+  const noteSentinel = "E2E continuity note seeded";
   const evaSentinel = "7";
   const heartRateSentinel = "80";
   const respiratoryRateSentinel = "18";
