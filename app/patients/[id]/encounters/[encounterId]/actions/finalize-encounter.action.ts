@@ -23,7 +23,6 @@ export async function finalizeEncounterAction(
     encounterId: string,
     formData: unknown
 ): Promise<ActionResult<void>> {
-    console.log("[finalizeEncounterAction] start", { patientId, encounterId });
     const parseResult = finalizeEncounterFormSchema.safeParse(formData);
     if (!parseResult.success) {
         console.error("[finalizeEncounterAction] schema parse failed", parseResult.error.flatten());
@@ -37,7 +36,6 @@ export async function finalizeEncounterAction(
             } satisfies ActionError,
         };
     }
-    console.log("[finalizeEncounterAction] schema parse succeeded");
 
     const repo = createEncounterRepository();
 
@@ -53,11 +51,6 @@ export async function finalizeEncounterAction(
             } satisfies ActionError,
         };
     }
-    console.log("[finalizeEncounterAction] encounter loaded", {
-        encounterId: encounter.id,
-        status: encounter.status,
-        patientId: encounter.patientId,
-    });
 
     if (encounter.patientId !== patientId) {
         console.error("[finalizeEncounterAction] encounter-patient mismatch", {
@@ -76,7 +69,6 @@ export async function finalizeEncounterAction(
 
     try {
         validateFinalizeEncounterStatus(encounter.status);
-        console.log("[finalizeEncounterAction] status validation passed", { status: encounter.status });
     } catch (error: unknown) {
         if (error instanceof DomainRuleError) {
             console.error("[finalizeEncounterAction] status validation failed", {
@@ -99,9 +91,6 @@ export async function finalizeEncounterAction(
     let practitioner;
     try {
         practitioner = await getCurrentPractitioner();
-        console.log("[finalizeEncounterAction] practitioner resolved", {
-            practitionerId: practitioner.id,
-        });
     } catch (error: unknown) {
         if (error instanceof FhirMapperError) {
             console.error("[finalizeEncounterAction] practitioner resolve failed", {
@@ -146,16 +135,9 @@ export async function finalizeEncounterAction(
         evaScore: parseResult.data.evaScore,
         procedures: parseResult.data.procedures,
     };
-    console.log("[finalizeEncounterAction] FinalizeEncounterInput built", {
-        encounterId: input.encounterId,
-        actualStartAt: input.actualStartAt,
-        actualEndAt: input.actualEndAt,
-    });
 
     try {
-        console.log("[finalizeEncounterAction] before validateFinalizeEncounterRules");
         validateFinalizeEncounterRules(input);
-        console.log("[finalizeEncounterAction] validateFinalizeEncounterRules passed");
     } catch (error: unknown) {
         if (error instanceof DomainRuleError) {
             console.error("[finalizeEncounterAction] validateFinalizeEncounterRules failed", {
@@ -175,16 +157,11 @@ export async function finalizeEncounterAction(
     }
 
     try {
-        console.log("[finalizeEncounterAction] before repo.finalize");
         await repo.finalize(input);
-        console.log("[finalizeEncounterAction] repo.finalize succeeded");
 
         revalidatePath(`/patients/${patientId}`);
         revalidatePath(`/patients/${patientId}/encounters`);
         revalidatePath(`/patients/${patientId}/encounters/${encounterId}`);
-        console.log("[finalizeEncounterAction] before redirect", {
-            redirectTo: `/patients/${patientId}/encounters/${encounterId}`,
-        });
         redirect(`/patients/${patientId}/encounters/${encounterId}`);
 
         return { success: true };

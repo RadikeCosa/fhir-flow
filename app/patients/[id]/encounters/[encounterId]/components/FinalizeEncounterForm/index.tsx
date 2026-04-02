@@ -133,16 +133,12 @@ export default function FinalizeEncounterForm({
   }, [defaultValues, reset]);
 
   const onSubmit = async (values: FinalizeEncounterFormValues) => {
-    console.log("[FinalizeEncounterForm] onSubmit start", { patientId, encounterId });
     setActiveIntent("finalize");
     setServerResult(null);
-
     try {
-      console.log("[FinalizeEncounterForm] before finalizeEncounterAction");
       const result = await finalizeEncounterAction(patientId, encounterId, {
         ...values,
       });
-      console.log("[FinalizeEncounterForm] finalizeEncounterAction resolved", result);
 
       setServerResult(result);
       if (result.success) {
@@ -165,7 +161,6 @@ export default function FinalizeEncounterForm({
         },
       });
     } finally {
-      console.log("[FinalizeEncounterForm] onSubmit finally");
       setActiveIntent(null);
     }
   };
