@@ -186,16 +186,12 @@ describe("cross-surface contract (patient detail ↔ encounter history)", () => 
       id: "proc-selected",
       patientId: patientFixture.id,
       encounterId: inProgress.id,
-      code: {
-        text: "Procedimiento in-progress",
-        coding: [],
-        category: "other",
-      },
       status: "completed",
-      performedDateTime: "2026-03-20T11:07:00.000Z",
-      performers: [],
-      bodySite: [],
-      notes: [],
+      category: "fisioterapia",
+      code: "ultrasonido-terapeutico",
+      display: "Procedimiento in-progress",
+      bodySite: "Zona lumbar",
+      note: "Buena tolerancia",
     };
 
     repositories.vitalRepo.findAllByEncounterId.mockImplementation(async (encounterId: string) =>

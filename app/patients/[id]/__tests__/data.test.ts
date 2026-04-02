@@ -310,16 +310,12 @@ describe('getPatientDetailData re-assessment filtering', () => {
             id: 'proc-in-progress',
             patientId: patientFixture.id,
             encounterId: inProgress.id,
-            code: {
-                text: 'Curación',
-                coding: [],
-                category: 'other',
-            },
             status: 'completed',
-            performedDateTime: '2026-03-18T11:45:00.000Z',
-            performers: [],
-            bodySite: [],
-            notes: [],
+            category: 'fisioterapia',
+            code: 'ultrasonido-terapeutico',
+            display: 'Curación',
+            bodySite: 'Zona lumbar',
+            note: 'Sin incidencias',
         };
         const finishedVital: VitalSignRecord = {
             id: 'vs-finished',
@@ -342,16 +338,12 @@ describe('getPatientDetailData re-assessment filtering', () => {
             id: 'proc-finished',
             patientId: patientFixture.id,
             encounterId: finishedLast.id,
-            code: {
-                text: 'Procedimiento finished',
-                coding: [],
-                category: 'other',
-            },
             status: 'completed',
-            performedDateTime: '2026-03-12T09:20:00.000Z',
-            performers: [],
-            bodySite: [],
-            notes: [],
+            category: 'fisioterapia',
+            code: 'ultrasonido-terapeutico',
+            display: 'Procedimiento finished',
+            bodySite: 'Zona lumbar',
+            note: 'Sin incidencias',
         };
 
         repositories.vitalRepo.findAllByEncounterId.mockImplementation(async (encounterId: string) =>
@@ -434,16 +426,12 @@ describe('getPatientDetailData re-assessment filtering', () => {
             id: 'proc-priority',
             patientId: patientFixture.id,
             encounterId: inProgressEncounter.id,
-            code: {
-                text: 'Procedimiento prioritario',
-                coding: [],
-                category: 'other',
-            },
             status: 'completed',
-            performedDateTime: '2026-03-19T09:12:00.000Z',
-            performers: [],
-            bodySite: [],
-            notes: [],
+            category: 'fisioterapia',
+            code: 'ultrasonido-terapeutico',
+            display: 'Procedimiento prioritario',
+            bodySite: 'Zona lumbar',
+            note: 'Sin incidencias',
         };
 
         repositories.vitalRepo.findAllByEncounterId.mockImplementation(async (encounterId: string) =>
@@ -518,16 +506,12 @@ describe('getPatientDetailData re-assessment filtering', () => {
             id: 'proc-finished-last-only',
             patientId: patientFixture.id,
             encounterId: finishedLast.id,
-            code: {
-                text: 'Procedimiento finished only',
-                coding: [],
-                category: 'other',
-            },
             status: 'completed',
-            performedDateTime: '2026-03-12T09:20:00.000Z',
-            performers: [],
-            bodySite: [],
-            notes: [],
+            category: 'fisioterapia',
+            code: 'ultrasonido-terapeutico',
+            display: 'Procedimiento finished only',
+            bodySite: 'Zona lumbar',
+            note: 'Sin incidencias',
         };
 
         repositories.vitalRepo.findAllByEncounterId.mockResolvedValue([finishedVital]);
