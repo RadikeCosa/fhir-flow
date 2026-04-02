@@ -369,6 +369,14 @@ export class FhirClient {
      * status or FHIR OperationOutcome conditions.
      */
     public async postBundle(bundle: unknown): Promise<void> {
+        await this.postBundleWithResponse(bundle);
+    }
+
+    /**
+     * Send a FHIR transaction bundle and return the parsed response body after
+     * applying the same strict validations used by `postBundle`.
+     */
+    public async postBundleWithResponse(bundle: unknown): Promise<unknown> {
         const url = this.baseUrl;
         const expectedEntries = (
             typeof bundle === "object" && bundle !== null && Array.isArray((bundle as { entry?: unknown[] }).entry)
@@ -484,7 +492,7 @@ export class FhirClient {
                 );
             }
 
-            return;
+            return parsedBody;
         }
 
         throw new FhirWriteError(

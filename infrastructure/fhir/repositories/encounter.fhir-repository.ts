@@ -248,8 +248,24 @@ export class EncounterFhirRepository implements EncounterRepository {
 
     public async finalize(input: FinalizeEncounterInput): Promise<void> {
         const bundle = buildFinalizeEncounterBundle(input);
-        console.info("[EncounterFhirRepository.finalize] posting transaction bundle", bundle);
-        await this.client.postBundle(bundle);
+        console.info(
+            "[EncounterFhirRepository.finalize] request bundle",
+            JSON.stringify(bundle, null, 2)
+        );
+
+        const responseBundle = await this.client.postBundleWithResponse(bundle);
+        console.info(
+            "[EncounterFhirRepository.finalize] transaction response bundle",
+            JSON.stringify(responseBundle, null, 2)
+        );
+
+        const encounterAfterFinalize = await this.client.read<FhirResource>("Encounter", input.encounterId, {
+            cache: "no-store",
+        });
+        console.info(
+            "[EncounterFhirRepository.finalize] GET Encounter after finalize",
+            JSON.stringify(encounterAfterFinalize, null, 2)
+        );
     }
 
     private async findSnapshotResourceIds(
