@@ -248,6 +248,7 @@ export class EncounterFhirRepository implements EncounterRepository {
 
     public async finalize(input: FinalizeEncounterInput): Promise<void> {
         const bundle = buildFinalizeEncounterBundle(input);
+        console.info("[EncounterFhirRepository.finalize] posting transaction bundle", bundle);
         await this.client.postBundle(bundle);
     }
 

@@ -370,6 +370,11 @@ export class FhirClient {
      */
     public async postBundle(bundle: unknown): Promise<void> {
         const url = this.baseUrl;
+        const expectedEntries = (
+            typeof bundle === "object" && bundle !== null && Array.isArray((bundle as { entry?: unknown[] }).entry)
+                ? (bundle as { entry: unknown[] }).entry.length
+                : 0
+        );
 
         const { response, parsedBody } = await this.doFetch(url, {
             method: "POST",
@@ -383,7 +388,11 @@ export class FhirClient {
             return maybe.resourceType === "OperationOutcome";
         };
 
-        const isBundle = (obj: unknown): obj is { resourceType: "Bundle"; entry?: Array<{ resource?: unknown; response?: { status?: string } }> } => {
+        const isBundle = (obj: unknown): obj is {
+            resourceType: "Bundle";
+            type?: string;
+            entry?: Array<{ resource?: unknown; response?: { status?: string } }>;
+        } => {
             if (typeof obj !== "object" || obj === null) return false;
             const maybe = obj as Record<string, unknown>;
             return maybe.resourceType === "Bundle";
@@ -418,6 +427,23 @@ export class FhirClient {
 
         if (isBundle(parsedBody)) {
             const bundleData = parsedBody;
+            if (bundleData.type !== "transaction-response") {
+                throw new FhirWriteError(
+                    "Bundle response is not transaction-response",
+                    response.status,
+                    undefined,
+                    "BUNDLE_INVALID_RESPONSE"
+                );
+            }
+
+            if (expectedEntries > 0 && (bundleData.entry?.length ?? 0) !== expectedEntries) {
+                throw new FhirWriteError(
+                    "Bundle response entry count does not match request",
+                    response.status,
+                    undefined,
+                    "BUNDLE_INVALID_RESPONSE"
+                );
+            }
 
             const outcomeEntry = (bundleData.entry ?? [])
                 .map((entry) => entry.resource)
@@ -436,6 +462,9 @@ export class FhirClient {
                 const status = entry.response?.status;
                 return typeof status === "string" && !status.startsWith("2");
             });
+            const entriesWithoutStatus = (bundleData.entry ?? []).filter(
+                (entry) => typeof entry.response?.status !== "string"
+            );
 
             if (failedEntries.length > 0) {
                 throw new FhirWriteError(
@@ -445,9 +474,25 @@ export class FhirClient {
                     "BUNDLE_ENTRY_FAILED"
                 );
             }
+
+            if (entriesWithoutStatus.length > 0) {
+                throw new FhirWriteError(
+                    "Bundle response contains entries without status",
+                    response.status,
+                    undefined,
+                    "BUNDLE_INVALID_RESPONSE"
+                );
+            }
+
+            return;
         }
 
-        return;
+        throw new FhirWriteError(
+            "Bundle response is missing or invalid",
+            response.status,
+            undefined,
+            "BUNDLE_INVALID_RESPONSE"
+        );
     }
 }
 
