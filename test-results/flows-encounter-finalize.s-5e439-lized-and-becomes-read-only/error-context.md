@@ -7,7 +7,7 @@
 # Test info
 
 - Name: flows/encounter-finalize.seeded.spec.ts >> encounter finalize flow (seeded baseline) >> in-progress encounter can be finalized and becomes read-only
-- Location: e2e/flows/encounter-finalize.seeded.spec.ts:64:7
+- Location: e2e/flows/encounter-finalize.seeded.spec.ts:106:7
 
 # Error details
 
@@ -159,89 +159,132 @@ Call log:
 # Test source
 
 ```ts
-  1  | import { expect, test, type Page } from "@playwright/test";
-  2  | import { loadFinalizeMinimalSeed } from "../support/load-finalize-minimal-seed";
-  3  | 
-  4  | const PATIENT_ID = "e2e-finalize-patient-1";
-  5  | const ENCOUNTER_ID = "e2e-finalize-encounter-1";
-  6  | const ENCOUNTER_URL = `/patients/${PATIENT_ID}/encounters/${ENCOUNTER_ID}`;
-  7  | const PATIENT_URL = `/patients/${PATIENT_ID}`;
-  8  | 
-  9  | const FINALIZED_BANNER = "Esta visita está finalizada y no puede editarse";
-  10 | 
-  11 | async function finalizeSeededEncounter(page: Page, clinicalNoteSentinel: string) {
-  12 |   await page.goto(ENCOUNTER_URL);
-  13 | 
-  14 |   const renderedMainText = (await page.locator("main").innerText().catch(() => ""))
-  15 |     .replace(/\s+/g, " ")
-  16 |     .trim();
-  17 |   const surfaceFlags = {
-  18 |     hasStartButton: await page.getByRole("button", { name: "Iniciar visita" }).count(),
-  19 |     hasSaveProgressButton: await page.getByRole("button", { name: "Guardar progreso" }).count(),
-  20 |     hasFinalizeButton: await page.getByRole("button", { name: "Finalizar visita" }).count(),
-  21 |     hasFinishedBanner: await page.getByText(FINALIZED_BANNER).count(),
-  22 |     hasNotFound: await page.getByText("Encuentro no encontrado").count(),
-  23 |   };
-  24 | 
-  25 |   console.log("[encounter-finalize.seeded] initial-load-debug", {
-  26 |     url: page.url(),
-  27 |     renderedMainText,
-  28 |     surfaceFlags,
-  29 |   });
-  30 | 
-  31 |   await expect(page.getByRole("button", { name: "Guardar progreso" })).toBeVisible();
-  32 |   await expect(page.getByRole("button", { name: "Finalizar visita" })).toBeVisible();
-  33 | 
-  34 |   await page.getByLabel("Fecha real").fill("2026-04-01");
-  35 |   await page.getByLabel("Hora real de inicio").fill("07:00");
-  36 |   await page.getByLabel("Hora real de fin").fill("08:00");
-  37 |   await page.getByLabel("Nota clínica *").fill(clinicalNoteSentinel);
-  38 |   await page.getByLabel("Frecuencia cardíaca (lpm)").fill("80");
-  39 |   await page.getByLabel("Frecuencia respiratoria (rpm)").fill("16");
-  40 |   await page.getByLabel("Presión sistólica (mmHg)").fill("120");
-  41 |   await page.getByLabel("Presión diastólica (mmHg)").fill("80");
-  42 |   await page.getByLabel("Puntuación EVA").fill("2");
-  43 | 
-  44 |   await page.getByRole("button", { name: "Finalizar visita" }).click();
-  45 | 
-  46 |   // Debug temporal: ver si quedó algún error visible
-  47 |   const alert = page.getByRole("alert");
-  48 |   if (await alert.count()) {
-  49 |     console.log("ALERT TEXT:", await alert.first().textContent());
-  50 |   }
-  51 | 
-  52 |   console.log("URL AFTER SUBMIT:", page.url());
-  53 |   console.log("PAGE CONTENT AFTER SUBMIT:");
-  54 |   console.log(await page.locator("main").textContent());
-  55 | 
-> 56 |   await expect(page.getByText(FINALIZED_BANNER)).toBeVisible({ timeout: 15000 });
-     |                                                  ^ Error: expect(locator).toBeVisible() failed
-  57 | }
-  58 | 
-  59 | test.describe("encounter finalize flow (seeded baseline)", () => {
-  60 |   test.beforeEach(async () => {
-  61 |     await loadFinalizeMinimalSeed();
-  62 |   });
-  63 | 
-  64 |   test("in-progress encounter can be finalized and becomes read-only", async ({ page }) => {
-  65 |     const clinicalNoteSentinel = "E2E finalize clinical note";
-  66 | 
-  67 |     await finalizeSeededEncounter(page, clinicalNoteSentinel);
-  68 | 
-  69 |     await expect(page.getByText(FINALIZED_BANNER)).toBeVisible();
-  70 |     await expect(page.getByText(clinicalNoteSentinel)).toBeVisible();
-  71 |   });
-  72 | 
-  73 |   test("after finalize, patient detail switches to finished encounter as clinical source", async ({ page }) => {
-  74 |     const clinicalNoteSentinel = "E2E finalize note for patient detail";
-  75 | 
-  76 |     await finalizeSeededEncounter(page, clinicalNoteSentinel);
-  77 | 
-  78 |     await page.goto(PATIENT_URL);
-  79 | 
-  80 |     await expect(page.getByRole("button", { name: "Completar visita" })).toHaveCount(0);
-  81 |     await expect(page.getByText("ÚLTIMA VISITA")).toBeVisible();
-  82 |     await expect(page.getByText(clinicalNoteSentinel)).toBeVisible();
-  83 |   });
-  84 | });
+  1   | import { expect, test, type Page } from "@playwright/test";
+  2   | import { loadFinalizeMinimalSeed } from "../support/load-finalize-minimal-seed";
+  3   | 
+  4   | const PATIENT_ID = "e2e-finalize-patient-1";
+  5   | const ENCOUNTER_ID = "e2e-finalize-encounter-1";
+  6   | const ENCOUNTER_URL = `/patients/${PATIENT_ID}/encounters/${ENCOUNTER_ID}`;
+  7   | const PATIENT_URL = `/patients/${PATIENT_ID}`;
+  8   | 
+  9   | const FINALIZED_BANNER = "Esta visita está finalizada y no puede editarse";
+  10  | 
+  11  | async function finalizeSeededEncounter(page: Page, clinicalNoteSentinel: string) {
+  12  |   const consoleMessages: string[] = [];
+  13  |   const consoleListener = (msg: { type: () => string; text: () => string }) => {
+  14  |     const formatted = `[console] [${msg.type()}] ${msg.text()}`;
+  15  |     consoleMessages.push(formatted);
+  16  |     console.log(formatted);
+  17  |   };
+  18  |   page.on("console", consoleListener);
+  19  | 
+  20  |   await page.goto(ENCOUNTER_URL);
+  21  | 
+  22  |   const renderedMainText = (await page.locator("main").innerText().catch(() => ""))
+  23  |     .replace(/\s+/g, " ")
+  24  |     .trim();
+  25  |   const surfaceFlags = {
+  26  |     hasStartButton: await page.getByRole("button", { name: "Iniciar visita" }).count(),
+  27  |     hasSaveProgressButton: await page.getByRole("button", { name: "Guardar progreso" }).count(),
+  28  |     hasFinalizeButton: await page.getByRole("button", { name: "Finalizar visita" }).count(),
+  29  |     hasFinishedBanner: await page.getByText(FINALIZED_BANNER).count(),
+  30  |     hasNotFound: await page.getByText("Encuentro no encontrado").count(),
+  31  |   };
+  32  | 
+  33  |   console.log("[encounter-finalize.seeded] initial-load-debug", {
+  34  |     url: page.url(),
+  35  |     renderedMainText,
+  36  |     surfaceFlags,
+  37  |   });
+  38  | 
+  39  |   await expect(page.getByRole("button", { name: "Guardar progreso" })).toBeVisible();
+  40  |   await expect(page.getByRole("button", { name: "Finalizar visita" })).toBeVisible();
+  41  | 
+  42  |   await page.getByLabel("Fecha real").fill("2026-04-01");
+  43  |   await page.getByLabel("Hora real de inicio").fill("07:00");
+  44  |   await page.getByLabel("Hora real de fin").fill("08:00");
+  45  |   await page.getByLabel("Nota clínica *").fill(clinicalNoteSentinel);
+  46  |   await page.getByLabel("Frecuencia cardíaca (lpm)").fill("80");
+  47  |   await page.getByLabel("Frecuencia respiratoria (rpm)").fill("16");
+  48  |   await page.getByLabel("Presión sistólica (mmHg)").fill("120");
+  49  |   await page.getByLabel("Presión diastólica (mmHg)").fill("80");
+  50  |   await page.getByLabel("Puntuación EVA").fill("2");
+  51  | 
+  52  |   const alert = page.getByRole("alert");
+  53  |   const initialAlertText = ((await alert.first().textContent().catch(() => "")) ?? "").trim();
+  54  | 
+  55  |   await page.getByRole("button", { name: "Finalizar visita" }).click();
+  56  | 
+  57  |   const navigationAfterClick = page
+  58  |     .waitForEvent("framenavigated", { timeout: 10000 })
+  59  |     .then(() => "navigated")
+  60  |     .catch(() => null);
+  61  |   const alertChangedAfterClick = page
+  62  |     .waitForFunction(
+  63  |       ({ previousAlertText }) => {
+  64  |         const alertElement = document.querySelector('[role="alert"]');
+  65  |         const currentAlertText = (alertElement?.textContent ?? "").trim();
+  66  |         return currentAlertText.length > 0 && currentAlertText !== previousAlertText;
+  67  |       },
+  68  |       { previousAlertText: initialAlertText },
+  69  |       { timeout: 10000 },
+  70  |     )
+  71  |     .then(() => "alert-changed")
+  72  |     .catch(() => null);
+  73  |   const postClickSignal = await Promise.race([navigationAfterClick, alertChangedAfterClick]);
+  74  | 
+  75  |   console.log("[encounter-finalize.seeded] post-click-signal", postClickSignal ?? "none-within-timeout");
+  76  |   console.log("[encounter-finalize.seeded] URL AFTER SUBMIT:", page.url());
+  77  | 
+  78  |   const allAlertTexts = await alert.allTextContents();
+  79  |   console.log('[encounter-finalize.seeded] role="alert" allTextContents:', allAlertTexts);
+  80  |   console.log(
+  81  |     '[encounter-finalize.seeded] role="alert" first textContent:',
+  82  |     await alert.first().textContent().catch(() => null),
+  83  |   );
+  84  | 
+  85  |   const visibleErrorLocator = page.locator(
+  86  |     ':is(:text-matches("error", "i"), :text-matches("inválido", "i"), :text-matches("requerido", "i")):visible',
+  87  |   );
+  88  |   const visibleErrorCount = await visibleErrorLocator.count();
+  89  |   const visibleErrorTexts = await visibleErrorLocator.allTextContents();
+  90  |   console.log("[encounter-finalize.seeded] visible error-like elements:", {
+  91  |     count: visibleErrorCount,
+  92  |     texts: visibleErrorTexts.map((text) => text.trim()).filter(Boolean),
+  93  |   });
+  94  | 
+  95  |   console.log("[encounter-finalize.seeded] captured-console-count:", consoleMessages.length);
+  96  |   page.off("console", consoleListener);
+  97  | 
+> 98  |   await expect(page.getByText(FINALIZED_BANNER)).toBeVisible({ timeout: 15000 });
+      |                                                  ^ Error: expect(locator).toBeVisible() failed
+  99  | }
+  100 | 
+  101 | test.describe("encounter finalize flow (seeded baseline)", () => {
+  102 |   test.beforeEach(async () => {
+  103 |     await loadFinalizeMinimalSeed();
+  104 |   });
+  105 | 
+  106 |   test("in-progress encounter can be finalized and becomes read-only", async ({ page }) => {
+  107 |     const clinicalNoteSentinel = "E2E finalize clinical note";
+  108 | 
+  109 |     await finalizeSeededEncounter(page, clinicalNoteSentinel);
+  110 | 
+  111 |     await expect(page.getByText(FINALIZED_BANNER)).toBeVisible();
+  112 |     await expect(page.getByText(clinicalNoteSentinel)).toBeVisible();
+  113 |   });
+  114 | 
+  115 |   test("after finalize, patient detail switches to finished encounter as clinical source", async ({ page }) => {
+  116 |     const clinicalNoteSentinel = "E2E finalize note for patient detail";
+  117 | 
+  118 |     await finalizeSeededEncounter(page, clinicalNoteSentinel);
+  119 | 
+  120 |     await page.goto(PATIENT_URL);
+  121 | 
+  122 |     await expect(page.getByRole("button", { name: "Completar visita" })).toHaveCount(0);
+  123 |     await expect(page.getByText("ÚLTIMA VISITA")).toBeVisible();
+  124 |     await expect(page.getByText(clinicalNoteSentinel)).toBeVisible();
+  125 |   });
+  126 | });
+  127 | 
 ```
