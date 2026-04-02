@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import type {
     ActionError,
     ActionResult,
@@ -148,7 +147,6 @@ export async function saveEncounterProgressAction(
         revalidatePath(`/patients/${patientId}`);
         revalidatePath(`/patients/${patientId}/encounters`);
         revalidatePath(`/patients/${patientId}/encounters/${encounterId}`);
-        redirect(`/patients/${patientId}/encounters/${encounterId}`);
 
         return { success: true };
     } catch (error: unknown) {

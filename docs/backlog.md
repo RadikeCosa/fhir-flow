@@ -363,3 +363,11 @@ Tracks:
 ### Futuro
 - **M1** — Modelado adicional clínico.
 - **FUT1** — Features futuras (no definidas aún).
+
+---
+
+### Sprint cerrado — Cierre del submit de save-progress (2026-04-02)
+
+- La incidencia de submit/UX de `save-progress` en el encounter detail editable quedó resuelta. Ver: `docs/sprints/Sprint — Save-progress submit lifecycle fix — 2026-04-02.md`.
+
+- La observación de “todos los signos vitales obligatorios” no correspondía a una restricción real de validación; venía del submit anterior con redirect y no de schemas o domain rules.

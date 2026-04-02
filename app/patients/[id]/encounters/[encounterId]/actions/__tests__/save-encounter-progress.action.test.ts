@@ -5,7 +5,6 @@ const findByIdMock = vi.fn();
 const saveProgressMock = vi.fn();
 const getCurrentPractitionerMock = vi.fn();
 const revalidatePathMock = vi.fn();
-const redirectMock = vi.fn();
 
 vi.mock("../../../../../../../infrastructure/fhir/factories/encounter.factory", () => ({
     createEncounterRepository: () => ({
@@ -20,10 +19,6 @@ vi.mock("../../../../../../../lib/server/current-practitioner", () => ({
 
 vi.mock("next/cache", () => ({
     revalidatePath: revalidatePathMock,
-}));
-
-vi.mock("next/navigation", () => ({
-    redirect: redirectMock,
 }));
 
 const baseEncounter = {
@@ -113,16 +108,13 @@ describe("saveEncounterProgressAction", () => {
         expect(saveProgressMock).not.toHaveBeenCalled();
     });
 
-    it("redirects to encounter detail when save progress succeeds", async () => {
+    it("returns success without redirect when save progress succeeds", async () => {
         findByIdMock.mockResolvedValue(baseEncounter);
         getCurrentPractitionerMock.mockResolvedValue({
             id: "prac-1",
             displayName: "Lic. Ramiro Perez",
         });
         saveProgressMock.mockResolvedValue(undefined);
-        redirectMock.mockImplementation(() => {
-            throw new Error("NEXT_REDIRECT");
-        });
 
         const { saveEncounterProgressAction } = await import("../save-encounter-progress.action");
 
@@ -132,7 +124,9 @@ describe("saveEncounterProgressAction", () => {
                 heartRate: 80,
                 procedures: [],
             })
-        ).rejects.toThrow("NEXT_REDIRECT");
+        ).resolves.toEqual({
+            success: true,
+        });
 
         expect(saveProgressMock).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -151,7 +145,6 @@ describe("saveEncounterProgressAction", () => {
         expect(revalidatePathMock).toHaveBeenNthCalledWith(1, "/patients/patient-1");
         expect(revalidatePathMock).toHaveBeenNthCalledWith(2, "/patients/patient-1/encounters");
         expect(revalidatePathMock).toHaveBeenNthCalledWith(3, "/patients/patient-1/encounters/enc-123");
-        expect(redirectMock).toHaveBeenCalledWith("/patients/patient-1/encounters/enc-123");
     });
 
     it("returns an fhir-layer error when repository save fails", async () => {

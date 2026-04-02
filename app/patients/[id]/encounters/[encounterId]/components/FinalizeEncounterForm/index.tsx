@@ -2,7 +2,7 @@
 
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { FinalizeEncounterFormInput } from "./finalize-encounter-form.schema";
 import type { FinalizeEncounterFormValues } from "./finalize-encounter-form.schema";
@@ -77,9 +77,13 @@ export default function FinalizeEncounterForm({
   const [serverResult, setServerResult] = useState<ActionResult<void> | null>(
     null,
   );
+  const [saveProgressSuccessMessage, setSaveProgressSuccessMessage] = useState<
+    string | null
+  >(null);
   const [activeIntent, setActiveIntent] = useState<
     "save-progress" | "finalize" | null
   >(null);
+  const saveProgressRefreshTimeoutRef = useRef<number | null>(null);
   const [showVitals, setShowVitals] = useState(true);
   const [showEva, setShowEva] = useState(true);
   const [showProcedures, setShowProcedures] = useState(true);
@@ -132,9 +136,26 @@ export default function FinalizeEncounterForm({
     reset(defaultValues);
   }, [defaultValues, reset]);
 
+  useEffect(() => {
+    return () => {
+      if (saveProgressRefreshTimeoutRef.current !== null) {
+        window.clearTimeout(saveProgressRefreshTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const clearSaveProgressRefreshTimeout = () => {
+    if (saveProgressRefreshTimeoutRef.current !== null) {
+      window.clearTimeout(saveProgressRefreshTimeoutRef.current);
+      saveProgressRefreshTimeoutRef.current = null;
+    }
+  };
+
   const onSubmit = async (values: FinalizeEncounterFormValues) => {
     setActiveIntent("finalize");
     setServerResult(null);
+    setSaveProgressSuccessMessage(null);
+    clearSaveProgressRefreshTimeout();
     try {
       const result = await finalizeEncounterAction(patientId, encounterId, {
         ...values,
@@ -168,6 +189,8 @@ export default function FinalizeEncounterForm({
   const onSaveProgress = async () => {
     setActiveIntent("save-progress");
     setServerResult(null);
+    setSaveProgressSuccessMessage(null);
+    clearSaveProgressRefreshTimeout();
 
     try {
       const values = getValues();
@@ -186,14 +209,22 @@ export default function FinalizeEncounterForm({
       });
 
       setServerResult(result);
+      if (result.success) {
+        setSaveProgressSuccessMessage("Progreso guardado correctamente.");
+      }
     } catch (error: unknown) {
       console.error("[FinalizeEncounterForm] onSaveProgress catch", error);
       const message = error instanceof Error ? error.message : "";
       if (message.includes("NEXT_REDIRECT")) {
-        router.refresh();
+        setSaveProgressSuccessMessage("Progreso guardado correctamente.");
+        clearSaveProgressRefreshTimeout();
+        saveProgressRefreshTimeoutRef.current = window.setTimeout(() => {
+          router.refresh();
+        }, 800);
         return;
       }
 
+      setSaveProgressSuccessMessage(null);
       setServerResult({
         success: false,
         error: {
@@ -697,6 +728,16 @@ export default function FinalizeEncounterForm({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {saveProgressSuccessMessage && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-800"
+            >
+              {saveProgressSuccessMessage}
+            </div>
+          )}
+
           <button
             type="button"
             onClick={onSaveProgress}
