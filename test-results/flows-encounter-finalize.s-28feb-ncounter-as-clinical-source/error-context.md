@@ -7,7 +7,7 @@
 # Test info
 
 - Name: flows/encounter-finalize.seeded.spec.ts >> encounter finalize flow (seeded baseline) >> after finalize, patient detail switches to finished encounter as clinical source
-- Location: e2e/flows/encounter-finalize.seeded.spec.ts:56:7
+- Location: e2e/flows/encounter-finalize.seeded.spec.ts:73:7
 
 # Error details
 
@@ -174,59 +174,76 @@ Call log:
   11 | async function finalizeSeededEncounter(page: Page, clinicalNoteSentinel: string) {
   12 |   await page.goto(ENCOUNTER_URL);
   13 | 
-  14 |   await expect(page.getByRole("button", { name: "Guardar progreso" })).toBeVisible();
-  15 |   await expect(page.getByRole("button", { name: "Finalizar visita" })).toBeVisible();
-  16 | 
-  17 |   await page.getByLabel("Fecha real").fill("2026-04-01");
-  18 |   await page.getByLabel("Hora real de inicio").fill("07:00");
-  19 |   await page.getByLabel("Hora real de fin").fill("08:00");
-  20 |   await page.getByLabel("Nota clínica *").fill(clinicalNoteSentinel);
-  21 |   await page.getByLabel("Frecuencia cardíaca (lpm)").fill("80");
-  22 |   await page.getByLabel("Frecuencia respiratoria (rpm)").fill("16");
-  23 |   await page.getByLabel("Presión sistólica (mmHg)").fill("120");
-  24 |   await page.getByLabel("Presión diastólica (mmHg)").fill("80");
-  25 |   await page.getByLabel("Puntuación EVA").fill("2");
-  26 | 
-  27 |   await page.getByRole("button", { name: "Finalizar visita" }).click();
-  28 | 
-  29 |   // Debug temporal: ver si quedó algún error visible
-  30 |   const alert = page.getByRole("alert");
-  31 |   if (await alert.count()) {
-  32 |     console.log("ALERT TEXT:", await alert.first().textContent());
-  33 |   }
-  34 | 
-  35 |   console.log("URL AFTER SUBMIT:", page.url());
-  36 |   console.log("PAGE CONTENT AFTER SUBMIT:");
-  37 |   console.log(await page.locator("main").textContent());
-  38 | 
-> 39 |   await expect(page.getByText(FINALIZED_BANNER)).toBeVisible({ timeout: 15000 });
-     |                                                  ^ Error: expect(locator).toBeVisible() failed
-  40 | }
-  41 | 
-  42 | test.describe("encounter finalize flow (seeded baseline)", () => {
-  43 |   test.beforeEach(async () => {
-  44 |     await loadFinalizeMinimalSeed();
-  45 |   });
-  46 | 
-  47 |   test("in-progress encounter can be finalized and becomes read-only", async ({ page }) => {
-  48 |     const clinicalNoteSentinel = "E2E finalize clinical note";
-  49 | 
-  50 |     await finalizeSeededEncounter(page, clinicalNoteSentinel);
+  14 |   const renderedMainText = (await page.locator("main").innerText().catch(() => ""))
+  15 |     .replace(/\s+/g, " ")
+  16 |     .trim();
+  17 |   const surfaceFlags = {
+  18 |     hasStartButton: await page.getByRole("button", { name: "Iniciar visita" }).count(),
+  19 |     hasSaveProgressButton: await page.getByRole("button", { name: "Guardar progreso" }).count(),
+  20 |     hasFinalizeButton: await page.getByRole("button", { name: "Finalizar visita" }).count(),
+  21 |     hasFinishedBanner: await page.getByText(FINALIZED_BANNER).count(),
+  22 |     hasNotFound: await page.getByText("Encuentro no encontrado").count(),
+  23 |   };
+  24 | 
+  25 |   console.log("[encounter-finalize.seeded] initial-load-debug", {
+  26 |     url: page.url(),
+  27 |     renderedMainText,
+  28 |     surfaceFlags,
+  29 |   });
+  30 | 
+  31 |   await expect(page.getByRole("button", { name: "Guardar progreso" })).toBeVisible();
+  32 |   await expect(page.getByRole("button", { name: "Finalizar visita" })).toBeVisible();
+  33 | 
+  34 |   await page.getByLabel("Fecha real").fill("2026-04-01");
+  35 |   await page.getByLabel("Hora real de inicio").fill("07:00");
+  36 |   await page.getByLabel("Hora real de fin").fill("08:00");
+  37 |   await page.getByLabel("Nota clínica *").fill(clinicalNoteSentinel);
+  38 |   await page.getByLabel("Frecuencia cardíaca (lpm)").fill("80");
+  39 |   await page.getByLabel("Frecuencia respiratoria (rpm)").fill("16");
+  40 |   await page.getByLabel("Presión sistólica (mmHg)").fill("120");
+  41 |   await page.getByLabel("Presión diastólica (mmHg)").fill("80");
+  42 |   await page.getByLabel("Puntuación EVA").fill("2");
+  43 | 
+  44 |   await page.getByRole("button", { name: "Finalizar visita" }).click();
+  45 | 
+  46 |   // Debug temporal: ver si quedó algún error visible
+  47 |   const alert = page.getByRole("alert");
+  48 |   if (await alert.count()) {
+  49 |     console.log("ALERT TEXT:", await alert.first().textContent());
+  50 |   }
   51 | 
-  52 |     await expect(page.getByText(FINALIZED_BANNER)).toBeVisible();
-  53 |     await expect(page.getByText(clinicalNoteSentinel)).toBeVisible();
-  54 |   });
+  52 |   console.log("URL AFTER SUBMIT:", page.url());
+  53 |   console.log("PAGE CONTENT AFTER SUBMIT:");
+  54 |   console.log(await page.locator("main").textContent());
   55 | 
-  56 |   test("after finalize, patient detail switches to finished encounter as clinical source", async ({ page }) => {
-  57 |     const clinicalNoteSentinel = "E2E finalize note for patient detail";
+> 56 |   await expect(page.getByText(FINALIZED_BANNER)).toBeVisible({ timeout: 15000 });
+     |                                                  ^ Error: expect(locator).toBeVisible() failed
+  57 | }
   58 | 
-  59 |     await finalizeSeededEncounter(page, clinicalNoteSentinel);
-  60 | 
-  61 |     await page.goto(PATIENT_URL);
-  62 | 
-  63 |     await expect(page.getByRole("button", { name: "Completar visita" })).toHaveCount(0);
-  64 |     await expect(page.getByText("ÚLTIMA VISITA")).toBeVisible();
-  65 |     await expect(page.getByText(clinicalNoteSentinel)).toBeVisible();
-  66 |   });
-  67 | });
+  59 | test.describe("encounter finalize flow (seeded baseline)", () => {
+  60 |   test.beforeEach(async () => {
+  61 |     await loadFinalizeMinimalSeed();
+  62 |   });
+  63 | 
+  64 |   test("in-progress encounter can be finalized and becomes read-only", async ({ page }) => {
+  65 |     const clinicalNoteSentinel = "E2E finalize clinical note";
+  66 | 
+  67 |     await finalizeSeededEncounter(page, clinicalNoteSentinel);
+  68 | 
+  69 |     await expect(page.getByText(FINALIZED_BANNER)).toBeVisible();
+  70 |     await expect(page.getByText(clinicalNoteSentinel)).toBeVisible();
+  71 |   });
+  72 | 
+  73 |   test("after finalize, patient detail switches to finished encounter as clinical source", async ({ page }) => {
+  74 |     const clinicalNoteSentinel = "E2E finalize note for patient detail";
+  75 | 
+  76 |     await finalizeSeededEncounter(page, clinicalNoteSentinel);
+  77 | 
+  78 |     await page.goto(PATIENT_URL);
+  79 | 
+  80 |     await expect(page.getByRole("button", { name: "Completar visita" })).toHaveCount(0);
+  81 |     await expect(page.getByText("ÚLTIMA VISITA")).toBeVisible();
+  82 |     await expect(page.getByText(clinicalNoteSentinel)).toBeVisible();
+  83 |   });
+  84 | });
 ```
