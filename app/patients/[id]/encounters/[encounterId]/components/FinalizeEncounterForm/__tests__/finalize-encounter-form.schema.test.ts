@@ -91,6 +91,18 @@ describe("finalizeEncounterFormSchema procedures", () => {
         expect(result.success).toBe(true);
     });
 
+    it("treats blank reasonDisplay as undefined", () => {
+        const result = finalizeEncounterFormSchema.safeParse({
+            ...baseInput,
+            reasonDisplay: "   ",
+        });
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+            expect(result.data.reasonDisplay).toBeUndefined();
+        }
+    });
+
     it("requires clinical note", () => {
         const result = finalizeEncounterFormSchema.safeParse({
             ...baseInput,
