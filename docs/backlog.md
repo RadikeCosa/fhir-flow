@@ -285,6 +285,12 @@ Tracks:
   - La continuidad encounter-centric acotada ya está operativa (detalle editable + save/reload/remount/rehydrate + source switch post-finalize).
   - Lo pendiente corresponde a cobertura/garantías system-wide, no a bug runtime en el path acotado.
 
+- **Duplicación de instantánea clínica parcial tras `finalize`** → **Deuda abierta**
+  - Bug runtime real y distinto del cierre previo de submit/UX de `save-progress`, que ya quedó cerrado.
+  - Los valores parciales guardados durante `in-progress` reaparecen luego de finalizar el mismo encounter como valores adicionales o coexistentes con la clínica final.
+  - Afecta encounter detail y charts/history longitudinal, porque ambas surfaces terminan leyendo dos conjuntos de datos para lo que semánticamente debería ser una única visita.
+  - La causa raíz no está cerrada todavía; la dirección esperable es investigar consolidación de snapshot/finalize y no asumir que el filtrado de lectura por sí solo resuelve el problema.
+
 - **Canonical read hardening global de `finished` (más allá de detail)** → **Pendiente**
   - `finished encounter detail` ya quedó validado; sigue pendiente la cobertura/hardening global en surfaces restantes.
 
@@ -307,46 +313,23 @@ Tracks:
 
 ## 🚀 Siguiente fase (prioridad sugerida)
 
-1. **Bloque prioritario inmediato (claridad contractual + validación amplia):**
-   - mantener explícito el contrato de continuidad encounter-centric acotada para `in-progress`;
-   - expandir validación browser-level/E2E del circuito completo (sin reabrir path acotado ya cerrado);
-   - validación de no-mezcla encounter/datasets en alcance system-wide:
-- patient detail: datasets pertenecen al mismo encounterId renderizado
-- encounter detail: no fallback temporal si existe linkage
-- charts: fallback permitido solo en modo longitudinal
-2. **Profundizar validación E2E post-cierre de canonical read en `finished detail`**.
-3. Tipado de `ActionError.details` por capa.
-4. Hardening incremental UI/UX (F2/F3/G2 y luego temporal UX/hardening/dashboard).
+1. **Sprint — Endurecimiento de la instantánea clínica tras finalizar visita**
+  - Prioridad inmediata para investigar y contener la duplicación de instantánea clínica parcial que aparece después de `finalize`.
+  - Este sprint sustituye la propuesta anterior de alineación cross-surface como siguiente paso, porque el bug runtime nuevo es más específico y afecta también a encounter detail.
+  - Alcance sugerido: diagnóstico de coexistencia parcial/final, definición del punto real de consolidación y hardening mínimo sin prometer una solución que aún no está cerrada.
 
 ## 🚀 Próximo sprint propuesto
 
-### Sprint — Alineación cross-surface episode-scoped (patient detail ↔ encounter history)
+### Sprint — Endurecimiento de la instantánea clínica tras finalizar visita
 
 **Objetivo breve**
-- Alinear navegación y semántica entre `patient detail` y `encounter history` bajo un único modelo episode-scoped.
-- Eliminar ambigüedad de selección/referencia entre surfaces sin duplicar lógica.
+- Investigar y contener la duplicación de valores clínicos parciales que reaparecen después de finalizar el mismo encounter.
+- Asegurar que la semántica de snapshot clínico siga siendo no acumulativa en `in-progress` y no genere coexistencia con la snapshot final.
 
 **Scope inicial**
-- alinear lógica de referencia de encounter entre surfaces;
-- asegurar expectativas de navegación consistentes;
-- sin rediseño UX;
-- sin cambios al modelo longitudinal de charts.
-
-### Alineación episode-scoped de encounter history
-
-**Objetivo breve**
-- Llevar `encounter history` al mismo criterio episode-scoped ya aplicado en `patient detail`, evitando mezcla por default longitudinal.
-- Definir límites explícitos con charts y otras surfaces para preparar alineación cross-surface incremental.
-
-### Validación clínica E2E y continuidad post-cierre de finished detail
-
-**Objetivo breve**
-- Consolidar validación end-to-end y continuidad encounter-centric sin reabrir artificialmente el cierre ya logrado en `finished encounter detail`.
-
-**Scope inicial**
-- reforzar validaciones de no-mezcla entre encounter-centric y longitudinal en rutas abiertas;
-- definir y ejecutar validaciones de integración/E2E para lectura/rehidratación/edición;
-- mantener explícito el límite entre deuda longitudinal/histórica abierta y surfaces canónicas ya cerradas.
+- diagnosticar si la duplicación nace en la escritura, en la consolidación al finalizar o en la lectura posterior;
+- verificar el efecto en encounter detail y charts/history longitudinal;
+- definir hardening mínimo sin asumir todavía si la corrección final vive en write o read path.
 
 ---
 
