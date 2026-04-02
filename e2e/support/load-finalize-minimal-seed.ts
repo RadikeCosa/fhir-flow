@@ -39,4 +39,32 @@ export async function loadFinalizeMinimalSeed(): Promise<void> {
       `Failed to load finalize seed (${response.status} ${response.statusText}) against ${baseUrl}: ${body}`,
     );
   }
+
+  const encounterResponse = await fetch(
+    `${baseUrl.replace(/\/$/, "")}/Encounter/e2e-finalize-encounter-1`,
+    {
+      headers: {
+        Accept: "application/fhir+json",
+      },
+    },
+  );
+
+  if (!encounterResponse.ok) {
+    const body = await encounterResponse.text().catch(() => "");
+    throw new Error(
+      `Finalize seed verification failed when reading encounter (${encounterResponse.status} ${encounterResponse.statusText}) from ${baseUrl}: ${body}`,
+    );
+  }
+
+  const seededEncounter = (await encounterResponse.json()) as {
+    status?: unknown;
+  };
+
+  if (seededEncounter.status !== "in-progress") {
+    throw new Error(
+      `Finalize seed verification failed: expected Encounter/e2e-finalize-encounter-1 status=in-progress but got ${String(
+        seededEncounter.status,
+      )}`,
+    );
+  }
 }
