@@ -215,6 +215,28 @@ Tracks:
 
 ---
 
+
+## ✅ Sprint cerrado / incidencia cerrada — Estabilización E2E seeded de finalize (2026-04)
+
+- **Resultado alcanzado**
+  - El escenario E2E seeded de finalize quedó validado y estable en alcance acotado.
+
+- **Qué se corrigió**
+  - En el helper/spec seeded se completaron campos hoy requeridos por la UI/validación (`Saturación oxígeno (%)` y `Temperatura corporal (°C)`), corrigiendo el falso negativo del test de finalize.
+  - El segundo assert se alineó al contrato real vigente de `patient detail` para el seed usado (`Sin episodio activo` / `No hay visitas registradas en el episodio activo`), sin cambios en runtime productivo.
+  - Se removió residuo temporal de debugging en UI (`Debug (temporal): serverResult`).
+
+- **Evidencia**
+  - `npm exec -- playwright test e2e/flows/encounter-finalize.seeded.spec.ts --workers=1 --headed` → **2 passed**.
+  - Spec validado: `e2e/flows/encounter-finalize.seeded.spec.ts`.
+
+- **Límite explícito**
+  - Este cierre no implica validación global de continuidad clínica ni cambio del contrato arquitectónico de `patient detail`.
+  - Aplica solo a la estabilización del escenario E2E seeded de finalize cubierto por ese spec.
+  - No fue necesario modificar schema, domain rules, finalize action, seed loader base, EVA repo/mapper ni lógica clínica productiva.
+
+---
+
 ## 🟡 Parcial / transición activa
 
 ### Track A — Lifecycle
