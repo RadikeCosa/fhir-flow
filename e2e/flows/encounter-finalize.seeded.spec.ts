@@ -9,6 +9,14 @@ const PATIENT_URL = `/patients/${PATIENT_ID}`;
 const FINALIZED_BANNER = "Esta visita está finalizada y no puede editarse";
 
 async function finalizeSeededEncounter(page: Page, clinicalNoteSentinel: string) {
+  const consoleMessages: string[] = [];
+  const consoleListener = (msg: { type: () => string; text: () => string }) => {
+    const formatted = `[console] [${msg.type()}] ${msg.text()}`;
+    consoleMessages.push(formatted);
+    console.log(formatted);
+  };
+  page.on("console", consoleListener);
+
   await page.goto(ENCOUNTER_URL);
 
   const renderedMainText = (await page.locator("main").innerText().catch(() => ""))
@@ -41,17 +49,51 @@ async function finalizeSeededEncounter(page: Page, clinicalNoteSentinel: string)
   await page.getByLabel("Presión diastólica (mmHg)").fill("80");
   await page.getByLabel("Puntuación EVA").fill("2");
 
+  const alert = page.getByRole("alert");
+  const initialAlertText = ((await alert.first().textContent().catch(() => "")) ?? "").trim();
+
   await page.getByRole("button", { name: "Finalizar visita" }).click();
 
-  // Debug temporal: ver si quedó algún error visible
-  const alert = page.getByRole("alert");
-  if (await alert.count()) {
-    console.log("ALERT TEXT:", await alert.first().textContent());
-  }
+  const navigationAfterClick = page
+    .waitForEvent("framenavigated", { timeout: 10000 })
+    .then(() => "navigated")
+    .catch(() => null);
+  const alertChangedAfterClick = page
+    .waitForFunction(
+      ({ previousAlertText }) => {
+        const alertElement = document.querySelector('[role="alert"]');
+        const currentAlertText = (alertElement?.textContent ?? "").trim();
+        return currentAlertText.length > 0 && currentAlertText !== previousAlertText;
+      },
+      { previousAlertText: initialAlertText },
+      { timeout: 10000 },
+    )
+    .then(() => "alert-changed")
+    .catch(() => null);
+  const postClickSignal = await Promise.race([navigationAfterClick, alertChangedAfterClick]);
 
-  console.log("URL AFTER SUBMIT:", page.url());
-  console.log("PAGE CONTENT AFTER SUBMIT:");
-  console.log(await page.locator("main").textContent());
+  console.log("[encounter-finalize.seeded] post-click-signal", postClickSignal ?? "none-within-timeout");
+  console.log("[encounter-finalize.seeded] URL AFTER SUBMIT:", page.url());
+
+  const allAlertTexts = await alert.allTextContents();
+  console.log('[encounter-finalize.seeded] role="alert" allTextContents:', allAlertTexts);
+  console.log(
+    '[encounter-finalize.seeded] role="alert" first textContent:',
+    await alert.first().textContent().catch(() => null),
+  );
+
+  const visibleErrorLocator = page.locator(
+    ':is(:text-matches("error", "i"), :text-matches("inválido", "i"), :text-matches("requerido", "i")):visible',
+  );
+  const visibleErrorCount = await visibleErrorLocator.count();
+  const visibleErrorTexts = await visibleErrorLocator.allTextContents();
+  console.log("[encounter-finalize.seeded] visible error-like elements:", {
+    count: visibleErrorCount,
+    texts: visibleErrorTexts.map((text) => text.trim()).filter(Boolean),
+  });
+
+  console.log("[encounter-finalize.seeded] captured-console-count:", consoleMessages.length);
+  page.off("console", consoleListener);
 
   await expect(page.getByText(FINALIZED_BANNER)).toBeVisible({ timeout: 15000 });
 }
