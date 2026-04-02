@@ -6,7 +6,10 @@ import type { FhirEncounter } from "../schemas/encounter.schema";
 import { fhirEncounterSchema } from "../schemas/encounter.schema";
 import { mapFhirEncounterToEncounter } from "../mappers/encounter.mapper";
 import { mapToFhirEncounter } from "../mappers/encounter.write.mapper";
-import { buildFinalizeEncounterBundle } from "../mappers/finalize-encounter-bundle.mapper";
+import {
+    buildFinalizeEncounterBundle,
+    type ExistingEncounterClinicalSnapshot as FinalizeEncounterClinicalSnapshot,
+} from "../mappers/finalize-encounter-bundle.mapper";
 import {
     buildSaveEncounterProgressBundle,
     type ExistingEncounterClinicalSnapshot,
@@ -247,7 +250,9 @@ export class EncounterFhirRepository implements EncounterRepository {
     }
 
     public async finalize(input: FinalizeEncounterInput): Promise<void> {
-        const bundle = buildFinalizeEncounterBundle(input);
+        const existingSnapshot: FinalizeEncounterClinicalSnapshot =
+            await this.findSnapshotResourceIds(input.encounterId);
+        const bundle = buildFinalizeEncounterBundle(input, existingSnapshot);
         console.info(
             "[EncounterFhirRepository.finalize] request bundle",
             JSON.stringify(bundle, null, 2)

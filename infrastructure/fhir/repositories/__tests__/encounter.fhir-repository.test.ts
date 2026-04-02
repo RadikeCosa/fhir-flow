@@ -222,3 +222,93 @@ describe("EncounterFhirRepository.saveProgress", () => {
         ]);
     });
 });
+
+describe("EncounterFhirRepository.finalize", () => {
+    function makeFinalizeInput() {
+        return {
+            encounterId: "enc-123",
+            patientId: "patient-1",
+            episodeOfCareId: "episode-1",
+            performerId: "prac-1",
+            practitionerName: "Lic. Ramiro Perez",
+            visitType: "follow-up" as const,
+            actualStartAt: "2026-03-20T10:00:00.000Z",
+            actualEndAt: "2026-03-20T11:00:00.000Z",
+            clinicalNote: "Paciente estable. Se finaliza visita.",
+            procedures: [],
+            heartRate: 80,
+            evaScore: 6,
+        };
+    }
+
+    it("uses ownership-aware snapshot lookup before finalize and includes DELETE entries in the same transaction", async () => {
+        const mockClient = {
+            search: vi
+                .fn()
+                .mockResolvedValueOnce(
+                    makeBundle([
+                        makeSnapshotResource({ resourceType: "Observation", id: "obs-owned-1", code: "8867-4", owned: true }),
+                        makeSnapshotResource({ resourceType: "Observation", id: "obs-external", code: "8867-4", owned: false }),
+                    ])
+                )
+                .mockResolvedValueOnce(
+                    makeBundle([
+                        makeSnapshotResource({ resourceType: "Procedure", id: "proc-owned-1", owned: true }),
+                        makeSnapshotResource({ resourceType: "Procedure", id: "proc-external", owned: false }),
+                    ])
+                ),
+            postBundleWithResponse: vi.fn().mockResolvedValue(makeBundle([])),
+            read: vi.fn().mockResolvedValue({ resourceType: "Encounter", id: "enc-123", status: "finished" }),
+        } as unknown as RepoClient;
+
+        const repo = new EncounterFhirRepository(mockClient);
+        await repo.finalize(makeFinalizeInput());
+
+        expect(vi.mocked(mockClient.search)).toHaveBeenNthCalledWith(
+            1,
+            "Observation",
+            expect.objectContaining({
+                encounter: "Encounter/enc-123",
+                code: "8867-4,9279-1,59408-5,8310-5,85354-9,72514-3",
+                _tag: "https://fhir-flow.app/ownership|managed-by-fhir-flow",
+            }),
+            { cache: "no-store" }
+        );
+
+        expect(vi.mocked(mockClient.search)).toHaveBeenNthCalledWith(
+            2,
+            "Procedure",
+            expect.objectContaining({
+                encounter: "Encounter/enc-123",
+                _tag: "https://fhir-flow.app/ownership|managed-by-fhir-flow",
+            }),
+            { cache: "no-store" }
+        );
+
+        const finalizeBundle = vi.mocked(mockClient.postBundleWithResponse).mock.calls[0]?.[0] as {
+            entry: Array<{ request: { method: string; url: string } }>;
+        };
+        const deleteEntries = finalizeBundle.entry.filter((entry) => entry.request.method === "DELETE");
+
+        expect(deleteEntries).toEqual([
+            { request: { method: "DELETE", url: "Observation/obs-owned-1" } },
+            { request: { method: "DELETE", url: "Procedure/proc-owned-1" } },
+        ]);
+        expect(deleteEntries.map((entry) => entry.request.url)).not.toContain("Observation/obs-external");
+        expect(deleteEntries.map((entry) => entry.request.url)).not.toContain("Procedure/proc-external");
+    });
+
+    it("aborts finalize when snapshot cleanup lookup fails", async () => {
+        const searchError = new Error("snapshot lookup failed");
+        const mockClient = {
+            search: vi.fn().mockRejectedValue(searchError),
+            postBundleWithResponse: vi.fn(),
+            read: vi.fn(),
+        } as unknown as RepoClient;
+
+        const repo = new EncounterFhirRepository(mockClient);
+
+        await expect(repo.finalize(makeFinalizeInput())).rejects.toThrow("snapshot lookup failed");
+        expect(vi.mocked(mockClient.postBundleWithResponse)).not.toHaveBeenCalled();
+    });
+});
