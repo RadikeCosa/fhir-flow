@@ -99,18 +99,10 @@ const procedureFixture: Procedure = {
   id: "proc-1",
   patientId: patientFixture.id,
   encounterId: "enc-1",
-  type: "manual-therapy",
   status: "completed",
-  code: {
-    coding: [
-      {
-        system: "http://snomed.info/sct",
-        code: "386053000",
-        display: "Evaluación",
-      },
-    ],
-  },
-  performedDateTime: "2026-03-10T12:15:00.000Z",
+  category: "fisioterapia",
+  code: "ultrasonido-terapeutico",
+  display: "Evaluación",
 };
 
 describe("getEncounterDetailData", () => {

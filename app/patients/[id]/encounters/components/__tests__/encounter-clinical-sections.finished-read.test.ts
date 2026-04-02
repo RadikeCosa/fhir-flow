@@ -15,6 +15,10 @@ const vitalRecord1: VitalSignRecord = {
   patientId: "pat-1",
   encounterId: "enc-1",
   date: "2026-03-10",
+  recordedBy: {
+    id: "pr-1",
+    display: "Nurse",
+  },
   heartRate: 82,
 };
 
@@ -23,6 +27,10 @@ const vitalRecord2: VitalSignRecord = {
   patientId: "pat-1",
   encounterId: "enc-1",
   date: "2026-03-10",
+  recordedBy: {
+    id: "pr-1",
+    display: "Nurse",
+  },
   heartRate: 90,
 };
 
@@ -39,17 +47,10 @@ const procedureRecord: Procedure = {
   id: "proc-1",
   patientId: "pat-1",
   encounterId: "enc-1",
-  type: "manual-therapy",
   status: "completed",
-  code: {
-    coding: [
-      {
-        system: "http://snomed.info/sct",
-        code: "386053000",
-      },
-    ],
-  },
-  performedDateTime: "2026-03-10T12:15:00.000Z",
+  category: "fisioterapia",
+  code: "ultrasonido-terapeutico",
+  display: "Evaluación",
 };
 
 describe("Encounter clinical sections for finished read", () => {
