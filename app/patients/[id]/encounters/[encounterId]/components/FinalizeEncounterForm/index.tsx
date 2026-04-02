@@ -133,19 +133,23 @@ export default function FinalizeEncounterForm({
   }, [defaultValues, reset]);
 
   const onSubmit = async (values: FinalizeEncounterFormValues) => {
+    console.log("[FinalizeEncounterForm] onSubmit start", { patientId, encounterId });
     setActiveIntent("finalize");
     setServerResult(null);
 
     try {
+      console.log("[FinalizeEncounterForm] before finalizeEncounterAction");
       const result = await finalizeEncounterAction(patientId, encounterId, {
         ...values,
       });
+      console.log("[FinalizeEncounterForm] finalizeEncounterAction resolved", result);
 
       setServerResult(result);
       if (result.success) {
         router.refresh();
       }
     } catch (error: unknown) {
+      console.error("[FinalizeEncounterForm] onSubmit catch", error);
       const message = error instanceof Error ? error.message : "";
       if (message.includes("NEXT_REDIRECT")) {
         router.refresh();
@@ -161,6 +165,7 @@ export default function FinalizeEncounterForm({
         },
       });
     } finally {
+      console.log("[FinalizeEncounterForm] onSubmit finally");
       setActiveIntent(null);
     }
   };
@@ -217,6 +222,17 @@ export default function FinalizeEncounterForm({
           {error.code && (
             <p className="text-xs text-red-600 mt-1">Código: {error.code}</p>
           )}
+        </div>
+      )}
+
+      {serverResult && (
+        <div className="rounded border border-dashed border-amber-300 bg-amber-50/40 p-2">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">
+            Debug (temporal): serverResult
+          </p>
+          <pre className="mt-1 max-h-40 overflow-auto text-[11px] text-amber-900">
+            {JSON.stringify(serverResult, null, 2)}
+          </pre>
         </div>
       )}
 
