@@ -28,6 +28,8 @@ async function finalizeSeededEncounter(page: Page, clinicalNoteSentinel: string)
   await page.getByLabel("Nota clínica *").fill(clinicalNoteSentinel);
   await page.getByLabel("Frecuencia cardíaca (lpm)").fill("80");
   await page.getByLabel("Frecuencia respiratoria (rpm)").fill("16");
+  await page.getByLabel("Saturación oxígeno (%)").fill("98");
+  await page.getByLabel("Temperatura corporal (°C)").fill("36.5");
   await page.getByLabel("Presión sistólica (mmHg)").fill("120");
   await page.getByLabel("Presión diastólica (mmHg)").fill("80");
   await page.getByLabel("Puntuación EVA").fill("2");
