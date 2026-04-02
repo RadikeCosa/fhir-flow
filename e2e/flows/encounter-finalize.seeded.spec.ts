@@ -27,6 +27,23 @@ async function finalizeSeededEncounter(page: Page, clinicalNoteSentinel: string)
   await page.goto(ENCOUNTER_URL);
   await page.waitForLoadState("networkidle");
 
+  const renderedMainText = (await page.locator("main").innerText().catch(() => ""))
+    .replace(/\s+/g, " ")
+    .trim();
+  const surfaceFlags = {
+    hasStartButton: await page.getByRole("button", { name: "Iniciar visita" }).count(),
+    hasSaveProgressButton: await page.getByRole("button", { name: "Guardar progreso" }).count(),
+    hasFinalizeButton: await page.getByRole("button", { name: "Finalizar visita" }).count(),
+    hasFinishedBanner: await page.getByText(FINALIZED_BANNER).count(),
+    hasNotFound: await page.getByText("Encuentro no encontrado").count(),
+  };
+
+  console.log("[encounter-finalize.seeded] initial-load-debug", {
+    url: page.url(),
+    renderedMainText,
+    surfaceFlags,
+  });
+
   await expect(page.getByRole("button", { name: "Guardar progreso" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Finalizar visita" })).toBeVisible();
 
