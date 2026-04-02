@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type ConsoleMessage, type Page } from "@playwright/test";
 import { loadFinalizeMinimalSeed } from "../support/load-finalize-minimal-seed";
 
 const PATIENT_ID = "e2e-finalize-patient-1";
@@ -9,51 +9,120 @@ const PATIENT_URL = `/patients/${PATIENT_ID}`;
 const FINALIZED_BANNER = "Esta visita está finalizada y no puede editarse";
 
 async function finalizeSeededEncounter(page: Page, clinicalNoteSentinel: string) {
-  await page.goto(ENCOUNTER_URL);
-
-  const renderedMainText = (await page.locator("main").innerText().catch(() => ""))
-    .replace(/\s+/g, " ")
-    .trim();
-  const surfaceFlags = {
-    hasStartButton: await page.getByRole("button", { name: "Iniciar visita" }).count(),
-    hasSaveProgressButton: await page.getByRole("button", { name: "Guardar progreso" }).count(),
-    hasFinalizeButton: await page.getByRole("button", { name: "Finalizar visita" }).count(),
-    hasFinishedBanner: await page.getByText(FINALIZED_BANNER).count(),
-    hasNotFound: await page.getByText("Encuentro no encontrado").count(),
+  const consoleMessages: string[] = [];
+  const classifyDiagnostics = (text: string) => {
+    const normalized = text.toLowerCase();
+    if (/zod|schema|invalid_type|too_small|too_big/.test(normalized)) {
+      return "zod-validation";
+    }
+    if (/fhir|operationoutcome|resource|bundle|observation|encounter/.test(normalized)) {
+      return "fhir-payload";
+    }
+    if (/domain|business|rule|regla|workflow|state/.test(normalized)) {
+      return "domain-rules";
+    }
+    return "unclassified";
   };
 
-  console.log("[encounter-finalize.seeded] initial-load-debug", {
-    url: page.url(),
-    renderedMainText,
-    surfaceFlags,
-  });
+  const consoleListener = (msg: ConsoleMessage) => {
+    const formatted = `[console] [${msg.type()}] ${msg.text()}`;
+    consoleMessages.push(formatted);
+    console.log(formatted);
+  };
+  page.on("console", consoleListener);
 
-  await expect(page.getByRole("button", { name: "Guardar progreso" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Finalizar visita" })).toBeVisible();
+  try {
+    await page.goto(ENCOUNTER_URL);
 
-  await page.getByLabel("Fecha real").fill("2026-04-01");
-  await page.getByLabel("Hora real de inicio").fill("07:00");
-  await page.getByLabel("Hora real de fin").fill("08:00");
-  await page.getByLabel("Nota clínica *").fill(clinicalNoteSentinel);
-  await page.getByLabel("Frecuencia cardíaca (lpm)").fill("80");
-  await page.getByLabel("Frecuencia respiratoria (rpm)").fill("16");
-  await page.getByLabel("Presión sistólica (mmHg)").fill("120");
-  await page.getByLabel("Presión diastólica (mmHg)").fill("80");
-  await page.getByLabel("Puntuación EVA").fill("2");
+    const renderedMainText = (await page.locator("main").innerText().catch(() => ""))
+      .replace(/\s+/g, " ")
+      .trim();
+    const surfaceFlags = {
+      hasStartButton: await page.getByRole("button", { name: "Iniciar visita" }).count(),
+      hasSaveProgressButton: await page.getByRole("button", { name: "Guardar progreso" }).count(),
+      hasFinalizeButton: await page.getByRole("button", { name: "Finalizar visita" }).count(),
+      hasFinishedBanner: await page.getByText(FINALIZED_BANNER).count(),
+      hasNotFound: await page.getByText("Encuentro no encontrado").count(),
+    };
 
-  await page.getByRole("button", { name: "Finalizar visita" }).click();
+    console.log("[encounter-finalize.seeded] initial-load-debug", {
+      url: page.url(),
+      renderedMainText,
+      surfaceFlags,
+    });
 
-  // Debug temporal: ver si quedó algún error visible
-  const alert = page.getByRole("alert");
-  if (await alert.count()) {
-    console.log("ALERT TEXT:", await alert.first().textContent());
+    await expect(page.getByRole("button", { name: "Guardar progreso" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Finalizar visita" })).toBeVisible();
+
+    await page.getByLabel("Fecha real").fill("2026-04-01");
+    await page.getByLabel("Hora real de inicio").fill("07:00");
+    await page.getByLabel("Hora real de fin").fill("08:00");
+    await page.getByLabel("Nota clínica *").fill(clinicalNoteSentinel);
+    await page.getByLabel("Frecuencia cardíaca (lpm)").fill("80");
+    await page.getByLabel("Frecuencia respiratoria (rpm)").fill("16");
+    await page.getByLabel("Presión sistólica (mmHg)").fill("120");
+    await page.getByLabel("Presión diastólica (mmHg)").fill("80");
+    await page.getByLabel("Puntuación EVA").fill("2");
+
+    const alert = page.getByRole("alert");
+    const initialAlertText = ((await alert.first().textContent().catch(() => "")) ?? "").trim();
+
+    const navigationAfterClick = page
+      .waitForEvent("framenavigated", { timeout: 10000 })
+      .then(() => "navigated")
+      .catch(() => null);
+    const alertChangedAfterClick = page
+      .waitForFunction(
+        ({ previousAlertText }) => {
+          const alertElement = document.querySelector('[role="alert"]');
+          const currentAlertText = (alertElement?.textContent ?? "").trim();
+          return currentAlertText.length > 0 && currentAlertText !== previousAlertText;
+        },
+        { previousAlertText: initialAlertText },
+        { timeout: 10000 },
+      )
+      .then(() => "alert-changed")
+      .catch(() => null);
+
+    await page.getByRole("button", { name: "Finalizar visita" }).click();
+
+    const postClickSignal = await Promise.race([navigationAfterClick, alertChangedAfterClick]);
+
+    console.log("[encounter-finalize.seeded] post-click-signal", postClickSignal ?? "none-within-timeout");
+    console.log("[encounter-finalize.seeded] URL AFTER SUBMIT:", page.url());
+
+    const allAlertTexts = await alert.allTextContents();
+    console.log('[encounter-finalize.seeded] role="alert" allTextContents:', allAlertTexts);
+    const firstAlertText = await alert.first().textContent().catch(() => null);
+    console.log('[encounter-finalize.seeded] role="alert" first textContent:', firstAlertText);
+
+    const visibleErrorLocator = page.locator(
+      ':is(:text-matches("error", "i"), :text-matches("inválido", "i"), :text-matches("requerido", "i")):visible',
+    );
+    const visibleErrorCount = await visibleErrorLocator.count();
+    const visibleErrorTexts = await visibleErrorLocator.allTextContents();
+    const normalizedErrorTexts = visibleErrorTexts.map((text) => text.trim()).filter(Boolean);
+    console.log("[encounter-finalize.seeded] visible error-like elements:", {
+      count: visibleErrorCount,
+      texts: normalizedErrorTexts,
+      buckets: normalizedErrorTexts.map((text) => ({
+        text,
+        likelySource: classifyDiagnostics(text),
+      })),
+      firstAlertLikelySource: firstAlertText ? classifyDiagnostics(firstAlertText) : "none",
+    });
+
+    const classifiedConsole = consoleMessages.map((message) => ({
+      message,
+      likelySource: classifyDiagnostics(message),
+    }));
+    console.log("[encounter-finalize.seeded] captured-console-count:", consoleMessages.length);
+    console.log("[encounter-finalize.seeded] captured-console-classification:", classifiedConsole);
+
+    await expect(page.getByText(FINALIZED_BANNER)).toBeVisible({ timeout: 15000 });
+  } finally {
+    page.off("console", consoleListener);
   }
-
-  console.log("URL AFTER SUBMIT:", page.url());
-  console.log("PAGE CONTENT AFTER SUBMIT:");
-  console.log(await page.locator("main").textContent());
-
-  await expect(page.getByText(FINALIZED_BANNER)).toBeVisible({ timeout: 15000 });
 }
 
 test.describe("encounter finalize flow (seeded baseline)", () => {
