@@ -3,6 +3,7 @@
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { FinalizeEncounterFormInput } from "./finalize-encounter-form.schema";
 import type { FinalizeEncounterFormValues } from "./finalize-encounter-form.schema";
 import { finalizeEncounterFormSchema } from "./finalize-encounter-form.schema";
@@ -72,6 +73,7 @@ export default function FinalizeEncounterForm({
   actualStartAt,
   initialValues,
 }: FinalizeEncounterFormProps) {
+  const router = useRouter();
   const [serverResult, setServerResult] = useState<ActionResult<void> | null>(
     null,
   );
@@ -134,12 +136,33 @@ export default function FinalizeEncounterForm({
     setActiveIntent("finalize");
     setServerResult(null);
 
-    const result = await finalizeEncounterAction(patientId, encounterId, {
-      ...values,
-    });
+    try {
+      const result = await finalizeEncounterAction(patientId, encounterId, {
+        ...values,
+      });
 
-    setServerResult(result);
-    setActiveIntent(null);
+      setServerResult(result);
+      if (result.success) {
+        router.refresh();
+      }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "";
+      if (message.includes("NEXT_REDIRECT")) {
+        router.refresh();
+        return;
+      }
+
+      setServerResult({
+        success: false,
+        error: {
+          layer: "fhir",
+          message: "Ocurrió un error inesperado al finalizar la visita.",
+          code: "FINALIZE_UNEXPECTED_ERROR",
+        },
+      });
+    } finally {
+      setActiveIntent(null);
+    }
   };
 
   const onSaveProgress = async () => {
