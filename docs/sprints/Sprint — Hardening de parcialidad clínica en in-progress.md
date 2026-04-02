@@ -1,17 +1,20 @@
-# Sprint — Hardening de persistencia parcial clínica en `in-progress`
+# Sprint — Hardening de persistencia parcial y feedback post-submit en `in-progress`
 
 **Fecha:** 2026-04  
 **Estado:** Propuesto
 
 ## 1. Objetivo del sprint
 
-Alinear el comportamiento real del formulario y de las validaciones con el modelo arquitectónico vigente para encounters en estado `in-progress`, permitiendo persistencia clínica parcial sin exigir completitud artificial del set de signos vitales. :contentReference[oaicite:0]{index=0} :contentReference[oaicite:1]{index=1} :contentReference[oaicite:2]{index=2}
+Alinear el comportamiento real del formulario y de las validaciones con el modelo arquitectónico vigente para encounters en estado `in-progress`, permitiendo persistencia clínica parcial sin exigir completitud artificial del set de signos vitales, y cerrar el gap de feedback visual post-submit para las acciones de guardar progreso y finalizar visita. :contentReference[oaicite:0]{index=0} :contentReference[oaicite:1]{index=1} :contentReference[oaicite:2]{index=2}
 
 ---
 
 ## 2. Problema a resolver
 
-En el estado actual se observa un bug de comportamiento: el usuario no puede guardar progreso clínico parcial, y en algunos casos tampoco puede completar el flujo sin registrar todos los signos vitales requeridos por la UI/validación actual.
+En el estado actual se observan dos problemas de comportamiento que degradan el flujo operativo de la visita en curso:
+
+### 2.1 Restricción indebida de persistencia
+El usuario no puede guardar progreso clínico parcial, y en algunos casos tampoco puede completar el flujo sin registrar todos los signos vitales requeridos por la UI/validación actual.
 
 Ese comportamiento no resulta deseable para el modelo operativo del sistema porque:
 
@@ -19,7 +22,16 @@ Ese comportamiento no resulta deseable para el modelo operativo del sistema porq
 - `saveEncounterProgressAction` existe justamente para persistir progreso sin requerir completitud clínica total;
 - la semántica de continuidad clínica en visitas en curso ya fue aceptada e implementada como dirección operativa del sistema. :contentReference[oaicite:3]{index=3} :contentReference[oaicite:4]{index=4} :contentReference[oaicite:5]{index=5}
 
-En otras palabras, si hoy el sistema bloquea guardados parciales por exigir todos los signos vitales, el problema probablemente no está en la arquitectura aceptada sino en el endurecimiento actual de schema, wiring de formulario, validación o reglas compartidas entre acciones con distinta intención.
+### 2.2 Ausencia de feedback post-submit
+Al accionar **Guardar progreso** o **Finalizar visita**, la UI no entrega una señal clara de resultado:
+
+- el botón se deshabilita;
+- no hay redirect visible;
+- no hay mensaje de éxito;
+- no hay feedback visual de persistencia realizada;
+- para el usuario, el formulario puede quedar en un estado ambiguo, como si la acción hubiera fallado o quedado colgada.
+
+Este comportamiento es especialmente problemático en una superficie clínica editable porque rompe la confianza operativa del flujo, incluso si la persistencia backend estuviera ocurriendo correctamente.
 
 ---
 
@@ -31,6 +43,7 @@ La arquitectura vigente ya establece que:
 - el estado `in-progress` puede contener datos clínicos parciales; :contentReference[oaicite:7]{index=7}
 - `saveEncounterProgressAction` debe recibir payload clínico parcial, actualizar el encounter existente y dejarlo en `in-progress`, sin requerir completitud clínica; :contentReference[oaicite:8]{index=8}
 - la persistencia parcial en `in-progress` ya forma parte de la realidad operativa documentada del write flow. :contentReference[oaicite:9]{index=9}
+- después de una operación de write, la UX debe cerrar el ciclo con redirect, revalidación o feedback de resultado, no dejar el submit en estado ambiguo. Esto es coherente con el rol de las Server Actions y con el contrato operativo del write flow. :contentReference[oaicite:10]{index=10}
 
 Por lo tanto, este sprint no introduce una dirección nueva: corrige una desalineación entre comportamiento runtime y arquitectura vigente.
 
@@ -40,7 +53,16 @@ Por lo tanto, este sprint no introduce una dirección nueva: corrige una desalin
 
 ### Se decide priorizar
 
-**Permitir persistencia parcial real en `in-progress`** sin exigir que todos los signos vitales estén completos para guardar progreso.
+#### A. Persistencia parcial real en `in-progress`
+Permitir guardar progreso sin exigir que todos los signos vitales estén completos.
+
+#### B. Feedback transaccional claro post-submit
+Asegurar que las acciones principales del formulario entreguen una señal visible y no ambigua de resultado:
+
+- éxito de guardado parcial;
+- éxito de finalización;
+- error visible cuando corresponda;
+- redirect o actualización de estado perceptible por el usuario.
 
 ### No se decide cerrar en este sprint
 
@@ -65,7 +87,9 @@ Esa alternativa puede ser clínicamente útil, pero agrega complejidad de formul
   - guardar progreso;
   - finalizar visita;
 - revisar si la exigencia actual de signos vitales completos en `finalize` responde a una regla clínica real o a una herencia accidental de implementación;
-- agregar cobertura de regresión para guardado parcial y rehidratación posterior.
+- auditar el wiring UI/action del submit para detectar por qué no se ve éxito, redirect o feedback visual;
+- cerrar el comportamiento ambiguo donde el botón queda anulado sin confirmación visible;
+- agregar cobertura de regresión para guardado parcial, finalización y feedback post-submit.
 
 ### Excluido
 
@@ -97,28 +121,44 @@ Permitir payloads parciales puede exponer bugs donde el form reinventa defaults 
 
 **Mitigación:** reforzar tests de `save -> reload/remount -> rehydrate` con datasets parciales reales.
 
+### Riesgo 4 — Éxito backend sin cierre UX
+
+Puede corregirse el write pero seguir quedando una UI silenciosa o ambigua.
+
+**Mitigación:** tratar el feedback post-submit como parte del DoD del sprint, no como detalle cosmético.
+
 ---
 
 ## 7. Orden de ejecución sugerido
 
 ### T1 — Auditoría de validación y wiring actual
-Revisar schema, action, domain rules y mapper/wiring del formulario para identificar exactamente dónde se está imponiendo completitud artificial de signos vitales en `save progress` y/o `finalize`.
+Revisar schema, action, domain rules y mapper/wiring del formulario para identificar exactamente dónde se está imponiendo completitud artificial de signos vitales en `save progress` y/o `finalize`, y revisar cómo se consume el resultado del submit en UI.
 
 ### T2 — Hardening de `saveEncounterProgressAction`
 Ajustar el flujo para aceptar persistencia parcial real en `in-progress`, sin requerir set completo de signos vitales.
 
 ### T3 — Separación explícita de intención
-Asegurar que “guardar progreso” y “finalizar visita” no compartan por accidente las mismas restricciones de completitud si la intención de negocio no es la misma.
+Asegurar que **Guardar progreso** y **Finalizar visita** no compartan por accidente las mismas restricciones de completitud si la intención de negocio no es la misma.
 
-### T4 — Revisión de reglas de cierre
+### T4 — Feedback visual post-submit
+Implementar cierre visible del submit para ambas acciones principales:
+
+- éxito de guardado parcial;
+- éxito de finalización;
+- error visible cuando corresponda;
+- redirect, revalidación o confirmación visual consistente según la operación.
+
+### T5 — Revisión de reglas de cierre
 Verificar si la exigencia actual de signos vitales completos para `finalize` está realmente respaldada por una regla clínica vigente del sistema o si debe relajarse parcialmente.
 
-### T5 — Tests de regresión
+### T6 — Tests de regresión
 Agregar cobertura mínima para:
 
 - guardar progreso con subset clínico real;
 - rehidratación correcta de ese subset;
 - ausencia de defaults inventados;
+- feedback visible tras guardar;
+- feedback visible o redirect tras finalizar;
 - no regresión en finalize;
 - no mezcla entre encounters.
 
@@ -128,19 +168,25 @@ Agregar cobertura mínima para:
 
 El sprint se considera cerrado cuando:
 
-1. Es posible guardar progreso en encounters `in-progress` con datos clínicos parciales reales. :contentReference[oaicite:10]{index=10} :contentReference[oaicite:11]{index=11}
+1. Es posible guardar progreso en encounters `in-progress` con datos clínicos parciales reales. :contentReference[oaicite:11]{index=11} :contentReference[oaicite:12]{index=12}
 2. El sistema no exige completar todos los signos vitales para persistir progreso si la intención es guardar y continuar luego.
 3. La rehidratación posterior conserva exactamente lo guardado, sin inventar valores por defecto.
-4. El flujo de finalize conserva únicamente las reglas clínicas realmente válidas para producir estado `finished`.
-5. No se introducen regresiones en:
+4. El usuario recibe feedback visual claro cuando:
+   - guarda progreso con éxito;
+   - finaliza visita con éxito;
+   - ocurre un error de validación, dominio o FHIR.
+5. El submit no queda en estado ambiguo con botones anulados y sin resolución visible.
+6. El flujo de finalize conserva únicamente las reglas clínicas realmente válidas para producir estado `finished`.
+7. No se introducen regresiones en:
    - register flow,
    - start flow,
    - save progress,
    - finalize,
    - encounter detail encounter-centric.
-6. La documentación y el backlog reflejan explícitamente la distinción entre:
+8. La documentación y el backlog reflejan explícitamente la distinción entre:
    - parcialidad aceptada en `in-progress`;
-   - requisitos reales de cierre en `finished`.
+   - requisitos reales de cierre en `finished`;
+   - obligación de feedback post-submit en la UI editable.
 
 ---
 
@@ -150,7 +196,8 @@ Al cerrar este sprint, el sistema debería comportarse de forma más coherente c
 
 - una visita en curso puede persistirse de forma incompleta;
 - el sistema deja de forzar una completitud artificial antes de tiempo;
-- la lógica de guardado parcial queda claramente separada de la lógica de cierre final. :contentReference[oaicite:12]{index=12} :contentReference[oaicite:13]{index=13}
+- la lógica de guardado parcial queda claramente separada de la lógica de cierre final;
+- el usuario recibe una confirmación visible del resultado de sus acciones y deja de operar en una UI ambigua o silenciosa. :contentReference[oaicite:13]{index=13} :contentReference[oaicite:14]{index=14}
 
 ---
 
@@ -162,10 +209,10 @@ Se considera válida, pero fuera de alcance inmediato, una evolución futura don
 - “no se registró FR”
 - etc.
 
-Esa línea podría mejorar semántica clínica y trazabilidad, pero no es necesaria para resolver el bug actual ni para alinear el runtime con el modelo de persistencia parcial ya vigente. :contentReference[oaicite:14]{index=14}
+Esa línea podría mejorar semántica clínica y trazabilidad, pero no es necesaria para resolver el bug actual ni para alinear el runtime con el modelo de persistencia parcial ya vigente. :contentReference[oaicite:15]{index=15}
 
 ---
 
 ## 11. Título corto sugerido para backlog
 
-**Hardening de persistencia parcial clínica en `in-progress`**
+**Hardening de persistencia parcial y feedback post-submit en `in-progress`**
