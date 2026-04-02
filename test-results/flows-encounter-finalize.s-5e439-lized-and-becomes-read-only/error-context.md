@@ -7,7 +7,7 @@
 # Test info
 
 - Name: flows/encounter-finalize.seeded.spec.ts >> encounter finalize flow (seeded baseline) >> in-progress encounter can be finalized and becomes read-only
-- Location: e2e/flows/encounter-finalize.seeded.spec.ts:129:7
+- Location: e2e/flows/encounter-finalize.seeded.spec.ts:170:7
 
 # Error details
 
@@ -143,5 +143,7 @@ Test timeout of 30000ms exceeded.
                 - button "Finalizar visita" [ref=e120]
   - contentinfo [ref=e121]:
     - paragraph [ref=e122]: FhirFlow · FHIR R4 · Proyecto de aprendizaje
-  - alert [ref=e123]
+  - button "Open Next.js Dev Tools" [ref=e128] [cursor=pointer]:
+    - img [ref=e129]
+  - alert [ref=e132]
 ```
