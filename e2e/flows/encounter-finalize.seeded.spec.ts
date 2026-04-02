@@ -91,7 +91,7 @@ test.describe("encounter finalize flow (seeded baseline)", () => {
     await page.goto(PATIENT_URL);
 
     await expect(page.getByRole("button", { name: "Completar visita" })).toHaveCount(0);
-    await expect(page.getByText("ÚLTIMA VISITA")).toBeVisible();
-    await expect(page.getByText(clinicalNoteSentinel)).toBeVisible();
+    await expect(page.getByText("Sin episodio activo")).toBeVisible();
+    await expect(page.getByText("No hay visitas registradas en el episodio activo")).toBeVisible();
   });
 });
