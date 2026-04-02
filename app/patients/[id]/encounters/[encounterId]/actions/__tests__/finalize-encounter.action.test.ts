@@ -228,7 +228,7 @@ describe("finalizeEncounterAction", () => {
                 performerId: "prac-1",
                 practitionerName: "Lic. Ramiro Perez",
                 visitType: "follow-up",
-                actualStartAt: "2026-03-20T09:15:00.000Z",
+                actualStartAt: "2026-03-20T13:00:00.000Z",
                 actualEndAt: "2026-03-20T14:00:00.000Z",
                 clinicalNote: "Paciente estable. Se realiza cierre de visita.",
                 reasonDisplay: "Control programado",
@@ -273,14 +273,42 @@ describe("finalizeEncounterAction", () => {
                 encounterId: "enc-123",
                 patientId: "patient-1",
                 visitType: "discharge",
-                actualStartAt: "2026-03-20T09:15:00.000Z",
+                actualStartAt: "2026-03-20T13:00:00.000Z",
                 clinicalNote: "Paciente estable. Se realiza cierre de visita.",
                 reasonDisplay: "Motivo original",
             })
         );
     });
 
-    it("reuses the persisted real start when finalizing", async () => {
+    it("finalizes using form timing even when encounter actualStartAt is missing", async () => {
+        findByIdMock.mockResolvedValue({
+            ...baseEncounter,
+            actualStartAt: undefined,
+        });
+        getCurrentPractitionerMock.mockResolvedValue({
+            id: "prac-1",
+            displayName: "Lic. Ramiro Perez",
+        });
+        finalizeMock.mockResolvedValue(undefined);
+        redirectMock.mockImplementation(() => {
+            throw new Error("NEXT_REDIRECT");
+        });
+
+        const { finalizeEncounterAction } = await import("../finalize-encounter.action");
+
+        await expect(
+            finalizeEncounterAction("patient-1", "enc-123", validFormData)
+        ).rejects.toThrow("NEXT_REDIRECT");
+
+        expect(finalizeMock).toHaveBeenCalledWith(
+            expect.objectContaining({
+                actualStartAt: "2026-03-20T13:00:00.000Z",
+                actualEndAt: "2026-03-20T14:00:00.000Z",
+            })
+        );
+    });
+
+    it("uses form real start even when encounter has a different persisted actualStartAt", async () => {
         findByIdMock.mockResolvedValue({
             ...baseEncounter,
             actualStartAt: "2026-03-20T08:45:00.000Z",
@@ -302,7 +330,7 @@ describe("finalizeEncounterAction", () => {
 
         expect(finalizeMock).toHaveBeenCalledWith(
             expect.objectContaining({
-                actualStartAt: "2026-03-20T08:45:00.000Z",
+                actualStartAt: "2026-03-20T13:00:00.000Z",
                 actualEndAt: "2026-03-20T14:00:00.000Z",
             })
         );
