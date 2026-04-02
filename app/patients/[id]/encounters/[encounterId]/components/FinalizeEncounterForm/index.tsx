@@ -169,23 +169,42 @@ export default function FinalizeEncounterForm({
     setActiveIntent("save-progress");
     setServerResult(null);
 
-    const values = getValues();
+    try {
+      const values = getValues();
 
-    const result = await saveEncounterProgressAction(patientId, encounterId, {
-      clinicalNote: values.clinicalNote,
-      reasonDisplay: values.reasonDisplay,
-      evaScore: values.evaScore,
-      bloodPressureSystolic: values.bloodPressureSystolic,
-      bloodPressureDiastolic: values.bloodPressureDiastolic,
-      heartRate: values.heartRate,
-      respiratoryRate: values.respiratoryRate,
-      oxygenSaturation: values.oxygenSaturation,
-      bodyTemperature: values.bodyTemperature,
-      procedures: values.procedures,
-    });
+      const result = await saveEncounterProgressAction(patientId, encounterId, {
+        clinicalNote: values.clinicalNote,
+        reasonDisplay: values.reasonDisplay,
+        evaScore: values.evaScore,
+        bloodPressureSystolic: values.bloodPressureSystolic,
+        bloodPressureDiastolic: values.bloodPressureDiastolic,
+        heartRate: values.heartRate,
+        respiratoryRate: values.respiratoryRate,
+        oxygenSaturation: values.oxygenSaturation,
+        bodyTemperature: values.bodyTemperature,
+        procedures: values.procedures,
+      });
 
-    setServerResult(result);
-    setActiveIntent(null);
+      setServerResult(result);
+    } catch (error: unknown) {
+      console.error("[FinalizeEncounterForm] onSaveProgress catch", error);
+      const message = error instanceof Error ? error.message : "";
+      if (message.includes("NEXT_REDIRECT")) {
+        router.refresh();
+        return;
+      }
+
+      setServerResult({
+        success: false,
+        error: {
+          layer: "fhir",
+          message: "Ocurrió un error inesperado al guardar el progreso.",
+          code: "SAVE_PROGRESS_UNEXPECTED_ERROR",
+        },
+      });
+    } finally {
+      setActiveIntent(null);
+    }
   };
   const error = serverResult?.success === false ? serverResult.error : null;
 
