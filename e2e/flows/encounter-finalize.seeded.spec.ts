@@ -18,6 +18,7 @@ async function finalizeSeededEncounter(page: Page, clinicalNoteSentinel: string)
   page.on("console", consoleListener);
 
   await page.goto(ENCOUNTER_URL);
+  await page.waitForLoadState("networkidle");
 
   const renderedMainText = (await page.locator("main").innerText().catch(() => ""))
     .replace(/\s+/g, " ")
@@ -38,6 +39,13 @@ async function finalizeSeededEncounter(page: Page, clinicalNoteSentinel: string)
 
   await expect(page.getByRole("button", { name: "Guardar progreso" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Finalizar visita" })).toBeVisible();
+  await page.waitForFunction(() => {
+    const finalizeButton = Array.from(document.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("Finalizar visita"),
+    );
+    return Boolean(finalizeButton) && !finalizeButton.disabled;
+  });
+  await page.waitForLoadState("networkidle");
 
   await page.getByLabel("Fecha real").fill("2026-04-01");
   await page.getByLabel("Hora real de inicio").fill("07:00");
@@ -48,11 +56,26 @@ async function finalizeSeededEncounter(page: Page, clinicalNoteSentinel: string)
   await page.getByLabel("Presión sistólica (mmHg)").fill("120");
   await page.getByLabel("Presión diastólica (mmHg)").fill("80");
   await page.getByLabel("Puntuación EVA").fill("2");
+  await page.waitForLoadState("networkidle");
 
   const alert = page.getByRole("alert");
   const initialAlertText = ((await alert.first().textContent().catch(() => "")) ?? "").trim();
 
   await page.getByRole("button", { name: "Finalizar visita" }).click();
+  const postFinalizeRouteOrBanner = await Promise.race([
+    page
+      .waitForURL((url) => !url.pathname.endsWith(`/encounters/${ENCOUNTER_ID}`), { timeout: 20000 })
+      .then(() => "url-changed")
+      .catch(() => null),
+    page
+      .waitForSelector(`text=${FINALIZED_BANNER}`, { timeout: 20000 })
+      .then(() => "banner-visible")
+      .catch(() => null),
+  ]);
+  console.log(
+    "[encounter-finalize.seeded] post-click-route-or-banner",
+    postFinalizeRouteOrBanner ?? "none-within-timeout",
+  );
 
   const navigationAfterClick = page
     .waitForEvent("framenavigated", { timeout: 10000 })
