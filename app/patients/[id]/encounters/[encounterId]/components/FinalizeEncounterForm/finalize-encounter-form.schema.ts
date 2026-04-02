@@ -52,14 +52,10 @@ export const finalizeEncounterFormSchema = z
         reasonDisplay: z
             .string()
             .optional()
-            .transform((val) => val?.trim())
-            .refine(
-                (val) => val === undefined || val.length > 0,
-                {
-                    message:
-                        "La razón de la visita no puede quedar en blanco si se ingresa.",
-                }
-            ),
+            .transform((val) => {
+                const trimmed = val?.trim();
+                return trimmed && trimmed.length > 0 ? trimmed : undefined;
+            }),
 
         evaScore: z
             .preprocess(coerceOptionalNumber, z.number().int().min(VITAL_SIGN_CAPTURE_RANGES.evaScore.min).max(VITAL_SIGN_CAPTURE_RANGES.evaScore.max))
