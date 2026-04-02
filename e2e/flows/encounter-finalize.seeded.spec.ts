@@ -18,7 +18,11 @@ async function finalizeSeededEncounter(page: Page, clinicalNoteSentinel: string)
     const finalizeButton = Array.from(document.querySelectorAll("button")).find((button) =>
       button.textContent?.includes("Finalizar visita"),
     );
-    return Boolean(finalizeButton) && !finalizeButton.disabled;
+    if (!finalizeButton) {
+      return false;
+    }
+
+    return !finalizeButton.disabled;
   });
   await page.waitForLoadState("networkidle");
 
@@ -85,7 +89,7 @@ test.describe("encounter finalize flow (seeded baseline)", () => {
     await expect(page.getByText(clinicalNoteSentinel)).toBeVisible();
   });
 
-  test("after finalize, patient detail switches to finished encounter as clinical source", async ({ page }) => {
+  test("after finalize, patient detail shows no active episode state for this seeded scenario", async ({ page }) => {
     const clinicalNoteSentinel = "E2E finalize note for patient detail";
 
     await finalizeSeededEncounter(page, clinicalNoteSentinel);
