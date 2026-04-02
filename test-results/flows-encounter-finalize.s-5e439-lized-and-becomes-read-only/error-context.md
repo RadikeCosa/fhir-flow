@@ -7,7 +7,7 @@
 # Test info
 
 - Name: flows/encounter-finalize.seeded.spec.ts >> encounter finalize flow (seeded baseline) >> in-progress encounter can be finalized and becomes read-only
-- Location: e2e/flows/encounter-finalize.seeded.spec.ts:48:7
+- Location: e2e/flows/encounter-finalize.seeded.spec.ts:47:7
 
 # Error details
 
@@ -16,11 +16,11 @@ Error: expect(locator).toBeVisible() failed
 
 Locator: getByText('Esta visita está finalizada y no puede editarse')
 Expected: visible
-Timeout: 5000ms
+Timeout: 15000ms
 Error: element(s) not found
 
 Call log:
-  - Expect "toBeVisible" with timeout 5000ms
+  - Expect "toBeVisible" with timeout 15000ms
   - waiting for getByText('Esta visita está finalizada y no puede editarse')
 
 ```
@@ -28,7 +28,7 @@ Call log:
 # Page snapshot
 
 ```yaml
-- generic [active] [ref=e1]:
+- generic [ref=e1]:
   - banner [ref=e2]:
     - link "Ir al contenido principal" [ref=e3] [cursor=pointer]:
       - /url: "#main-content"
@@ -95,10 +95,10 @@ Call log:
                       - textbox "Hora real de inicio" [ref=e62]: 07:00
                     - generic [ref=e63]:
                       - generic [ref=e64]: Hora real de fin
-                      - textbox "Hora real de fin" [ref=e65]
+                      - textbox "Hora real de fin" [ref=e65]: 08:00
                 - generic [ref=e66]:
                   - generic [ref=e67]: Nota clínica *
-                  - textbox "Nota clínica *" [ref=e68]
+                  - textbox "Nota clínica *" [ref=e68]: E2E finalize clinical note
                 - generic [ref=e69]:
                   - generic [ref=e70]: Motivo de la visita
                   - textbox "Motivo de la visita" [ref=e71]: Escenario determinístico e2e finalize
@@ -111,16 +111,16 @@ Call log:
                   - generic [ref=e78]:
                     - generic [ref=e79]:
                       - generic [ref=e80]: Frecuencia cardíaca (lpm)
-                      - spinbutton "Frecuencia cardíaca (lpm)" [ref=e81]
+                      - spinbutton "Frecuencia cardíaca (lpm)" [ref=e81]: "80"
                       - paragraph [ref=e82]: "Rango clínico: 30-220 lpm"
                     - generic [ref=e83]:
                       - generic [ref=e84]: Frecuencia respiratoria (rpm)
-                      - spinbutton "Frecuencia respiratoria (rpm)" [ref=e85]
+                      - spinbutton "Frecuencia respiratoria (rpm)" [ref=e85]: "16"
                       - paragraph [ref=e86]: "Rango clínico: 5-60 rpm"
                   - generic [ref=e87]:
                     - generic [ref=e88]:
                       - generic [ref=e89]: Saturación oxígeno (%)
-                      - spinbutton "Saturación oxígeno (%)" [ref=e90]
+                      - spinbutton "Saturación oxígeno (%)" [active] [ref=e90]
                       - paragraph [ref=e91]: "Rango clínico: 0-100 %"
                     - generic [ref=e92]:
                       - generic [ref=e93]: Temperatura corporal (°C)
@@ -131,17 +131,17 @@ Call log:
                     - generic [ref=e98]:
                       - generic [ref=e99]:
                         - generic [ref=e100]: Presión sistólica (mmHg)
-                        - spinbutton "Presión sistólica (mmHg)" [ref=e101]
+                        - spinbutton "Presión sistólica (mmHg)" [ref=e101]: "120"
                         - paragraph [ref=e102]: "Rango clínico: 60-260 mmHg"
                       - generic [ref=e103]:
                         - generic [ref=e104]: Presión diastólica (mmHg)
-                        - spinbutton "Presión diastólica (mmHg)" [ref=e105]
+                        - spinbutton "Presión diastólica (mmHg)" [ref=e105]: "80"
                         - paragraph [ref=e106]: "Rango clínico: 30-150 mmHg"
               - generic [ref=e107]:
                 - button "EVA ▲" [ref=e108]
                 - generic [ref=e109]:
                   - generic [ref=e110]: Puntuación EVA
-                  - spinbutton "Puntuación EVA" [ref=e111]
+                  - spinbutton "Puntuación EVA" [ref=e111]: "2"
                   - paragraph [ref=e112]: 0 = sin dolor · 10 = peor dolor imaginable
               - generic [ref=e113]:
                 - button "Procedimientos ▲" [ref=e114]
@@ -171,73 +171,62 @@ Call log:
   8  | 
   9  | const FINALIZED_BANNER = "Esta visita está finalizada y no puede editarse";
   10 | 
-  11 | async function waitForEncounterToRenderFinished(page: Page) {
-  12 |   for (let attempt = 0; attempt < 5; attempt += 1) {
-  13 |     const banner = page.getByText(FINALIZED_BANNER);
-  14 |     if (await banner.count().catch(() => 0)) {
-  15 |       await expect(banner).toBeVisible();
-  16 |       return;
-  17 |     }
-  18 | 
-  19 |     await page.waitForTimeout(400);
-  20 |     await page.reload({ waitUntil: "networkidle" });
-  21 |   }
-  22 | 
-> 23 |   await expect(page.getByText(FINALIZED_BANNER)).toBeVisible();
+  11 | async function finalizeSeededEncounter(page: Page, clinicalNoteSentinel: string) {
+  12 |   await page.goto(ENCOUNTER_URL);
+  13 | 
+  14 |   await expect(page.getByRole("button", { name: "Guardar progreso" })).toBeVisible();
+  15 |   await expect(page.getByRole("button", { name: "Finalizar visita" })).toBeVisible();
+  16 | 
+  17 |   await page.getByLabel("Fecha real").fill("2026-04-01");
+  18 |   await page.getByLabel("Hora real de inicio").fill("07:00");
+  19 |   await page.getByLabel("Hora real de fin").fill("08:00");
+  20 |   await page.getByLabel("Nota clínica *").fill(clinicalNoteSentinel);
+  21 |   await page.getByLabel("Frecuencia cardíaca (lpm)").fill("80");
+  22 |   await page.getByLabel("Frecuencia respiratoria (rpm)").fill("16");
+  23 |   await page.getByLabel("Presión sistólica (mmHg)").fill("120");
+  24 |   await page.getByLabel("Presión diastólica (mmHg)").fill("80");
+  25 |   await page.getByLabel("Puntuación EVA").fill("2");
+  26 | 
+  27 |   await page.getByRole("button", { name: "Finalizar visita" }).click();
+  28 | 
+  29 |   // Debug temporal: ver si quedó algún error visible
+  30 |   const alert = page.getByRole("alert");
+  31 |   if (await alert.count()) {
+  32 |     console.log("ALERT TEXT:", await alert.first().textContent());
+  33 |   }
+  34 | 
+  35 |   console.log("URL AFTER SUBMIT:", page.url());
+  36 |   console.log("PAGE CONTENT AFTER SUBMIT:");
+  37 |   console.log(await page.locator("main").textContent());
+  38 | 
+> 39 |   await expect(page.getByText(FINALIZED_BANNER)).toBeVisible({ timeout: 15000 });
      |                                                  ^ Error: expect(locator).toBeVisible() failed
-  24 | }
-  25 | 
-  26 | async function finalizeSeededEncounter(page: Page, clinicalNoteSentinel: string) {
-  27 |   await page.goto(ENCOUNTER_URL);
-  28 |   await page.waitForLoadState("networkidle");
-  29 | 
-  30 |   await expect(page.getByRole("button", { name: "Guardar progreso" })).toBeVisible();
-  31 |   await expect(page.getByRole("button", { name: "Finalizar visita" })).toBeVisible();
-  32 | 
-  33 |   await page.getByLabel("Fecha real").fill("2026-04-01");
-  34 |   await page.getByLabel("Hora real de inicio").fill("10:00");
-  35 |   await page.getByLabel("Hora real de fin").fill("11:00");
-  36 |   await page.getByLabel("Nota clínica *").fill(clinicalNoteSentinel);
-  37 | 
-  38 |   await page.getByRole("button", { name: "Finalizar visita" }).click();
-  39 | 
-  40 |   await waitForEncounterToRenderFinished(page);
-  41 | }
-  42 | 
-  43 | test.describe("encounter finalize flow (seeded baseline)", () => {
-  44 |   test.beforeEach(async () => {
-  45 |     await loadFinalizeMinimalSeed();
-  46 |   });
-  47 | 
-  48 |   test("in-progress encounter can be finalized and becomes read-only", async ({ page }) => {
-  49 |     const clinicalNoteSentinel = "E2E finalize clinical note";
-  50 | 
-  51 |     await finalizeSeededEncounter(page, clinicalNoteSentinel);
-  52 | 
-  53 |     await expect(
-  54 |       page.getByText(FINALIZED_BANNER),
-  55 |     ).toBeVisible();
-  56 |     await expect(page.getByRole("button", { name: "Guardar progreso" })).toHaveCount(0);
-  57 |     await expect(page.getByRole("button", { name: "Finalizar visita" })).toHaveCount(0);
-  58 |     await expect(page.getByText(clinicalNoteSentinel)).toBeVisible();
-  59 |   });
+  40 | }
+  41 | 
+  42 | test.describe("encounter finalize flow (seeded baseline)", () => {
+  43 |   test.beforeEach(async () => {
+  44 |     await loadFinalizeMinimalSeed();
+  45 |   });
+  46 | 
+  47 |   test("in-progress encounter can be finalized and becomes read-only", async ({ page }) => {
+  48 |     const clinicalNoteSentinel = "E2E finalize clinical note";
+  49 | 
+  50 |     await finalizeSeededEncounter(page, clinicalNoteSentinel);
+  51 | 
+  52 |     await expect(page.getByText(FINALIZED_BANNER)).toBeVisible();
+  53 |     await expect(page.getByText(clinicalNoteSentinel)).toBeVisible();
+  54 |   });
+  55 | 
+  56 |   test("after finalize, patient detail switches to finished encounter as clinical source", async ({ page }) => {
+  57 |     const clinicalNoteSentinel = "E2E finalize note for patient detail";
+  58 | 
+  59 |     await finalizeSeededEncounter(page, clinicalNoteSentinel);
   60 | 
-  61 |   test("after finalize, patient detail switches to finished encounter as clinical source", async ({ page }) => {
-  62 |     const clinicalNoteSentinel = "E2E finalize note for patient detail";
-  63 | 
-  64 |     await finalizeSeededEncounter(page, clinicalNoteSentinel);
-  65 | 
-  66 |     await expect(
-  67 |       page.getByText(FINALIZED_BANNER),
-  68 |     ).toBeVisible();
-  69 | 
-  70 |     await page.goto(PATIENT_URL);
-  71 |     await page.waitForLoadState("networkidle");
-  72 | 
-  73 |     await expect(page.getByRole("button", { name: "Completar visita" })).toHaveCount(0);
-  74 |     await expect(page.getByText("ÚLTIMA VISITA")).toBeVisible();
-  75 |     await expect(page.getByText(clinicalNoteSentinel)).toBeVisible();
-  76 |   });
-  77 | });
-  78 | 
+  61 |     await page.goto(PATIENT_URL);
+  62 | 
+  63 |     await expect(page.getByRole("button", { name: "Completar visita" })).toHaveCount(0);
+  64 |     await expect(page.getByText("ÚLTIMA VISITA")).toBeVisible();
+  65 |     await expect(page.getByText(clinicalNoteSentinel)).toBeVisible();
+  66 |   });
+  67 | });
 ```
