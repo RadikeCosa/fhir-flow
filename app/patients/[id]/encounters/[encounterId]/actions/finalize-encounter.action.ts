@@ -78,17 +78,6 @@ export async function finalizeEncounterAction(
         throw error;
     }
 
-    if (!encounter.actualStartAt) {
-        return {
-            success: false,
-            error: {
-                layer: "domain",
-                message: "El encuentro no tiene registrada la hora real de inicio",
-                code: "ENCOUNTER_MISSING_ACTUAL_START",
-            } satisfies ActionError,
-        };
-    }
-
     let practitioner;
     try {
         practitioner = await getCurrentPractitioner();
@@ -113,7 +102,10 @@ export async function finalizeEncounterAction(
         performerId: practitioner.id,
         practitionerName: practitioner.displayName,
         visitType: encounter.visitType,
-        actualStartAt: encounter.actualStartAt,
+        actualStartAt: composeLocalDateTimeToUtcIso(
+            parseResult.data.actualDate,
+            parseResult.data.actualStartTime
+        ),
         actualEndAt: composeLocalDateTimeToUtcIso(
             parseResult.data.actualDate,
             parseResult.data.actualEndTime
