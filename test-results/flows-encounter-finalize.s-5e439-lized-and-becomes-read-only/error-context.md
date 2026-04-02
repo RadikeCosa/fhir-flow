@@ -153,9 +153,7 @@ Call log:
                 - button "Finalizar visita" [ref=e120]
   - contentinfo [ref=e121]:
     - paragraph [ref=e122]: FhirFlow · FHIR R4 · Proyecto de aprendizaje
-  - button "Open Next.js Dev Tools" [ref=e128] [cursor=pointer]:
-    - img [ref=e129]
-  - alert [ref=e132]
+  - alert [ref=e123]
 ```
 
 # Test source
