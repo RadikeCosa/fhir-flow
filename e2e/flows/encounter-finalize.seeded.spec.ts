@@ -17,6 +17,17 @@ async function finalizeSeededEncounter(page: Page, clinicalNoteSentinel: string)
   };
   page.on("console", consoleListener);
 
+  const allNetworkRequestListener = (request: { method: () => string; url: () => string; resourceType: () => string }) => {
+    const resourceType = request.resourceType();
+    if (resourceType === "fetch" || resourceType === "xhr") {
+      console.log("[encounter-finalize.seeded] network-request-all", {
+        method: request.method(),
+        url: request.url(),
+      });
+    }
+  };
+  page.on("request", allNetworkRequestListener);
+
   await page.goto(ENCOUNTER_URL);
   await page.waitForLoadState("networkidle");
 
@@ -58,10 +69,35 @@ async function finalizeSeededEncounter(page: Page, clinicalNoteSentinel: string)
   await page.getByLabel("Puntuación EVA").fill("2");
   await page.waitForLoadState("networkidle");
 
+  const fieldValuesBeforeSubmit = {
+    fechaReal: await page.getByLabel("Fecha real").inputValue(),
+    horaRealInicio: await page.getByLabel("Hora real de inicio").inputValue(),
+    horaRealFin: await page.getByLabel("Hora real de fin").inputValue(),
+    notaClinica: await page.getByLabel("Nota clínica *").inputValue(),
+    frecuenciaCardiaca: await page.getByLabel("Frecuencia cardíaca (lpm)").inputValue(),
+    frecuenciaRespiratoria: await page.getByLabel("Frecuencia respiratoria (rpm)").inputValue(),
+    presionSistolica: await page.getByLabel("Presión sistólica (mmHg)").inputValue(),
+    presionDiastolica: await page.getByLabel("Presión diastólica (mmHg)").inputValue(),
+    puntuacionEva: await page.getByLabel("Puntuación EVA").inputValue(),
+  };
+  console.log("[encounter-finalize.seeded] field-values-before-submit", fieldValuesBeforeSubmit);
+
   const alert = page.getByRole("alert");
   const initialAlertText = ((await alert.first().textContent().catch(() => "")) ?? "").trim();
 
+  const submitNetworkRequestListener = (request: { method: () => string; url: () => string }) => {
+    const url = request.url();
+    if (url.includes("/patients/") || url.toLowerCase().includes('action')) {
+      console.log("[encounter-finalize.seeded] network-request", {
+        method: request.method(),
+        url,
+      });
+    }
+  };
+  page.on("request", submitNetworkRequestListener);
+
   await page.getByRole("button", { name: "Finalizar visita" }).click();
+  await page.waitForTimeout(3000);
   const postFinalizeRouteOrBanner = await Promise.race([
     page
       .waitForURL((url) => !url.pathname.endsWith(`/encounters/${ENCOUNTER_ID}`), { timeout: 20000 })
@@ -98,25 +134,30 @@ async function finalizeSeededEncounter(page: Page, clinicalNoteSentinel: string)
   console.log("[encounter-finalize.seeded] post-click-signal", postClickSignal ?? "none-within-timeout");
   console.log("[encounter-finalize.seeded] URL AFTER SUBMIT:", page.url());
 
-  const allAlertTexts = await alert.allTextContents();
-  console.log('[encounter-finalize.seeded] role="alert" allTextContents:', allAlertTexts);
   console.log(
     '[encounter-finalize.seeded] role="alert" first textContent:',
     await alert.first().textContent().catch(() => null),
   );
 
-  const visibleErrorLocator = page.locator(
-    ':is(:text-matches("error", "i"), :text-matches("inválido", "i"), :text-matches("requerido", "i")):visible',
-  );
-  const visibleErrorCount = await visibleErrorLocator.count();
-  const visibleErrorTexts = await visibleErrorLocator.allTextContents();
-  console.log("[encounter-finalize.seeded] visible error-like elements:", {
-    count: visibleErrorCount,
-    texts: visibleErrorTexts.map((text) => text.trim()).filter(Boolean),
+  const ariaInvalidCount = await page.locator('[aria-invalid="true"]').count();
+  const ariaDescribedByCount = await page.locator('[aria-describedby]').count();
+  const validationTexts = await page
+    .getByText(/requerido|inválido|obligatorio|debe|mayor|menor/i)
+    .allTextContents()
+    .catch(() => []);
+  const formCount = await page.locator("form").count();
+
+  console.log("[encounter-finalize.seeded] validation-diagnostics", {
+    ariaInvalidCount,
+    ariaDescribedByCount,
+    validationTexts,
+    formCount,
   });
 
   console.log("[encounter-finalize.seeded] captured-console-count:", consoleMessages.length);
   page.off("console", consoleListener);
+  page.off("request", submitNetworkRequestListener);
+  page.off("request", allNetworkRequestListener);
 
   await expect(page.getByText(FINALIZED_BANNER)).toBeVisible({ timeout: 15000 });
 }
