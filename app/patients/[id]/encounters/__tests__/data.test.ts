@@ -127,6 +127,54 @@ describe("getEncountersPageData sorting", () => {
         ]);
     });
 
+    it("finished longitudinal read keeps a single semantic point for the finalized encounter", async () => {
+        const finalizedEncounter = makeEncounter({
+            id: "enc-finalized",
+            actualStartAt: "2026-03-20T10:00:00.000Z",
+            actualEndAt: "2026-03-20T10:30:00.000Z",
+            periodStart: "2026-03-20T10:00:00.000Z",
+            periodEnd: "2026-03-20T10:30:00.000Z",
+        });
+
+        repositories.encounterRepo.findAllByEpisodeOfCareId.mockResolvedValue([
+            finalizedEncounter,
+        ]);
+
+        const finalVital: VitalSignRecord = {
+            ...vitalFixture,
+            id: "vital-final",
+            encounterId: finalizedEncounter.id,
+            date: "2026-03-20T10:30:00.000Z",
+            heartRate: 91,
+        };
+        const finalEva: EvaAssessment = {
+            ...evaFixture,
+            id: "eva-final",
+            encounterId: finalizedEncounter.id,
+            date: "2026-03-20T10:30:00.000Z",
+            score: 2,
+        };
+
+        repositories.vitalRepo.findAllByPatientId.mockResolvedValue([finalVital]);
+        repositories.assessmentRepo.findEvaByPatientId.mockResolvedValue([finalEva]);
+        repositories.procedureRepo.findAllByPatientId.mockResolvedValue([]);
+
+        const { getEncountersPageData } = await import("../data");
+        const result = await getEncountersPageData(patientFixture.id);
+
+        expect(result.encounters).toEqual([finalizedEncounter]);
+        expect(result.vitalSigns).toEqual([finalVital]);
+        expect(result.evaRecords).toEqual([finalEva]);
+        expect(result.vitalsByEncounterId[finalizedEncounter.id]).toEqual([finalVital]);
+        expect(result.evaByEncounterId[finalizedEncounter.id]).toEqual([finalEva]);
+        expect(result.vitalSigns).toHaveLength(1);
+        expect(result.evaRecords).toHaveLength(1);
+        expect(result.vitalsByEncounterId[finalizedEncounter.id]).toHaveLength(1);
+        expect(result.evaByEncounterId[finalizedEncounter.id]).toHaveLength(1);
+        expect(result.vitalSigns.every((record) => record.encounterId === finalizedEncounter.id)).toBe(true);
+        expect(result.evaRecords.every((record) => record.encounterId === finalizedEncounter.id)).toBe(true);
+    });
+
     it("keeps longitudinal vitals and EVA linked by encounter date when encounterId is missing", async () => {
         const activeEncounter = makeEncounter({
             id: "enc-date-match",

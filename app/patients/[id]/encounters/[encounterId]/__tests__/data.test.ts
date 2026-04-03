@@ -391,6 +391,82 @@ describe("getEncounterDetailData", () => {
     expect(repositories.procedureRepo.findAllByEncounterId).not.toHaveBeenCalledWith(siblingEncounterId);
   });
 
+  it("finished detail keeps only the final semantic snapshot for the requested encounterId", async () => {
+    const requestedEncounterId = "enc-final-snapshot";
+
+    repositories.encounterRepo.findById.mockResolvedValue(
+      makeEncounter({
+        id: requestedEncounterId,
+        status: "finished",
+        clinicalNote: "nota final consolidada",
+        actualStartAt: "2026-03-20T10:00:00.000Z",
+        actualEndAt: "2026-03-20T10:30:00.000Z",
+        periodStart: "2026-03-20T10:00:00.000Z",
+        periodEnd: "2026-03-20T10:30:00.000Z",
+      }),
+    );
+
+    const partialVital: VitalSignRecord = {
+      ...vitalFixture,
+      id: "vital-partial",
+      encounterId: requestedEncounterId,
+      heartRate: 84,
+    };
+    const finalVital: VitalSignRecord = {
+      ...vitalFixture,
+      id: "vital-final",
+      encounterId: requestedEncounterId,
+      heartRate: 91,
+    };
+
+    const partialEva: EvaAssessment = {
+      ...evaFixture,
+      id: "eva-partial",
+      encounterId: requestedEncounterId,
+      score: 6,
+    };
+    const finalEva: EvaAssessment = {
+      ...evaFixture,
+      id: "eva-final",
+      encounterId: requestedEncounterId,
+      score: 2,
+    };
+
+    const partialProcedure: Procedure = {
+      ...procedureFixture,
+      id: "proc-partial",
+      encounterId: requestedEncounterId,
+    };
+    const finalProcedure: Procedure = {
+      ...procedureFixture,
+      id: "proc-final",
+      encounterId: requestedEncounterId,
+    };
+
+    repositories.vitalRepo.findAllByEncounterId.mockResolvedValue([finalVital]);
+    repositories.assessmentRepo.findEvaByEncounterId.mockResolvedValue([finalEva]);
+    repositories.procedureRepo.findAllByEncounterId.mockResolvedValue([finalProcedure]);
+
+    const { getEncounterDetailData } = await import("../data");
+    const result = await getEncounterDetailData(patientFixture.id, requestedEncounterId);
+
+    expect(result.encounter?.id).toBe(requestedEncounterId);
+    expect(result.encounter?.status).toBe("finished");
+    expect(result.inProgressInitialValues).toBeUndefined();
+    expect(result.vitalSigns).toEqual([finalVital]);
+    expect(result.evaRecords).toEqual([finalEva]);
+    expect(result.procedures).toEqual([finalProcedure]);
+    expect(result.vitalSigns).toHaveLength(1);
+    expect(result.evaRecords).toHaveLength(1);
+    expect(result.procedures).toHaveLength(1);
+    expect(result.vitalSigns).not.toContainEqual(partialVital);
+    expect(result.evaRecords).not.toContainEqual(partialEva);
+    expect(result.procedures).not.toContainEqual(partialProcedure);
+    expect(result.vitalSigns.every((record) => record.encounterId === requestedEncounterId)).toBe(true);
+    expect(result.evaRecords.every((record) => record.encounterId === requestedEncounterId)).toBe(true);
+    expect(result.procedures.every((record) => record.encounterId === requestedEncounterId)).toBe(true);
+  });
+
   it("returns null encounter when encounter does not belong to route patient and skips clinical loaders", async () => {
     repositories.encounterRepo.findById.mockResolvedValue(
       makeEncounter({

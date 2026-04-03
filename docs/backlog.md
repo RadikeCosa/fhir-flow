@@ -285,11 +285,11 @@ Tracks:
   - La continuidad encounter-centric acotada ya está operativa (detalle editable + save/reload/remount/rehydrate + source switch post-finalize).
   - Lo pendiente corresponde a cobertura/garantías system-wide, no a bug runtime en el path acotado.
 
-- **Duplicación de instantánea clínica parcial tras `finalize`** → **Deuda abierta**
-  - Bug runtime real y distinto del cierre previo de submit/UX de `save-progress`, que ya quedó cerrado.
-  - Los valores parciales guardados durante `in-progress` reaparecen luego de finalizar el mismo encounter como valores adicionales o coexistentes con la clínica final.
-  - Afecta encounter detail y charts/history longitudinal, porque ambas surfaces terminan leyendo dos conjuntos de datos para lo que semánticamente debería ser una única visita.
-  - La causa raíz no está cerrada todavía; la dirección esperable es investigar consolidación de snapshot/finalize y no asumir que el filtrado de lectura por sí solo resuelve el problema.
+- **Sprint cerrado / incidencia cerrada — Endurecimiento de la instantánea clínica tras finalizar visita (2026-04)** → **Cerrado**
+  - El bug runtime de duplicación post-finalize quedó cerrado con cleanup write-side en `finalize`.
+  - La semántica de snapshot parcial de `save-progress` permanece intacta y no se modifica en este cierre.
+  - La protección de regresión ahora cubre finalize write-path, encounter detail loader y longitudinal loader.
+  - No se declara cerrada la deuda global longitudinal/histórica fuera del encounter afectado.
 
 - **Canonical read hardening global de `finished` (más allá de detail)** → **Pendiente**
   - `finished encounter detail` ya quedó validado; sigue pendiente la cobertura/hardening global en surfaces restantes.
@@ -313,23 +313,13 @@ Tracks:
 
 ## 🚀 Siguiente fase (prioridad sugerida)
 
-1. **Sprint — Endurecimiento de la instantánea clínica tras finalizar visita**
-  - Prioridad inmediata para investigar y contener la duplicación de instantánea clínica parcial que aparece después de `finalize`.
-  - Este sprint sustituye la propuesta anterior de alineación cross-surface como siguiente paso, porque el bug runtime nuevo es más específico y afecta también a encounter detail.
-  - Alcance sugerido: diagnóstico de coexistencia parcial/final, definición del punto real de consolidación y hardening mínimo sin prometer una solución que aún no está cerrada.
-
-## 🚀 Próximo sprint propuesto
-
-### Sprint — Endurecimiento de la instantánea clínica tras finalizar visita
-
-**Objetivo breve**
-- Investigar y contener la duplicación de valores clínicos parciales que reaparecen después de finalizar el mismo encounter.
-- Asegurar que la semántica de snapshot clínico siga siendo no acumulativa en `in-progress` y no genere coexistencia con la snapshot final.
-
-**Scope inicial**
-- diagnosticar si la duplicación nace en la escritura, en la consolidación al finalizar o en la lectura posterior;
-- verificar el efecto en encounter detail y charts/history longitudinal;
-- definir hardening mínimo sin asumir todavía si la corrección final vive en write o read path.
+1. **Mantener la regresión protegida**
+  - Sustentar la cobertura existente en finalize write-path, encounter detail loader y longitudinal loader.
+  - No expandir este cierre a E2E browser salvo necesidad nueva y separada.
+2. **Deuda longitudinal/histórica abierta**
+  - Continuar documentando y validando el fallback temporal y los casos legacy sin `encounterId`.
+3. **Tipado de `ActionError.details` por capa**
+  - Sigue pendiente y no se mezcla con este cierre.
 
 ---
 

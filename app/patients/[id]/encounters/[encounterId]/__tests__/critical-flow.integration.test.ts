@@ -90,31 +90,31 @@ const encounterRepo = {
     const vitalRecords: VitalSignRecord[] = input.heartRate === undefined
       ? []
       : [{
-          id: `vital-progress-${input.encounterId}`,
-          patientId: input.patientId,
-          encounterId: input.encounterId,
-          date: input.recordedAt,
-          recordedBy: {
-            id: input.performerId,
-            display: input.practitionerName,
-          },
-          heartRate: input.heartRate,
-        }];
+        id: `vital-progress-${input.encounterId}`,
+        patientId: input.patientId,
+        encounterId: input.encounterId,
+        date: input.recordedAt,
+        recordedBy: {
+          id: input.performerId,
+          display: input.practitionerName,
+        },
+        heartRate: input.heartRate,
+      }];
 
     const evaRecords: EvaAssessment[] = input.evaScore === undefined
       ? []
       : [{
-          id: `eva-progress-${input.encounterId}`,
-          patientId: input.patientId,
-          encounterId: input.encounterId,
-          type: "eva",
-          date: input.recordedAt,
-          score: input.evaScore,
-          recordedBy: {
-            id: input.performerId,
-            display: input.practitionerName,
-          },
-        }];
+        id: `eva-progress-${input.encounterId}`,
+        patientId: input.patientId,
+        encounterId: input.encounterId,
+        type: "eva",
+        date: input.recordedAt,
+        score: input.evaScore,
+        recordedBy: {
+          id: input.performerId,
+          display: input.practitionerName,
+        },
+      }];
 
     const procedureRecords: Procedure[] = input.procedures.map((procedure, index) => ({
       id: `proc-progress-${input.encounterId}-${index}`,
@@ -164,31 +164,31 @@ const encounterRepo = {
     const vitalRecords: VitalSignRecord[] = input.heartRate === undefined
       ? []
       : [{
-          id: `vital-finished-${input.encounterId}`,
-          patientId: input.patientId,
-          encounterId: input.encounterId,
-          date: input.actualEndAt,
-          recordedBy: {
-            id: input.performerId,
-            display: input.practitionerName,
-          },
-          heartRate: input.heartRate,
-        }];
+        id: `vital-finished-${input.encounterId}`,
+        patientId: input.patientId,
+        encounterId: input.encounterId,
+        date: input.actualEndAt,
+        recordedBy: {
+          id: input.performerId,
+          display: input.practitionerName,
+        },
+        heartRate: input.heartRate,
+      }];
 
     const evaRecords: EvaAssessment[] = input.evaScore === undefined
       ? []
       : [{
-          id: `eva-finished-${input.encounterId}`,
-          patientId: input.patientId,
-          encounterId: input.encounterId,
-          type: "eva",
-          date: input.actualEndAt,
-          score: input.evaScore,
-          recordedBy: {
-            id: input.performerId,
-            display: input.practitionerName,
-          },
-        }];
+        id: `eva-finished-${input.encounterId}`,
+        patientId: input.patientId,
+        encounterId: input.encounterId,
+        type: "eva",
+        date: input.actualEndAt,
+        score: input.evaScore,
+        recordedBy: {
+          id: input.performerId,
+          display: input.practitionerName,
+        },
+      }];
 
     const procedureRecords: Procedure[] = input.procedures.map((procedure, index) => ({
       id: `proc-finished-${input.encounterId}-${index}`,
@@ -480,5 +480,102 @@ describe("critical encounter-centric flow integration", () => {
     expect(patientAfterFinalize.lastEncounterVitalSigns[0]?.encounterId).toBe(encounterId);
     expect(patientAfterFinalize.lastEncounterVitalSigns[0]?.heartRate).toBe(89);
     expect(patientAfterFinalize.lastEncounterVitalSigns[0]?.encounterId).not.toBe(unrelatedEncounterId);
+  });
+
+  it("C: planned -> start -> saveProgress(partial) -> finalize(final) -> reload detail/patient side keeps a single finalized semantic snapshot", async () => {
+    const encounterId = "enc-flow-c";
+
+    seedPlannedEncounter(encounterId);
+
+    const { startEncounterAction } = await import("../actions/start-encounter.action");
+    const { saveEncounterProgressAction } = await import("../actions/save-encounter-progress.action");
+    const { finalizeEncounterAction } = await import("../actions/finalize-encounter.action");
+    const { getEncounterDetailData } = await import("../data");
+    const { getPatientDetailData } = await import("../../../data");
+
+    await expect(
+      startEncounterAction(state.patient.id, encounterId, "2026-03-20", "10:00"),
+    ).rejects.toThrow("NEXT_REDIRECT");
+
+    await expect(
+      saveEncounterProgressAction(state.patient.id, encounterId, {
+        clinicalNote: "nota parcial en curso",
+        reasonDisplay: "Control respiratorio",
+        heartRate: 84,
+        evaScore: 6,
+        procedures: [
+          {
+            category: "terapia-manual",
+            code: "masoterapia",
+            note: "snapshot parcial",
+          },
+        ],
+      }),
+    ).rejects.toThrow("NEXT_REDIRECT");
+
+    const partialDetail = await getEncounterDetailData(state.patient.id, encounterId);
+    expect(partialDetail.encounter?.status).toBe("in-progress");
+    expect(partialDetail.inProgressInitialValues?.encounterId).toBe(encounterId);
+    expect(partialDetail.vitalSigns).toHaveLength(1);
+    expect(partialDetail.vitalSigns[0]).toMatchObject({
+      encounterId,
+      heartRate: 84,
+    });
+    expect(partialDetail.evaRecords).toHaveLength(1);
+    expect(partialDetail.evaRecords[0]).toMatchObject({
+      encounterId,
+      score: 6,
+    });
+    expect(partialDetail.procedures).toHaveLength(1);
+    expect(partialDetail.procedures[0]).toMatchObject({
+      encounterId,
+      code: "masoterapia",
+    });
+
+    await expect(
+      finalizeEncounterAction(state.patient.id, encounterId, {
+        actualDate: "2026-03-20",
+        actualStartTime: "10:00",
+        actualEndTime: "10:30",
+        clinicalNote: "nota final consolidada",
+        reasonDisplay: "Control respiratorio",
+        heartRate: 91,
+        evaScore: 2,
+        procedures: [],
+      }),
+    ).rejects.toThrow("NEXT_REDIRECT");
+
+    const finishedDetail = await getEncounterDetailData(state.patient.id, encounterId);
+    expect(finishedDetail.encounter?.status).toBe("finished");
+    expect(finishedDetail.encounter?.clinicalNote).toBe("nota final consolidada");
+    expect(finishedDetail.inProgressInitialValues).toBeUndefined();
+    expect(finishedDetail.vitalSigns).toHaveLength(1);
+    expect(finishedDetail.vitalSigns[0]).toMatchObject({
+      encounterId,
+      heartRate: 91,
+    });
+    expect(finishedDetail.evaRecords).toHaveLength(1);
+    expect(finishedDetail.evaRecords[0]).toMatchObject({
+      encounterId,
+      score: 2,
+    });
+    expect(finishedDetail.procedures).toHaveLength(0);
+
+    const patientAfterFinalize = await getPatientDetailData(state.patient.id);
+    expect(patientAfterFinalize.inProgressEncounter).toBeNull();
+    expect(patientAfterFinalize.lastEncounter?.id).toBe(encounterId);
+    expect(patientAfterFinalize.lastEncounter?.status).toBe("finished");
+    expect(patientAfterFinalize.lastEncounter?.clinicalNote).toBe("nota final consolidada");
+    expect(patientAfterFinalize.lastEncounterVitalSigns).toHaveLength(1);
+    expect(patientAfterFinalize.lastEncounterVitalSigns[0]).toMatchObject({
+      encounterId,
+      heartRate: 91,
+    });
+    expect(patientAfterFinalize.lastEncounterEvaRecords).toHaveLength(1);
+    expect(patientAfterFinalize.lastEncounterEvaRecords[0]).toMatchObject({
+      encounterId,
+      score: 2,
+    });
+    expect(patientAfterFinalize.lastEncounterProcedures).toHaveLength(0);
   });
 });
