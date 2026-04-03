@@ -66,6 +66,23 @@ const activeEpisodeFixture: EpisodeOfCare = {
     patientId: patientFixture.id,
 };
 
+const vitalFixture: VitalSignRecord = {
+    id: "vital-default",
+    patientId: patientFixture.id,
+    date: "2026-03-20T10:00:00.000Z",
+    recordedBy: { id: "pr-1", display: "Nurse" },
+    heartRate: 80,
+};
+
+const evaFixture: EvaAssessment = {
+    id: "eva-default",
+    patientId: patientFixture.id,
+    type: "eva",
+    date: "2026-03-20T10:00:00.000Z",
+    score: 4,
+    recordedBy: { id: "pr-1", display: "Nurse" },
+};
+
 function makeEncounter(overrides: Partial<Encounter> = {}): Encounter {
     return {
         id: "encounter-default",

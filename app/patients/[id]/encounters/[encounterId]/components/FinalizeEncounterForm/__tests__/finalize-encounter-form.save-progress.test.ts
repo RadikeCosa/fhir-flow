@@ -2,6 +2,14 @@ import * as React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("react", async (importOriginal) => {
+    const actual = await importOriginal<typeof import("react")>();
+    return {
+        ...actual,
+        useState: vi.fn(actual.useState),
+    };
+});
+
 const mocks = vi.hoisted(() => ({
     useForm: vi.fn(),
     useFieldArray: vi.fn(),
@@ -21,11 +29,11 @@ vi.mock("next/navigation", () => ({
     useRouter: mocks.useRouter,
 }));
 
-vi.mock("../../actions/finalize-encounter.action", () => ({
+vi.mock("../../../actions/finalize-encounter.action", () => ({
     finalizeEncounterAction: mocks.finalizeEncounterAction,
 }));
 
-vi.mock("../../actions/save-encounter-progress.action", () => ({
+vi.mock("../../../actions/save-encounter-progress.action", () => ({
     saveEncounterProgressAction: mocks.saveEncounterProgressAction,
 }));
 
@@ -57,7 +65,7 @@ describe("FinalizeEncounterForm save-progress regression", () => {
         vi.clearAllMocks();
         seedRenderState();
 
-        vi.spyOn(React, "useState").mockImplementation(() => {
+        vi.mocked(React.useState).mockImplementation(() => {
             const nextValue = renderStateQueue.length > 0 ? renderStateQueue.shift() : undefined;
             return [nextValue, setStateMock] as never;
         });

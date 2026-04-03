@@ -21,6 +21,8 @@ function resolveBundle(): Record<string, unknown> {
 }
 
 export async function loadContinuityMinimalSeed(): Promise<void> {
+  // Contract: seed loading is idempotent (transaction bundle with PUT), but not a full backend reset.
+  // The helper must assert baseline state so each test starts from a known encounter lifecycle status.
   const baseUrl = resolveFhirBaseUrl();
   const bundle = resolveBundle();
 
@@ -37,6 +39,34 @@ export async function loadContinuityMinimalSeed(): Promise<void> {
     const body = await response.text().catch(() => "");
     throw new Error(
       `Failed to load continuity seed (${response.status} ${response.statusText}) against ${baseUrl}: ${body}`,
+    );
+  }
+
+  const encounterResponse = await fetch(
+    `${baseUrl.replace(/\/$/, "")}/Encounter/e2e-continuity-encounter-1`,
+    {
+      headers: {
+        Accept: "application/fhir+json",
+      },
+    },
+  );
+
+  if (!encounterResponse.ok) {
+    const body = await encounterResponse.text().catch(() => "");
+    throw new Error(
+      `Continuity seed verification failed when reading encounter (${encounterResponse.status} ${encounterResponse.statusText}) from ${baseUrl}: ${body}`,
+    );
+  }
+
+  const seededEncounter = (await encounterResponse.json()) as {
+    status?: unknown;
+  };
+
+  if (seededEncounter.status !== "planned") {
+    throw new Error(
+      `Continuity seed verification failed: expected Encounter/e2e-continuity-encounter-1 status=planned but got ${String(
+        seededEncounter.status,
+      )}`,
     );
   }
 }

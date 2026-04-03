@@ -376,7 +376,7 @@ describe("critical encounter-centric flow integration", () => {
           },
         ],
       }),
-    ).rejects.toThrow("NEXT_REDIRECT");
+    ).resolves.toEqual({ success: true });
 
     const reloaded = await getEncounterDetailData(state.patient.id, encounterId);
     const mapped = mapInProgressEncounterDetailToFormInitialValues(
@@ -439,7 +439,7 @@ describe("critical encounter-centric flow integration", () => {
         heartRate: 84,
         procedures: [],
       }),
-    ).rejects.toThrow("NEXT_REDIRECT");
+    ).resolves.toEqual({ success: true });
 
     const patientWhileInProgress = await getPatientDetailData(state.patient.id);
     expect(patientWhileInProgress.inProgressEncounter?.id).toBe(encounterId);
@@ -511,7 +511,7 @@ describe("critical encounter-centric flow integration", () => {
           },
         ],
       }),
-    ).rejects.toThrow("NEXT_REDIRECT");
+    ).resolves.toEqual({ success: true });
 
     const partialDetail = await getEncounterDetailData(state.patient.id, encounterId);
     expect(partialDetail.encounter?.status).toBe("in-progress");

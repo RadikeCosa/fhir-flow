@@ -21,6 +21,8 @@ function resolveBundle(): Record<string, unknown> {
 }
 
 export async function loadFinalizeMinimalSeed(): Promise<void> {
+  // Contract: seed loading is idempotent (transaction bundle with PUT), but not a full backend reset.
+  // We verify encounter status to ensure tests run on the expected lifecycle baseline.
   const baseUrl = resolveFhirBaseUrl();
   const bundle = resolveBundle();
 

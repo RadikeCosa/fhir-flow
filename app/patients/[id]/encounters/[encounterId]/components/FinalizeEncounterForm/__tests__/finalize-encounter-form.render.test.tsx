@@ -2,8 +2,18 @@ import * as React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("../../actions/finalize-encounter.action", () => ({
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    refresh: vi.fn(),
+  }),
+}));
+
+vi.mock("../../../actions/finalize-encounter.action", () => ({
   finalizeEncounterAction: vi.fn(),
+}));
+
+vi.mock("../../../actions/save-encounter-progress.action", () => ({
+  saveEncounterProgressAction: vi.fn(),
 }));
 
 import FinalizeEncounterForm, { createDefaultProcedure } from "../index";
@@ -40,9 +50,8 @@ describe("FinalizeEncounterForm render", () => {
       }),
     );
 
-    expect(html).toContain("Seleccionar categoría");
-    expect(html).toContain("Seleccionar procedimiento");
-    expect(html).toContain("Región anatómica (opcional)");
+    expect(html).toContain("No hay procedimientos cargados.");
+    expect(html).toContain("Agregar procedimiento");
     expect(html).toContain("Tensión arterial (mmHg)");
   });
 });
