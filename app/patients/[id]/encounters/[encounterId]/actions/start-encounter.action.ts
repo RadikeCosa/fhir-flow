@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type {
-    ActionError,
     ActionResult,
 } from "../../../../../../domain/shared/action-result.types";
 import {
@@ -33,7 +32,7 @@ function isOperationOutcomeError(
     );
 }
 
-function isHttpError(error: unknown): error is { message: string; data?: unknown } {
+function isHttpError(error: unknown): error is { message: string; data?: unknown; status?: number } {
     return (
         typeof error === "object" &&
         error !== null &&
@@ -74,11 +73,13 @@ export async function startEncounterAction(
         if (error instanceof FhirMapperError) {
             return {
                 success: false,
-                error: {
-                    layer: "fhir",
+                error: buildFhirActionError({
                     message: error.message,
                     code: error.code ?? "FHIR_MAPPER_ERROR",
-                } satisfies ActionError,
+                    details: {
+                        cause: "mapper_error",
+                    },
+                }),
             };
         }
 
@@ -88,7 +89,10 @@ export async function startEncounterAction(
                 error: buildFhirActionError({
                     message: error.message,
                     code: error.code ?? "FHIR_WRITE_ERROR",
-                    details: error.operationOutcome,
+                    details: {
+                        cause: "operation_outcome",
+                        operationOutcome: error.operationOutcome,
+                    },
                 }),
             };
         }
@@ -99,7 +103,10 @@ export async function startEncounterAction(
                 error: buildFhirActionError({
                     message: error.message,
                     code: "FHIR_OPERATION_OUTCOME",
-                    details: error.outcome,
+                    details: {
+                        cause: "operation_outcome",
+                        operationOutcome: error.outcome,
+                    },
                 }),
             };
         }
@@ -110,29 +117,38 @@ export async function startEncounterAction(
                 error: buildFhirActionError({
                     message: error.message,
                     code: "FHIR_HTTP_ERROR",
-                    details: error.data,
+                    details: {
+                        cause: "http_error",
+                        statusCode: error.status,
+                        raw: error.data,
+                    },
                 }),
             };
         }
 
         return {
             success: false,
-            error: {
-                layer: "fhir",
+            error: buildFhirActionError({
                 message: "Unexpected error while loading encounter",
                 code: "ENCOUNTER_LOAD_FAILED",
-            } satisfies ActionError,
+                details: {
+                    cause: "unexpected_fhir_error",
+                    raw: error,
+                },
+            }),
         };
     }
 
     if (!encounter) {
         return {
             success: false,
-            error: {
-                layer: "fhir",
+            error: buildFhirActionError({
                 message: "Encounter not found",
                 code: "ENCOUNTER_NOT_FOUND",
-            } satisfies ActionError,
+                details: {
+                    cause: "not_found",
+                },
+            }),
         };
     }
 
@@ -195,11 +211,13 @@ export async function startEncounterAction(
         if (error instanceof FhirMapperError) {
             return {
                 success: false,
-                error: {
-                    layer: "fhir",
+                error: buildFhirActionError({
                     message: error.message,
                     code: error.code,
-                } satisfies ActionError,
+                    details: {
+                        cause: "mapper_error",
+                    },
+                }),
             };
         }
 
@@ -209,7 +227,10 @@ export async function startEncounterAction(
                 error: buildFhirActionError({
                     message: error.message,
                     code: error.code,
-                    details: error.operationOutcome,
+                    details: {
+                        cause: "operation_outcome",
+                        operationOutcome: error.operationOutcome,
+                    },
                 }),
             };
         }
@@ -220,7 +241,10 @@ export async function startEncounterAction(
                 error: buildFhirActionError({
                     message: error.message,
                     code: "FHIR_OPERATION_OUTCOME",
-                    details: error.outcome,
+                    details: {
+                        cause: "operation_outcome",
+                        operationOutcome: error.outcome,
+                    },
                 }),
             };
         }
@@ -231,18 +255,25 @@ export async function startEncounterAction(
                 error: buildFhirActionError({
                     message: error.message,
                     code: "FHIR_HTTP_ERROR",
-                    details: error.data,
+                    details: {
+                        cause: "http_error",
+                        statusCode: error.status,
+                        raw: error.data,
+                    },
                 }),
             };
         }
 
         return {
             success: false,
-            error: {
-                layer: "fhir",
+            error: buildFhirActionError({
                 message: "Unexpected error while starting encounter",
                 code: "ENCOUNTER_START_FAILED",
-            } satisfies ActionError,
+                details: {
+                    cause: "unexpected_fhir_error",
+                    raw: error,
+                },
+            }),
         };
     }
 }

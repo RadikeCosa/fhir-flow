@@ -1,7 +1,14 @@
 # Sprint — Hardening final de ActionError.details por capa (fase 2)
 
-- Status: proposed
+- Status: closed
 - Fecha: 2026-04-04
+
+> Actualización de cierre (T5):
+> - `fhir.details` tipado y normalizado en el frente encounter write incluido en el sprint.
+> - Tests de helper + acciones de write alineados al contrato normalizado.
+> - Practitioner consistency queda explícitamente fuera de cierre y sigue como deuda separada.
+>
+> Nota: las secciones de diagnóstico/problema del documento conservan el baseline pre-ejecución del sprint y no contradicen este cierre acotado.
 
 ## 1. Objetivo
 

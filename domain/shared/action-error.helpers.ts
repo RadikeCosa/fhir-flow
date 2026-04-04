@@ -1,5 +1,6 @@
 import type {
     ActionError,
+    FhirActionErrorDetails,
     ValidationErrorDetails,
 } from "./action-result.types";
 
@@ -17,8 +18,12 @@ type BuildDomainErrorInput = {
 type BuildFhirErrorInput = {
     message: string;
     code?: string;
-    details?: unknown;
+    details?: FhirActionErrorDetails | unknown;
 };
+
+function isFhirActionErrorDetails(value: unknown): value is FhirActionErrorDetails {
+    return typeof value === "object" && value !== null;
+}
 
 /**
  * Builds a normalized validation-layer ActionError for phase 1.
@@ -58,10 +63,16 @@ export function buildFhirActionError({
     code,
     details,
 }: BuildFhirErrorInput): ActionError {
+    const normalizedDetails = details === undefined
+        ? undefined
+        : isFhirActionErrorDetails(details)
+            ? details
+            : { raw: details };
+
     return {
         layer: "fhir",
         message,
         code,
-        details,
+        details: normalizedDetails,
     };
 }

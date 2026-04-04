@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type {
-    ActionError,
     ActionResult,
 } from "../../../../../../domain/shared/action-result.types";
 import {
@@ -46,11 +45,13 @@ export async function finalizeEncounterAction(
         console.error("[finalizeEncounterAction] encounter load failed: not found", { encounterId });
         return {
             success: false,
-            error: {
-                layer: "fhir",
+            error: buildFhirActionError({
                 message: "Encounter not found",
                 code: "ENCOUNTER_NOT_FOUND",
-            } satisfies ActionError,
+                details: {
+                    cause: "not_found",
+                },
+            }),
         };
     }
 
@@ -99,11 +100,13 @@ export async function finalizeEncounterAction(
             });
             return {
                 success: false,
-                error: {
-                    layer: "fhir",
+                error: buildFhirActionError({
                     message: error.message,
                     code: error.code,
-                } satisfies ActionError,
+                    details: {
+                        cause: "mapper_error",
+                    },
+                }),
             };
         }
         throw error;
@@ -172,11 +175,13 @@ export async function finalizeEncounterAction(
             });
             return {
                 success: false,
-                error: {
-                    layer: "fhir",
+                error: buildFhirActionError({
                     message: error.message,
                     code: error.code,
-                } satisfies ActionError,
+                    details: {
+                        cause: "mapper_error",
+                    },
+                }),
             };
         }
         if (error instanceof FhirWriteError) {
@@ -190,7 +195,10 @@ export async function finalizeEncounterAction(
                 error: buildFhirActionError({
                     message: error.message,
                     code: error.code,
-                    details: error.operationOutcome,
+                    details: {
+                        cause: "operation_outcome",
+                        operationOutcome: error.operationOutcome,
+                    },
                 }),
             };
         }

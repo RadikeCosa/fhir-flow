@@ -57,6 +57,9 @@ describe("startEncounterAction", () => {
                 layer: "fhir",
                 message: "Encounter not found",
                 code: "ENCOUNTER_NOT_FOUND",
+                details: {
+                    cause: "not_found",
+                },
             },
         });
 
@@ -78,7 +81,11 @@ describe("startEncounterAction", () => {
                 layer: "fhir",
                 message: "HTTP 500 Internal Server Error",
                 code: "FHIR_HTTP_ERROR",
-                details: undefined,
+                details: {
+                    cause: "http_error",
+                    statusCode: undefined,
+                    raw: undefined,
+                },
             },
         });
 
@@ -181,7 +188,10 @@ describe("startEncounterAction", () => {
                 layer: "fhir",
                 message: "No se pudo iniciar el encuentro",
                 code: "FHIR_WRITE_FAILED",
-                details: operationOutcome,
+                details: {
+                    cause: "operation_outcome",
+                    operationOutcome,
+                },
             },
         });
     });
@@ -192,12 +202,16 @@ describe("startEncounterAction", () => {
 
         const { startEncounterAction } = await import("../start-encounter.action");
 
-        await expect(startEncounterAction("patient-1", "enc-123", "2026-03-20", "10:00")).resolves.toEqual({
+        await expect(startEncounterAction("patient-1", "enc-123", "2026-03-20", "10:00")).resolves.toMatchObject({
             success: false,
             error: {
                 layer: "fhir",
                 message: "Unexpected error while starting encounter",
                 code: "ENCOUNTER_START_FAILED",
+                details: {
+                    cause: "unexpected_fhir_error",
+                    raw: expect.any(Error),
+                },
             },
         });
     });
