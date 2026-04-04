@@ -6,7 +6,7 @@ Este documento describe el estado real del sistema en relación a la arquitectur
 
 Este documento ofrece una validación honesta del estado real de la arquitectura: distingue lo válido hoy, lo transicional y la deuda conocida sin presentar el estado actual como cierre definitivo.
 
-Fecha: 2026-03-31
+Fecha: 2026-04-04
 
 Este documento reemplaza el enfoque de "aprobado total" por una validación honesta del estado actual.
 
@@ -36,7 +36,7 @@ Este documento reemplaza el enfoque de "aprobado total" por una validación hone
 | Save progress separado | **Válido hoy** | `saveEncounterProgressAction` existe como operación propia con snapshot transaccional y ownership metadata interoperable para recursos clínicos gestionados por esta app. | write-phase + código de acciones/rules/repositorio. | Mantener hardening de validaciones por estado y ownership. |
 | Lifecycle transition (`planned -> in-progress`) | **Válido hoy** | `startEncounterAction` ya está operativo para encounters planificados y la finalización exige `in-progress`. | Reglas de estado en actions/domain + write-phase actualizado. | Mantener hardening de regresiones y tests de estado. |
 | Canonical read (finished detail) | **Validado (alcance acotado)** | El path `finished encounter detail` quedó validado como lectura canónica encounter-centric por `encounterId`, sin fallback temporal como source of truth en ese surface. El hardening global de read model fuera de ese alcance permanece abierto. | ADR + write-phase + backlog vigente + validación específica del sprint 2026-03 (auditoría + tests). | Sostener cobertura de regresión en `finished detail` y mantener explícita la deuda global fuera de este surface. |
-| Encounter-centric vs longitudinal read split | **Parcialmente válido** | Se consolidó la separación: patient/encounter detail operan encounter-centric y el fallback por fecha queda encapsulado para longitudinal. Aún hay deuda en hardening de límites para evitar regresiones de mezcla. | Checkpoint app + auditoría temporal + ajustes recientes en `encounters/data.ts` y patient detail. | Mantener tests de no-filtración del fallback temporal a surfaces encounter-centric. |
+| Encounter-centric vs longitudinal read split | **Parcialmente válido** | Se consolidó la separación: patient/encounter detail operan encounter-centric y el fallback por fecha queda encapsulado para longitudinal. Aún hay deuda en hardening de límites para evitar regresiones de mezcla y ya existe un sprint propuesto específico para endurecer ese borde sin reabrir cierres acotados. | Checkpoint app + auditoría temporal + ajustes recientes en `encounters/data.ts` y patient detail. | Ejecutar el sprint propuesto de hardening del read global y mantener tests de no-filtración del fallback temporal a surfaces encounter-centric. |
 | Clinical linkage (`encounterId`) in read mappers | **Parcialmente válido** | Vital signs y EVA ya hidratan `encounterId` cuando `Observation.encounter.reference` existe (incluyendo casos ausente/relativo/absoluto). Mejora coherencia encounter-centric pero no elimina deuda histórica sin referencia. | Mappers/schemas de lectura y tests endurecidos recientes. | Mantener fallback longitudinal controlado para históricos sin linkage y evaluar backfill futuro. |
 | In-progress continuity (bounded scope) | **validado (alcance acotado)** | Quedó validado en alcance acotado el circuito encounter-centric para surfaces auditadas: encounter detail por `encounterId` + source selection de patient detail (`inProgressEncounter ?? lastFinishedEncounter`). | Tests integrados del flujo crítico + guardas negativas de fallback/mezcla en `encounter detail` y `patient detail`. | Mantener alcance explícito: no implica continuidad global del sistema, ni cierre longitudinal/charts, ni hardening canónico global de finished. |
 | Test stack hardening (Vitest/Playwright/E2E loaders) | **Válido hoy (operativo, alcance acotado)** | El stack quedó más estable operativamente para ejecución local/CI: discovery Vitest en `__tests__`, scripts explícitos, bootstrap mínimo, alias runtime, Playwright sin reutilizar servidor y seed loaders con contrato explícito + verificación mínima. | Configuración de test runner + scripts + setup + loaders E2E vigentes en repositorio. | Mantener hardening incremental sin declarar cierre arquitectónico global. |
@@ -115,6 +115,7 @@ La base documental principal (copilot instructions + write-phase + ADR) está al
 
 Las superficies `patient detail` y `encounter detail` se sostienen como encounter-centric.
 El fallback por fecha permanece como estrategia longitudinal y no debe reutilizarse como source-of-truth encounter-centric.
+La deuda longitudinal/histórica sigue abierta; el sprint propuesto “Hardening del read global (encounter-centric vs longitudinal/histórico)” fija ese frente como siguiente paso acotado sin convertir cierres previos en cierre global.
 
 ### 11. Linkage clínico en lectura (`encounterId`)
 
@@ -174,7 +175,7 @@ Límite explícito: no implica cierre total de continuidad system-wide ni del re
 1. Mantener cerrado y protegido por tests el canonical read de `finished encounter detail`, sin extrapolar ese cierre a otras surfaces/estados.
 2. Tipar `ActionError.details` por variante/capa sin romper `ActionResult`.
 3. Cerrar consistencia total de practitioner context en todos los write inputs.
-4. Endurecer garantías de separación encounter-centric vs longitudinal para evitar regresiones de fallback temporal fuera de charts/historial.
+4. Ejecutar el sprint propuesto de hardening del read global para endurecer la separación encounter-centric vs longitudinal (incluyendo fallback temporal y legacy sin `encounterId`) sin sobredeclarar cierre global.
 5. Definir cierre verificable de continuidad clínica `in-progress` en UI si producto lo requiere.
 
 ## Checklist vigente para validación de cambios
