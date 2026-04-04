@@ -8,30 +8,40 @@
 export type ErrorLayer = "validation" | "domain" | "fhir";
 
 /**
- * Standardized error payload returned from Server Actions.
+ * Verified shape produced by `ZodError.flatten()` in validation branches.
  *
- * Server Actions should never throw to the client. Instead they return an
- * `ActionResult` with `success: false` and an `ActionError` describing the issue.
+ * This is intentionally structural and minimal for phase 1 hardening.
  */
-export type ActionError = {
-  /**
-   * The validation layer where the error occurred.
-   */
-  layer: ErrorLayer;
-  /**
-   * Human-readable message describing the error.
-   */
-  message: string;
-  /**
-   * Optional machine-friendly error code.
-   * Example: `"PRESSURE_INCOMPLETE"`, `"MISSING_REFERENCE"`.
-   */
-  code?: string;
-  /**
-   * Optional payload with raw error details (e.g., FHIR OperationOutcome).
-   */
-  details?: unknown;
+export type ValidationErrorDetails = {
+  formErrors: string[];
+  fieldErrors: Record<string, string[] | undefined>;
 };
+
+/**
+ * Phase 1 normalized ActionError by layer.
+ *
+ * - `validation` requires flatten-like details.
+ * - `domain` carries no details in phase 1.
+ * - `fhir` remains transitional with optional unknown details.
+ */
+export type ActionError =
+  | {
+      layer: "validation";
+      message: string;
+      code: string;
+      details: ValidationErrorDetails;
+    }
+  | {
+      layer: "domain";
+      message: string;
+      code?: string;
+    }
+  | {
+      layer: "fhir";
+      message: string;
+      code?: string;
+      details?: unknown;
+    };
 
 /**
  * Result returned by all Server Actions.

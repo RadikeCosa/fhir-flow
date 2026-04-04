@@ -6,6 +6,11 @@ import type {
     ActionError,
     ActionResult,
 } from "../../../../../../domain/shared/action-result.types";
+import {
+    buildDomainActionError,
+    buildFhirActionError,
+    buildValidationActionError,
+} from "../../../../../../domain/shared/action-error.helpers";
 import type { FinalizeEncounterInput } from "../../../../../../domain/encounters/encounter.write-input";
 import {
     validateFinalizeEncounterRules,
@@ -28,12 +33,9 @@ export async function finalizeEncounterAction(
         console.error("[finalizeEncounterAction] schema parse failed", parseResult.error.flatten());
         return {
             success: false,
-            error: {
-                layer: "validation",
-                message: "Invalid form data",
-                code: "FORM_VALIDATION_FAILED",
+            error: buildValidationActionError({
                 details: parseResult.error.flatten(),
-            } satisfies ActionError,
+            }),
         };
     }
 
@@ -59,11 +61,10 @@ export async function finalizeEncounterAction(
         });
         return {
             success: false,
-            error: {
-                layer: "domain",
+            error: buildDomainActionError({
                 message: "El encuentro no pertenece al paciente indicado en la ruta",
                 code: "ENCOUNTER_PATIENT_MISMATCH",
-            } satisfies ActionError,
+            }),
         };
     }
 
@@ -77,11 +78,10 @@ export async function finalizeEncounterAction(
             });
             return {
                 success: false,
-                error: {
-                    layer: "domain",
+                error: buildDomainActionError({
                     message: error.message,
                     code: error.code,
-                } satisfies ActionError,
+                }),
             };
         }
 
@@ -146,11 +146,10 @@ export async function finalizeEncounterAction(
             });
             return {
                 success: false,
-                error: {
-                    layer: "domain",
+                error: buildDomainActionError({
                     message: error.message,
                     code: error.code,
-                } satisfies ActionError,
+                }),
             };
         }
         throw error;
@@ -188,12 +187,11 @@ export async function finalizeEncounterAction(
             });
             return {
                 success: false,
-                error: {
-                    layer: "fhir",
+                error: buildFhirActionError({
                     message: error.message,
                     code: error.code,
                     details: error.operationOutcome,
-                } satisfies ActionError,
+                }),
             };
         }
         throw error;

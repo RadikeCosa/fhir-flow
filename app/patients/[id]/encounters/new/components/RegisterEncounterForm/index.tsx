@@ -137,6 +137,10 @@ export function RegisterEncounterForm({
           layer: "validation",
           message: "Seleccioná una acción de guardado.",
           code: "MISSING_COMPLETION_MODE",
+          details: {
+            formErrors: ["Seleccioná una acción de guardado."],
+            fieldErrors: {},
+          },
         },
       });
       return;

@@ -6,6 +6,11 @@ import type {
     ActionError,
     ActionResult,
 } from "../../../../../../domain/shared/action-result.types";
+import {
+    buildDomainActionError,
+    buildFhirActionError,
+    buildValidationActionError,
+} from "../../../../../../domain/shared/action-error.helpers";
 import type { StartEncounterInput } from "../../../../../../domain/encounters/encounter.write-input";
 import {
     DomainRuleError,
@@ -50,12 +55,9 @@ export async function startEncounterAction(
     if (!parseResult.success) {
         return {
             success: false,
-            error: {
-                layer: "validation",
-                message: "Invalid form data",
-                code: "FORM_VALIDATION_FAILED",
+            error: buildValidationActionError({
                 details: parseResult.error.flatten(),
-            } satisfies ActionError,
+            }),
         };
     }
 
@@ -83,36 +85,33 @@ export async function startEncounterAction(
         if (error instanceof FhirWriteError) {
             return {
                 success: false,
-                error: {
-                    layer: "fhir",
+                error: buildFhirActionError({
                     message: error.message,
                     code: error.code ?? "FHIR_WRITE_ERROR",
                     details: error.operationOutcome,
-                } satisfies ActionError,
+                }),
             };
         }
 
         if (isOperationOutcomeError(error)) {
             return {
                 success: false,
-                error: {
-                    layer: "fhir",
+                error: buildFhirActionError({
                     message: error.message,
                     code: "FHIR_OPERATION_OUTCOME",
                     details: error.outcome,
-                } satisfies ActionError,
+                }),
             };
         }
 
         if (isHttpError(error)) {
             return {
                 success: false,
-                error: {
-                    layer: "fhir",
+                error: buildFhirActionError({
                     message: error.message,
                     code: "FHIR_HTTP_ERROR",
                     details: error.data,
-                } satisfies ActionError,
+                }),
             };
         }
 
@@ -140,11 +139,10 @@ export async function startEncounterAction(
     if (encounter.patientId !== patientId) {
         return {
             success: false,
-            error: {
-                layer: "domain",
+            error: buildDomainActionError({
                 message: "El encuentro no pertenece al paciente indicado en la ruta",
                 code: "ENCOUNTER_PATIENT_MISMATCH",
-            } satisfies ActionError,
+            }),
         };
     }
 
@@ -164,21 +162,19 @@ export async function startEncounterAction(
         if (error instanceof DomainRuleError) {
             return {
                 success: false,
-                error: {
-                    layer: "domain",
+                error: buildDomainActionError({
                     message: error.message,
                     code: error.code,
-                } satisfies ActionError,
+                }),
             };
         }
 
         return {
             success: false,
-            error: {
-                layer: "domain",
+            error: buildDomainActionError({
                 message: "No se pudo validar el inicio del encuentro",
                 code: "ENCOUNTER_START_VALIDATION_FAILED",
-            } satisfies ActionError,
+            }),
         };
     }
 
@@ -210,36 +206,33 @@ export async function startEncounterAction(
         if (error instanceof FhirWriteError) {
             return {
                 success: false,
-                error: {
-                    layer: "fhir",
+                error: buildFhirActionError({
                     message: error.message,
                     code: error.code,
                     details: error.operationOutcome,
-                } satisfies ActionError,
+                }),
             };
         }
 
         if (isOperationOutcomeError(error)) {
             return {
                 success: false,
-                error: {
-                    layer: "fhir",
+                error: buildFhirActionError({
                     message: error.message,
                     code: "FHIR_OPERATION_OUTCOME",
                     details: error.outcome,
-                } satisfies ActionError,
+                }),
             };
         }
 
         if (isHttpError(error)) {
             return {
                 success: false,
-                error: {
-                    layer: "fhir",
+                error: buildFhirActionError({
                     message: error.message,
                     code: "FHIR_HTTP_ERROR",
                     details: error.data,
-                } satisfies ActionError,
+                }),
             };
         }
 

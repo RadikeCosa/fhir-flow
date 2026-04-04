@@ -3,9 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type {
-    ActionError,
     ActionResult,
 } from "../../../../../../domain/shared/action-result.types";
+import {
+    buildDomainActionError,
+    buildFhirActionError,
+    buildValidationActionError,
+} from "../../../../../../domain/shared/action-error.helpers";
 import type { CreateEncounterInput } from "../../../../../../domain/encounters/encounter.write-input";
 import { validateEncounterRules, DomainRuleError } from "../../../../../../domain/shared/domain-rules.validator";
 import { FhirMapperError, FhirWriteError } from "../../../../../../domain/shared/error-types";
@@ -23,12 +27,9 @@ export async function createEncounterAction(
     if (!parseResult.success) {
         return {
             success: false,
-            error: {
-                layer: "validation",
-                message: "Invalid form data",
-                code: "FORM_VALIDATION_FAILED",
+            error: buildValidationActionError({
                 details: parseResult.error.flatten(),
-            } satisfies ActionError,
+            }),
         };
     }
 
@@ -39,12 +40,11 @@ export async function createEncounterAction(
         if (error instanceof FhirMapperError) {
             return {
                 success: false,
-                error: {
-                    layer: "fhir",
+                error: buildFhirActionError({
                     message: error.message,
                     code: error.code,
                     details: undefined,
-                } satisfies ActionError,
+                }),
             };
         }
         throw error;
@@ -74,11 +74,10 @@ export async function createEncounterAction(
         if (error instanceof DomainRuleError) {
             return {
                 success: false,
-                error: {
-                    layer: "domain",
+                error: buildDomainActionError({
                     message: error.message,
                     code: error.code,
-                } satisfies ActionError,
+                }),
             };
         }
         throw error;
@@ -99,23 +98,21 @@ export async function createEncounterAction(
         if (error instanceof FhirMapperError) {
             return {
                 success: false,
-                error: {
-                    layer: "fhir",
+                error: buildFhirActionError({
                     message: error.message,
                     code: error.code,
                     details: undefined,
-                } satisfies ActionError,
+                }),
             };
         }
         if (error instanceof FhirWriteError) {
             return {
                 success: false,
-                error: {
-                    layer: "fhir",
+                error: buildFhirActionError({
                     message: error.message,
                     code: error.code,
                     details: error.operationOutcome,
-                } satisfies ActionError,
+                }),
             };
         }
         throw error;

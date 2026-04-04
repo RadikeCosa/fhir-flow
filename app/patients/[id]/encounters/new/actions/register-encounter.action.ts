@@ -6,6 +6,11 @@ import type {
     ActionError,
     ActionResult,
 } from "../../../../../../domain/shared/action-result.types";
+import {
+    buildDomainActionError,
+    buildFhirActionError,
+    buildValidationActionError,
+} from "../../../../../../domain/shared/action-error.helpers";
 import type { RegisterEncounterInput } from "../../../../../../domain/encounters/encounter.write-input";
 import {
     DomainRuleError,
@@ -26,12 +31,9 @@ export async function registerEncounterAction(
     if (!parseResult.success) {
         return {
             success: false,
-            error: {
-                layer: "validation",
-                message: "Invalid form data",
-                code: "FORM_VALIDATION_FAILED",
+            error: buildValidationActionError({
                 details: parseResult.error.flatten(),
-            } satisfies ActionError,
+            }),
         };
     }
 
@@ -59,22 +61,20 @@ export async function registerEncounterAction(
     if (!episode) {
         return {
             success: false,
-            error: {
-                layer: "domain",
+            error: buildDomainActionError({
                 message: "El episodio indicado no existe para el paciente de la ruta",
                 code: "EPISODE_OF_CARE_NOT_FOUND_FOR_PATIENT",
-            } satisfies ActionError,
+            }),
         };
     }
 
     if (episode.status !== "active") {
         return {
             success: false,
-            error: {
-                layer: "domain",
+            error: buildDomainActionError({
                 message: "El episodio indicado no está activo",
                 code: "EPISODE_OF_CARE_NOT_ACTIVE",
-            } satisfies ActionError,
+            }),
         };
     }
 
@@ -114,11 +114,10 @@ export async function registerEncounterAction(
         if (error instanceof DomainRuleError) {
             return {
                 success: false,
-                error: {
-                    layer: "domain",
+                error: buildDomainActionError({
                     message: error.message,
                     code: error.code,
-                } satisfies ActionError,
+                }),
             };
         }
         throw error;
@@ -148,12 +147,11 @@ export async function registerEncounterAction(
         if (error instanceof FhirWriteError) {
             return {
                 success: false,
-                error: {
-                    layer: "fhir",
+                error: buildFhirActionError({
                     message: error.message,
                     code: error.code,
                     details: error.operationOutcome,
-                } satisfies ActionError,
+                }),
             };
         }
 
