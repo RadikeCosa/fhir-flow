@@ -33,6 +33,10 @@ export interface EncountersPageData {
     proceduresByEncounterId: Record<string, Procedure[]>;
 }
 
+export type LongitudinalLinkageOrigin =
+    | "linked-by-encounter"
+    | "derived-by-date";
+
 function normalizeDateOnly(value: string): string {
     return value.slice(0, 10);
 }
@@ -51,6 +55,24 @@ function isLongitudinallyLinkedByDate(
     return encounterDates.has(normalizeDateOnly(date));
 }
 
+export function resolveLongitudinalLinkageOrigin(
+    encounterIds: Set<string>,
+    encounterDates: Set<string>,
+    record: { date: string; encounterId?: string }
+): LongitudinalLinkageOrigin | null {
+    if (isLinkedByEncounterId(encounterIds, record.encounterId)) {
+        return "linked-by-encounter";
+    }
+
+    if (isLongitudinallyLinkedByDate(encounterDates, record.date)) {
+        // Legacy tolerance: records without encounterId can participate only in
+        // longitudinal/history datasets via same-day fallback.
+        return "derived-by-date";
+    }
+
+    return null;
+}
+
 /**
  * Longitudinal read mode (charts/history):
  * keep records linked either by explicit encounterId OR by same-day fallback.
@@ -64,8 +86,7 @@ function filterLongitudinalRecordsByEpisode<T extends { date: string; encounterI
     encounterDates: Set<string>
 ): T[] {
     return records.filter((record) =>
-        isLinkedByEncounterId(encounterIds, record.encounterId)
-        || isLongitudinallyLinkedByDate(encounterDates, record.date)
+        resolveLongitudinalLinkageOrigin(encounterIds, encounterDates, record) !== null
     );
 }
 

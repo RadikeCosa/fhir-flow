@@ -289,7 +289,8 @@ Tracks:
   - Lo pendiente es mantener claridad contractual/documental cross-surface, no hardening productivo adicional en este alcance.
 - **Deuda longitudinal/histórica** → **Deuda abierta**
   - El fallback temporal por fecha se mantiene como estrategia longitudinal; no debe reutilizarse como source-of-truth encounter-centric.
-  - Persisten casos históricos sin `encounterId` que requieren manejo controlado.
+  - Avance acotado implementado en loader de history/charts: clasificación local de linkage (`linked-by-encounter` / `derived-by-date`) y guardas para evitar filtración a maps/cards encounter-centric.
+  - Persisten casos históricos sin `encounterId`; quedan tolerados en longitudinal y siguen siendo deuda abierta a nivel global/system-wide.
 
 ## 🔴 Deuda abierta (post-sprint)
 
@@ -339,6 +340,7 @@ Tracks:
 
 1. **Sprint propuesto — Hardening del read global (encounter-centric vs longitudinal/histórico)**
   - Frontera principal a endurecer: separación encounter-centric vs longitudinal, fallback temporal por fecha y manejo de legacy sin `encounterId`.
+  - Avance actual: T1/T2/T3 ya tienen hardening acotado implementado; resta cierre de alineación/regresión mínima sin sobredeclarar cierre global.
   - Referencia: `docs/sprints/Sprint propuesto — Hardening del read global encounter-centric vs longitudinal-historico — 2026-04-04.md`.
   - No reabre cierres acotados previos (snapshot/finalize ni flujos browser E2E parciales) ni mueve el foco al lifecycle/write-flow.
 2. **Deuda longitudinal/histórica abierta**

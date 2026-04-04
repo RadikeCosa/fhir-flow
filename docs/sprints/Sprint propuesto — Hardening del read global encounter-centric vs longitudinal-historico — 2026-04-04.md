@@ -1,10 +1,10 @@
 ---
-title: Sprint propuesto — Hardening del read global (encounter-centric vs longitudinal/histórico)
+title: Sprint cerrado (alcance acotado) — Hardening del read global (encounter-centric vs longitudinal/histórico)
 date: 2026-04-04
-status: proposed
+status: closed-bounded
 ---
 
-# Sprint propuesto — Hardening del read global (encounter-centric vs longitudinal/histórico)
+# Sprint cerrado (alcance acotado) — Hardening del read global (encounter-centric vs longitudinal/histórico)
 
 ## 1. Objetivo
 
@@ -105,44 +105,61 @@ No incluye:
 4. **Riesgo de regresión funcional**
    - cambios de criterio de filtrado que afecten comportamiento esperado de charts longitudinales.
 
-## 8. Orden de ejecución / tickets
+## 8. Ejecución realizada (tickets)
 
-### T1 — Baseline contractual del read global
+### T1 — Baseline contractual del read global (**completado**)
 
 - Inventariar surfaces y declarar tipo de lectura por surface (`encounter-centric` vs `longitudinal`).
 - Fijar source-of-truth de cada una.
 
-### T2 — Regla operativa de fallback temporal
+### T2 — Regla operativa de fallback temporal (**completado**)
 
 - Formalizar regla “fecha solo longitudinal”.
 - Definir guardas para evitar que fallback temporal sea reutilizado en detail surfaces.
 
-### T3 — Política de legacy sin `encounterId`
+### T3 — Política de legacy sin `encounterId` (**completado**)
 
 - Definir cómo se incorporan registros legacy en longitudinal.
 - Definir cómo se excluyen de la fuente encounter-centric.
 - Definir trazabilidad mínima del origen de vínculo (`linked-by-encounter` vs `derived-by-date`, o equivalente contractual/documental).
 
-### T4 — Blindaje de regresión acotado
+### T4 — Blindaje de regresión acotado (**completado en mínimo necesario**)
 
 - Incorporar/ajustar evidencia de regresión mínima en loaders/read contracts del frente.
 - Mantener foco en alcance acotado (sin browser global).
 
-### T5 — Cierre de sprint y alineación documental mínima
+### T5 — Cierre de sprint y alineación documental mínima (**completado**)
 
 - Registrar resultados, límites y deuda remanente sin mezclar otros tracks.
 - Alinear backlog, validación arquitectónica y sprint con el mismo límite operativo, sin sobredeclarar cierre global.
 
-## 9. Criterios de aceptación
+## 8.1 Estado de cierre (alcance acotado)
 
-El sprint se considera cumplido si queda explícito y verificable que:
+- **T1**: ejecutado en modo baseline contractual (matriz de surfaces y límites encounter-centric vs longitudinal).
+- **T2**: implementado en alcance acotado en `app/patients/[id]/encounters/data.ts` con regla operativa explícita:
+  - fallback por fecha confinado al flujo longitudinal;
+  - guardas para evitar filtración a maps/cards encounter-centric.
+- **T3**: implementado en alcance acotado sobre el mismo loader/tests:
+  - clasificación explícita de origen de linkage longitudinal (`linked-by-encounter` / `derived-by-date`);
+  - tolerancia de legacy sin `encounterId` solo en longitudinal;
+  - precedencia explícita de `linked-by-encounter` cuando ambos criterios matchean.
+- **T4**: completado en regresión mínima del loader longitudinal (guardas para no-filtración a maps/cards encounter-centric).
+- **T5**: completado en alineación documental mínima (sprint + backlog + validación arquitectónica).
+
+Límite explícito de esta actualización:
+- no declara cierre global del read model longitudinal/histórico;
+- no cambia el estado “parcialmente válido” del split a nivel system-wide.
+
+## 9. Criterios de aceptación (cumplidos en alcance acotado)
+
+Quedó explícito y verificable que:
 
 1. las surfaces encounter-centric mantienen source-of-truth por `encounterId`;
-2. el fallback temporal por fecha queda confinado al modo longitudinal/histórico;
+2. el fallback temporal por fecha quedó confinado al modo longitudinal/histórico;
 3. los casos legacy sin `encounterId` tienen tratamiento operativo controlado y no contaminan el source-of-truth encounter-centric;
 4. existe blindaje de regresión mínimo alineado al alcance;
-5. backlog, validación arquitectónica y documento de sprint quedan alineados con el mismo límite, sin sobredeclarar cierre global;
-6. no se reabren frentes ya cerrados ni se mezcla trabajo fuera del objetivo.
+5. backlog, validación arquitectónica y este documento quedaron alineados con el mismo límite, sin sobredeclarar cierre global;
+6. no se reabrieron frentes ya cerrados ni se mezcló trabajo fuera del objetivo.
 
 ## 10. Límites explícitos
 
@@ -152,9 +169,7 @@ El sprint se considera cumplido si queda explícito y verificable que:
 - Este sprint **no** toma como objetivo principal `ActionError.details` ni practitioner consistency.
 - Este sprint **no** declara migración histórica de datos legacy como entregable obligatorio.
 
-## 11. Impacto esperado en arquitectura/runtime
-
-Impacto esperado (si se ejecuta en alcance):
+## 11. Impacto observado en arquitectura/runtime (alcance acotado)
 
 - mejor separación contractual entre lectura encounter-centric y longitudinal;
 - menor riesgo de mezcla cross-surface por filtración de fallback temporal;
@@ -163,4 +178,4 @@ Impacto esperado (si se ejecuta en alcance):
 
 ## 12. Próximo paso después del sprint
 
-Con el límite contractual endurecido y validado en alcance acotado, decidir si conviene abrir un sprint separado para deuda adyacente (por ejemplo, `ActionError.details` o practitioner consistency), sin mezclar tracks en la misma ejecución.
+Con el límite contractual endurecido y cerrado en alcance acotado, mantener la deuda longitudinal/histórica global como abierta y decidir próximos pasos sin mezclar tracks (por ejemplo, `ActionError.details` o practitioner consistency en sprint separado).

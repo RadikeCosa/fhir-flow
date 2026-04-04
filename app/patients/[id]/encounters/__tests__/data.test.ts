@@ -278,17 +278,29 @@ describe("getEncountersPageData sorting", () => {
             recordedBy: { id: "pr-1", display: "Nurse" },
             heartRate: 76,
         };
+        const evaFromSameDateWithoutEncounter: EvaAssessment = {
+            id: "eva-date-only",
+            patientId: patientFixture.id,
+            type: "eva",
+            date: "2026-03-15T09:05:00.000Z",
+            score: 5,
+            recordedBy: { id: "pr-1", display: "Nurse" },
+        };
 
         repositories.vitalRepo.findAllByPatientId.mockResolvedValue([
             vitalFromSameDateWithoutEncounter,
         ]);
-        repositories.assessmentRepo.findEvaByPatientId.mockResolvedValue([]);
+        repositories.assessmentRepo.findEvaByPatientId.mockResolvedValue([
+            evaFromSameDateWithoutEncounter,
+        ]);
 
         const { getEncountersPageData } = await import("../data");
         const result = await getEncountersPageData(patientFixture.id);
 
         expect(result.vitalSigns).toEqual([vitalFromSameDateWithoutEncounter]);
+        expect(result.evaRecords).toEqual([evaFromSameDateWithoutEncounter]);
         expect(result.vitalsByEncounterId[activeEncounter.id]).toEqual([]);
+        expect(result.evaByEncounterId[activeEncounter.id]).toEqual([]);
     });
 
     it("keeps encounter list membership unchanged even when longitudinal datasets are empty", async () => {
@@ -355,5 +367,65 @@ describe("getEncountersPageData sorting", () => {
         expect(result.vitalSigns.map((record) => record.id)).toEqual([
             "vs-included-by-date",
         ]);
+    });
+});
+
+describe("resolveLongitudinalLinkageOrigin", () => {
+    it("prioritizes linked-by-encounter when both encounter and date match", async () => {
+        const { resolveLongitudinalLinkageOrigin } = await import("../data");
+
+        const origin = resolveLongitudinalLinkageOrigin(
+            new Set(["enc-1"]),
+            new Set(["2026-03-15"]),
+            {
+                date: "2026-03-15T09:30:00.000Z",
+                encounterId: "enc-1",
+            }
+        );
+
+        expect(origin).toBe("linked-by-encounter");
+    });
+
+    it("returns linked-by-encounter when encounterId belongs to episode membership", async () => {
+        const { resolveLongitudinalLinkageOrigin } = await import("../data");
+
+        const origin = resolveLongitudinalLinkageOrigin(
+            new Set(["enc-1"]),
+            new Set(["2026-03-15"]),
+            {
+                date: "2026-04-01",
+                encounterId: "enc-1",
+            }
+        );
+
+        expect(origin).toBe("linked-by-encounter");
+    });
+
+    it("returns derived-by-date when record has no encounterId but matches episode day", async () => {
+        const { resolveLongitudinalLinkageOrigin } = await import("../data");
+
+        const origin = resolveLongitudinalLinkageOrigin(
+            new Set(["enc-1"]),
+            new Set(["2026-03-15"]),
+            {
+                date: "2026-03-15T09:30:00.000Z",
+            }
+        );
+
+        expect(origin).toBe("derived-by-date");
+    });
+
+    it("returns null when record is outside encounter and date longitudinal boundaries", async () => {
+        const { resolveLongitudinalLinkageOrigin } = await import("../data");
+
+        const origin = resolveLongitudinalLinkageOrigin(
+            new Set(["enc-1"]),
+            new Set(["2026-03-15"]),
+            {
+                date: "2026-03-20T09:30:00.000Z",
+            }
+        );
+
+        expect(origin).toBeNull();
     });
 });
