@@ -1,0 +1,54 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> fhir-flow@0.1.0 test
+> vitest run
+
+
+ RUN  v4.1.0 /workspace/fhir-flow
+
+ ❯ infrastructure/fhir/repositories/__tests__/eva-assessment.fhir-repository.test.ts (6 tests | 1 failed) 210ms
+     × calls search with encounter parameter when finding by encounter id 15ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  infrastructure/fhir/repositories/__tests__/eva-assessment.fhir-repository.test.ts > EvaAssessmentFhirRepository > calls search with encounter parameter when finding by encounter id
+AssertionError: expected "vi.fn()" to be called with arguments: [ 'Observation', ObjectContaining{…} ]
+
+Received:
+
+  1st vi.fn() call:
+
+  [
+    "Observation",
+-   ObjectContaining {
++   {
++     "_count": "50",
++     "_sort": "-date",
++     "category": "survey",
++     "code": "72514-3",
+      "encounter": "Encounter/enc-001",
++   },
++   {
++     "cache": "no-store",
+    },
+  ]
+
+
+Number of calls: 1
+
+ ❯ infrastructure/fhir/repositories/__tests__/eva-assessment.fhir-repository.test.ts:100:35
+     98|
+     99|         expect(result).toHaveLength(1);
+    100|         expect(mockClient.search).toHaveBeenCalledWith(
+       |                                   ^
+    101|             'Observation',
+    102|             expect.objectContaining({ encounter: 'Encounter/enc-001' })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 59 passed (60)
+      Tests  1 failed | 314 passed (315)
+   Start at  22:13:11
+   Duration  25.44s (transform 2.37s, setup 964ms, import 5.54s, tests 3.22s, environment 9ms)
+

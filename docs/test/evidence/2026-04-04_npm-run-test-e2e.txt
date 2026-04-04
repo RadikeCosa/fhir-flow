@@ -1,0 +1,63 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> fhir-flow@0.1.0 test:e2e
+> playwright test
+
+[2m[WebServer] [22mnpm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+[2m[WebServer] [22m(node:6373) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:6373) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:6413) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22mTurbopack build encountered 2 warnings:
+[2m[WebServer] [22m[next]/internal/font/google/geist_a71539c9.module.css
+[2m[WebServer] [22mError while requesting resource
+[2m[WebServer] [22mThere was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap
+[2m[WebServer] [22m
+[2m[WebServer] [22mImport trace:
+[2m[WebServer] [22m  Server Component:
+[2m[WebServer] [22m    [next]/internal/font/google/geist_a71539c9.module.css
+[2m[WebServer] [22m    [next]/internal/font/google/geist_a71539c9.js
+[2m[WebServer] [22m    ./app/layout.tsx
+[2m[WebServer] [22m
+[2m[WebServer] [22m
+[2m[WebServer] [22m[next]/internal/font/google/geist_mono_8d43a2aa.module.css
+[2m[WebServer] [22mError while requesting resource
+[2m[WebServer] [22mThere was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap
+[2m[WebServer] [22m
+[2m[WebServer] [22mImport trace:
+[2m[WebServer] [22m  Server Component:
+[2m[WebServer] [22m    [next]/internal/font/google/geist_mono_8d43a2aa.module.css
+[2m[WebServer] [22m    [next]/internal/font/google/geist_mono_8d43a2aa.js
+[2m[WebServer] [22m    ./app/layout.tsx
+[2m[WebServer] [22m
+[2m[WebServer] [22m
+[2m[WebServer] [22m
+[2m[WebServer] [22m> Build error occurred
+[2m[WebServer] [22mError: Turbopack build failed with 2 errors:
+[2m[WebServer] [22m[next]/internal/font/google/geist_a71539c9.module.css
+[2m[WebServer] [22mnext/font: error:
+[2m[WebServer] [22mFailed to fetch `Geist` from Google Fonts.
+[2m[WebServer] [22m
+[2m[WebServer] [22mImport trace:
+[2m[WebServer] [22m  Server Component:
+[2m[WebServer] [22m    [next]/internal/font/google/geist_a71539c9.module.css
+[2m[WebServer] [22m    [next]/internal/font/google/geist_a71539c9.js
+[2m[WebServer] [22m    ./app/layout.tsx
+[2m[WebServer] [22m
+[2m[WebServer] [22m
+[2m[WebServer] [22m[next]/internal/font/google/geist_mono_8d43a2aa.module.css
+[2m[WebServer] [22mnext/font: error:
+[2m[WebServer] [22mFailed to fetch `Geist Mono` from Google Fonts.
+[2m[WebServer] [22m
+[2m[WebServer] [22mImport trace:
+[2m[WebServer] [22m  Server Component:
+[2m[WebServer] [22m    [next]/internal/font/google/geist_mono_8d43a2aa.module.css
+[2m[WebServer] [22m    [next]/internal/font/google/geist_mono_8d43a2aa.js
+[2m[WebServer] [22m    ./app/layout.tsx
+[2m[WebServer] [22m
+[2m[WebServer] [22m
+[2m[WebServer] [22m    at ignore-listed frames
+Error: Process from config.webServer was not able to start. Exit code: 1
+
