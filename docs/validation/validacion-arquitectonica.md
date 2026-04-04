@@ -29,7 +29,7 @@ Este documento reemplaza el enfoque de "aprobado total" por una validación hone
 |---|---|---|---|---|
 | Hexagonal boundaries | **Válido hoy** | El dominio no debe depender de FHIR; FHIR permanece fuera del boundary de dominio. | Reglas no negociables en copilot instructions + write flow oficial. | Mantener enforcement en revisiones y tests de arquitectura. |
 | Validation layers | **Parcialmente válido** | La separación por capas está bien definida (Form Zod, Domain Rules, Inverse Mapper, FHIR Client), pero requiere enforcement sostenido en implementación. | Secciones de Validation Architecture en ambos docs base. | Mantener checklist por PR y evitar mover reglas clínicas a schema/mapper. |
-| ActionResult / ActionError | **Parcialmente válido** | `ActionResult` es contrato estable en Server Actions; `ActionError.details` sigue transicional (`unknown`). | ADR + write-phase definen estabilidad de `layer/message/code` y evolución de `details`. | Ticket de tipado por capa (`validation/domain/fhir`) sin romper contrato estable. |
+| ActionResult / ActionError | **Parcialmente válido (fase 1 cerrada)** | `ActionResult` se mantiene como contrato estable; existe helper central de `ActionError` y la fase 1 de hardening quedó aplicada para `validation`/`domain`. `fhir` permanece transicional con `details` opcional (`unknown`). | ADR + write-phase definen estabilidad de `layer/message/code` y transición de `details`; implementación vigente en `domain/shared/action-error.helpers.ts` y adopción en actions de encounter write. | Cerrar fase siguiente: tipado por capa de `fhir` y consolidación de tipado final global sin romper contrato estable. |
 | Inverse mapper purity | **Parcialmente válido** | Regla arquitectónica es clara: mapper puro, sin resolver identidad ni reglas de negocio. Persisten riesgos de drift cuando la resolución de contexto no entra por input. | copilot instructions + ADR (responsabilidad de practitioner en Server Action). | Verificar por flujo que mapper solo transforme input validado y no lea config. |
 | Practitioner resolution | **Parcialmente válido** | El ADR fija que la resolución de practitioner es server-side y luego via write input. La dirección está cerrada, la implementación requiere consistencia completa entre create/finalize. | ADR sección de practitioner responsibility + write-phase. | Completar uniformidad de input (`performerId`, `practitionerName`) en todos los writes. |
 | Register flow (`/encounters/register`) | **Válido hoy** | La separación de entry points está operativa: `/encounters/new` planifica y `/encounters/register` registra con `registerEncounterAction` y `completionMode` explícito (`start`/`complete`). | Estado de app layer + write-phase actualizado. | Mantener consistencia documental y evitar regresión semántica entre rutas. |
@@ -59,9 +59,9 @@ La arquitectura de validación está correctamente estratificada y definida. Lo 
 
 ### 3. ActionResult / ActionError
 
-**Estado:** Parcialmente válido
+**Estado:** Parcialmente válido (fase 1 cerrada)
 
-`ActionResult` permanece como contrato estable de Server Action. `ActionError` tiene capa y mensaje utilizables hoy, pero `details` sigue en transición y no debe presentarse como modelo tipado final.
+`ActionResult` permanece como contrato estable de Server Action y los campos top-level (`layer/message/code`) se sostienen estables. La fase 1 de hardening de `ActionError` está operativa con helper central y adopción en write actions de encounter para ramas de `validation`/`domain`; `fhir` continúa en transición y no debe presentarse como tipado final global.
 
 ### 4. Inverse mapper purity
 
@@ -174,7 +174,7 @@ Límite explícito: no implica cierre total de continuidad system-wide ni del re
 ## Pendientes del ADR / tickets siguientes
 
 1. Mantener cerrado y protegido por tests el canonical read de `finished encounter detail`, sin extrapolar ese cierre a otras surfaces/estados.
-2. Tipar `ActionError.details` por variante/capa sin romper `ActionResult`.
+2. Completar fase siguiente del tipado de `ActionError.details` por variante/capa (principalmente `fhir`) sin romper `ActionResult`.
 3. Cerrar consistencia total de practitioner context en todos los write inputs.
 4. Consolidar el cierre acotado del sprint propuesto de hardening del read global (T4/T5): mantener separación encounter-centric vs longitudinal, fallback temporal controlado y policy de legacy sin `encounterId`, sin sobredeclarar cierre global.
 5. Definir cierre verificable de continuidad clínica `in-progress` en UI si producto lo requiere.

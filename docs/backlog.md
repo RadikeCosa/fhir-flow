@@ -328,8 +328,10 @@ Tracks:
 - **Continuidad clínica full-system** → **Pendiente**
   - El cierre de continuidad aplica solo a encounter detail `in-progress`; no hay garantía de continuidad transversal en todas las surfaces.
 
-- **Tipado de `ActionError.details` por capa** → **Pendiente**
-  - `details` continúa transicional y sin tipado final por variante/capa.
+- **Tipado de `ActionError.details` por capa** → **Parcial (fase 1 implementada)**
+  - Estado verificado: helper central `domain/shared/action-error.helpers.ts` operativo y adoptado en las Server Actions de encounter write.
+  - `validation` y `domain` quedaron endurecidos en fase 1; `fhir` se mantiene transicional con `details` opcional/`unknown`.
+  - No implica tipado final global de `details` por variante/capa.
 
 - **Canonical read de `finished` (global, fuera de detail acotado)** → **Pendiente**
   - El cierre acotado de `finished encounter detail` no equivale a cierre global en todas las surfaces.
@@ -345,8 +347,8 @@ Tracks:
   - No reabre cierres acotados previos (snapshot/finalize ni flujos browser E2E parciales) ni mueve el foco al lifecycle/write-flow.
 2. **Deuda longitudinal/histórica abierta**
   - Continúa abierta y ahora tiene sprint propuesto específico para su hardening contractual/acotado.
-3. **Tipado de `ActionError.details` y practitioner consistency**
-  - Siguen como deuda real, pero no son el próximo frente prioritario de ejecución.
+3. **Cierre de tipado por capa de `ActionError.details` (fase siguiente) y practitioner consistency**
+  - `ActionError` tiene cierre parcial en fase 1 (`validation`/`domain` + helper central); sigue pendiente el cierre posterior de `fhir` y del tipado final global.
 
 ---
 

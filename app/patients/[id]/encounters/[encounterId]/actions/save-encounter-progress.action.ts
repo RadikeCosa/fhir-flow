@@ -5,6 +5,11 @@ import type {
     ActionError,
     ActionResult,
 } from "../../../../../../domain/shared/action-result.types";
+import {
+    buildDomainActionError,
+    buildFhirActionError,
+    buildValidationActionError,
+} from "../../../../../../domain/shared/action-error.helpers";
 import type { SaveEncounterProgressInput } from "../../../../../../domain/encounters/encounter.write-input";
 import {
     DomainRuleError,
@@ -25,12 +30,9 @@ export async function saveEncounterProgressAction(
     if (!parseResult.success) {
         return {
             success: false,
-            error: {
-                layer: "validation",
-                message: "Invalid form data",
-                code: "FORM_VALIDATION_FAILED",
+            error: buildValidationActionError({
                 details: parseResult.error.flatten(),
-            } satisfies ActionError,
+            }),
         };
     }
 
@@ -51,11 +53,10 @@ export async function saveEncounterProgressAction(
     if (encounter.patientId !== patientId) {
         return {
             success: false,
-            error: {
-                layer: "domain",
+            error: buildDomainActionError({
                 message: "El encuentro no pertenece al paciente indicado en la ruta",
                 code: "ENCOUNTER_PATIENT_MISMATCH",
-            } satisfies ActionError,
+            }),
         };
     }
 
@@ -65,11 +66,10 @@ export async function saveEncounterProgressAction(
         if (error instanceof DomainRuleError) {
             return {
                 success: false,
-                error: {
-                    layer: "domain",
+                error: buildDomainActionError({
                     message: error.message,
                     code: error.code,
-                } satisfies ActionError,
+                }),
             };
         }
 
@@ -79,11 +79,10 @@ export async function saveEncounterProgressAction(
     if (!encounter.actualStartAt) {
         return {
             success: false,
-            error: {
-                layer: "domain",
+            error: buildDomainActionError({
                 message: "El encuentro no tiene registrada la hora real de inicio",
                 code: "ENCOUNTER_MISSING_ACTUAL_START",
-            } satisfies ActionError,
+            }),
         };
     }
 
@@ -131,11 +130,10 @@ export async function saveEncounterProgressAction(
         if (error instanceof DomainRuleError) {
             return {
                 success: false,
-                error: {
-                    layer: "domain",
+                error: buildDomainActionError({
                     message: error.message,
                     code: error.code,
-                } satisfies ActionError,
+                }),
             };
         }
         throw error;
@@ -163,12 +161,11 @@ export async function saveEncounterProgressAction(
         if (error instanceof FhirWriteError) {
             return {
                 success: false,
-                error: {
-                    layer: "fhir",
+                error: buildFhirActionError({
                     message: error.message,
                     code: error.code,
                     details: error.operationOutcome,
-                } satisfies ActionError,
+                }),
             };
         }
 
