@@ -6,6 +6,8 @@ status: closed-bounded
 
 # Sprint cerrado (alcance acotado) — Hardening del read global (encounter-centric vs longitudinal/histórico)
 
+> Nota de naming: el nombre del archivo conserva “propuesto” por continuidad histórica, pero el estado vigente del sprint es `closed-bounded` (T1–T5 cerrados en alcance acotado).
+
 ## 1. Objetivo
 
 Definir y endurecer el contrato operativo de lectura global para separar con precisión:

@@ -338,15 +338,14 @@ Tracks:
 
 ---
 
-## 🚀 Siguiente fase (prioridad sugerida)
+## 🚀 Estado de cierre acotado + siguiente fase
 
-1. **Sprint propuesto — Hardening del read global (encounter-centric vs longitudinal/histórico)**
-  - Frontera principal a endurecer: separación encounter-centric vs longitudinal, fallback temporal por fecha y manejo de legacy sin `encounterId`.
-  - Avance actual: T1/T2/T3 ya tienen hardening acotado implementado; resta cierre de alineación/regresión mínima sin sobredeclarar cierre global.
+1. **Sprint cerrado (alcance acotado) — Hardening del read global (encounter-centric vs longitudinal/histórico)**
+  - Estado actual verificado: T1/T2/T3/T4/T5 cerrados en alcance acotado.
   - Referencia: `docs/sprints/Sprint propuesto — Hardening del read global encounter-centric vs longitudinal-historico — 2026-04-04.md`.
-  - No reabre cierres acotados previos (snapshot/finalize ni flujos browser E2E parciales) ni mueve el foco al lifecycle/write-flow.
-2. **Deuda longitudinal/histórica abierta**
-  - Continúa abierta y ahora tiene sprint propuesto específico para su hardening contractual/acotado.
+  - Límite explícito: no implica cierre global/system-wide del read longitudinal/histórico ni reapertura de otros tracks.
+2. **Deuda longitudinal/histórica global abierta (system-wide)**
+  - Permanece abierta fuera del alcance acotado ya cerrado del sprint de hardening read-global.
 3. **Cierre de tipado por capa de `ActionError.details` (fase siguiente) y practitioner consistency**
   - `ActionError` tiene cierre parcial en fase 1 (`validation`/`domain` + helper central); sigue pendiente el cierre posterior de `fhir` y del tipado final global.
 
