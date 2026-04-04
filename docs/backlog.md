@@ -2,6 +2,19 @@
 
 Fecha de actualización: 2026-04-04
 
+## ✅ Sprint cerrado — Hardening global del contrato longitudinal/histórico (fuera del cierre acotado) (2026-04)
+
+- **Resultado** → **Cerrado por evidencia (sin cambios productivos)**
+  - TG1 read-only ejecutado sobre surfaces objetivo de history/patient/cross-surface.
+  - No se detectó bug runtime verificable fuera del closure acotado ya validado.
+  - No se justificó pasar a TG2/TG3 en este sprint.
+  - `app/patients/[id]/encounters/data.ts` se mantiene bounded-closed en su boundary local ya validado (sin reapertura).
+
+- **Límite explícito**
+  - La deuda longitudinal/histórica global/system-wide sigue abierta como categoría amplia.
+  - Este cierre solo afirma que, en las surfaces auditadas por TG1, no se confirmó gap técnico nuevo verificable.
+  - Hardening opcional/no bloqueante: evaluar más adelante un único caso cross-surface de legacy `derived-by-date` sin `encounterId` (no requerido para este cierre).
+
 ## ✅ Sprint cerrado — Hardening operativo del test stack + cierre acotado de 2 flujos browser E2E (2026-04)
 
 - **HT1 — Hardening del test stack** → **Completado (alcance acotado)**
