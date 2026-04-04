@@ -1,6 +1,6 @@
 # 📋 FHIR Flow — Backlog reordenado (post sprint register flow)
 
-Fecha de actualización: 2026-04-01
+Fecha de actualización: 2026-04-04
 
 ## ✅ Sprint cerrado — Hardening operativo del test stack + cierre acotado de 2 flujos browser E2E (2026-04)
 
@@ -337,13 +337,14 @@ Tracks:
 
 ## 🚀 Siguiente fase (prioridad sugerida)
 
-1. **Mantener la regresión protegida**
-  - Sustentar la cobertura existente en finalize write-path, encounter detail loader y longitudinal loader.
-  - No expandir este cierre a E2E browser salvo necesidad nueva y separada.
+1. **Sprint propuesto — Hardening del read global (encounter-centric vs longitudinal/histórico)**
+  - Frontera principal a endurecer: separación encounter-centric vs longitudinal, fallback temporal por fecha y manejo de legacy sin `encounterId`.
+  - Referencia: `docs/sprints/Sprint propuesto — Hardening del read global encounter-centric vs longitudinal-historico — 2026-04-04.md`.
+  - No reabre cierres acotados previos (snapshot/finalize ni flujos browser E2E parciales) ni mueve el foco al lifecycle/write-flow.
 2. **Deuda longitudinal/histórica abierta**
-  - Continuar documentando y validando el fallback temporal y los casos legacy sin `encounterId`.
-3. **Tipado de `ActionError.details` por capa**
-  - Sigue pendiente y no se mezcla con este cierre.
+  - Continúa abierta y ahora tiene sprint propuesto específico para su hardening contractual/acotado.
+3. **Tipado de `ActionError.details` y practitioner consistency**
+  - Siguen como deuda real, pero no son el próximo frente prioritario de ejecución.
 
 ---
 
