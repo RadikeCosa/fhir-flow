@@ -210,6 +210,80 @@ Regla para ese último punto: T2 debe dejar explícito si ese fallo se traduce a
 
 Entregable obligatorio de T2: decisión documentada lista para integrar al sprint doc.
 
+#### Decisión T2 — practitioner consistency en encounter write
+
+A partir del baseline de T1, se confirma que el contrato uniforme de practitioner context ya está alineado en los flows de encounter write que construyen o actualizan payload clínico o attribution-driven desde input:
+
+- createEncounterAction
+- saveEncounterProgressAction
+- finalizeEncounterAction
+- registerEncounterAction
+
+En estos cuatro flows:
+
+- practitioner se resuelve en Server Action;
+- el write input transporta explícitamente:
+- performerId
+- practitionerName
+- repository y mappers consumen practitioner desde input;
+- no se verificó lectura directa de config en mapper o por debajo del mapper path auditado.
+
+#### Exención explícita de startEncounterAction
+
+startEncounterAction queda explícitamente exento del contrato uniforme de practitioner propagation aplicado a los cuatro flows anteriores.
+
+#### Rationale
+
+Según T1, startEncounterAction:
+
+- no resuelve practitioner en Server Action;
+- no transporta performerId ni practitionerName en StartEncounterInput;
+- opera como transición de estado sobre un encounter ya existente;
+- su mapper trabaja sobre el encounter existente actualizando status y period, sin evidencia de escritura de campos de attribution clínica/practitioner como parte de esta operación.
+
+Por lo tanto, en este sprint se formaliza que:
+
+- la ausencia de practitioner context en startEncounterAction no se trata como gap accidental;
+- se trata como decisión arquitectónica documentada basada en la semántica actual de la operación;
+- no corresponde forzar practitioner propagation en start solo por simetría con flows que sí construyen payload clínico o attribution-driven.
+
+#### Regla uniforme resultante
+
+El contrato uniforme de practitioner context aplica a los flows de encounter write que:
+
+- crean encounter con attribution explícita desde input, o
+- construyen / actualizan payload clínico interoperable desde input.
+
+No aplica automáticamente a transiciones operacionales mínimas sobre un encounter ya atribuido cuando la operación:
+
+- no introduce nueva attribution;
+- no reescribe fields de practitioner;
+- no requiere practitioner context para construir el payload de write.
+
+#### Qué pasa si practitioner no puede resolverse en Server Action
+
+Para los flows donde practitioner context sí es obligatorio (create, save-progress, finalize, register), la imposibilidad de resolver practitioner en Server Action debe tratarse como error del lado servidor previo a repository execution, con manejo uniforme a definir/confirmar en implementación y tests del sprint, sin desplazar esa resolución a mapper o repository.
+
+startEncounterAction queda fuera de esta regla por su exención explícita.
+
+#### Drift documental a corregir
+
+Como parte del sprint se corrige el comentario stale del create mapper que todavía sugiere que performer proviene “from config”, ya que contradice el runtime real auditado, que hoy es input-driven.
+
+#### Consecuencia práctica para el sprint
+
+Esto achica el scope real:
+
+- T3 probablemente no necesita rediseño de tipos globales si el contrato ya existe en los cuatro flows alineados.
+- T4 no debería tocar startEncounterAction salvo que aparezca evidencia nueva que contradiga T1.
+
+El trabajo real pasa a ser:
+
+- blindar el estado correcto de create/save-progress/finalize/register,
+- documentar la exención de start,
+- corregir el comentario stale de create,
+- cerrar tests y docs.
+
 ### T3 — Implementación shared / input-level
 
 Ajustar el artefacto central que T2 defina para transportar practitioner context de forma uniforme.
