@@ -199,7 +199,10 @@ describe("registerEncounterAction", () => {
                 layer: "fhir",
                 message: "Bundle failed",
                 code: "BUNDLE_HTTP_ERROR",
-                details: operationOutcome,
+                details: {
+                    cause: "operation_outcome",
+                    operationOutcome,
+                },
             },
         });
     });
@@ -226,6 +229,9 @@ describe("registerEncounterAction", () => {
                 layer: "fhir",
                 message: "Current practitioner missing",
                 code: "CURRENT_PRACTITIONER_NOT_FOUND",
+                details: {
+                    cause: "mapper_error",
+                },
             },
         });
     });

@@ -108,7 +108,9 @@ describe("createEncounterAction", () => {
                 layer: "fhir",
                 message: "Current practitioner kine-1 could not be resolved from FHIR",
                 code: "CURRENT_PRACTITIONER_NOT_FOUND",
-                details: undefined,
+                details: {
+                    cause: "mapper_error",
+                },
             },
         });
         expect(createMock).not.toHaveBeenCalled();
@@ -156,7 +158,10 @@ describe("createEncounterAction", () => {
                 layer: "fhir",
                 message: "No se pudo crear el encuentro",
                 code: "FHIR_WRITE_FAILED",
-                details: operationOutcome,
+                details: {
+                    cause: "operation_outcome",
+                    operationOutcome,
+                },
             },
         });
     });

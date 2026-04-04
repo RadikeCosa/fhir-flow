@@ -1,3 +1,5 @@
+import type { OperationOutcome } from "../../lib/fhir/fhir-client";
+
 /**
  * Defines the layer where an error originated in the write pipeline.
  *
@@ -18,11 +20,28 @@ export type ValidationErrorDetails = {
 };
 
 /**
+ * Shared normalized details for fhir-layer ActionError in encounter write flows.
+ */
+export type FhirActionErrorDetails = {
+  cause?:
+    | "operation_outcome"
+    | "http_error"
+    | "mapper_error"
+    | "not_found"
+    | "unexpected_fhir_error";
+
+  operationOutcome?: OperationOutcome;
+  statusCode?: number;
+  resourceType?: string;
+  raw?: unknown;
+};
+
+/**
  * Phase 1 normalized ActionError by layer.
  *
  * - `validation` requires flatten-like details.
  * - `domain` carries no details in phase 1.
- * - `fhir` remains transitional with optional unknown details.
+ * - `fhir` uses a shared normalized details shape.
  */
 export type ActionError =
   | {
@@ -40,7 +59,7 @@ export type ActionError =
       layer: "fhir";
       message: string;
       code?: string;
-      details?: unknown;
+      details?: FhirActionErrorDetails;
     };
 
 /**

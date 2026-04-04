@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import type {
-    ActionError,
     ActionResult,
 } from "../../../../../../domain/shared/action-result.types";
 import {
@@ -42,11 +41,13 @@ export async function saveEncounterProgressAction(
     if (!encounter) {
         return {
             success: false,
-            error: {
-                layer: "fhir",
+            error: buildFhirActionError({
                 message: "Encounter not found",
                 code: "ENCOUNTER_NOT_FOUND",
-            } satisfies ActionError,
+                details: {
+                    cause: "not_found",
+                },
+            }),
         };
     }
 
@@ -93,11 +94,13 @@ export async function saveEncounterProgressAction(
         if (error instanceof FhirMapperError) {
             return {
                 success: false,
-                error: {
-                    layer: "fhir",
+                error: buildFhirActionError({
                     message: error.message,
                     code: error.code,
-                } satisfies ActionError,
+                    details: {
+                        cause: "mapper_error",
+                    },
+                }),
             };
         }
         throw error;
@@ -151,11 +154,13 @@ export async function saveEncounterProgressAction(
         if (error instanceof FhirMapperError) {
             return {
                 success: false,
-                error: {
-                    layer: "fhir",
+                error: buildFhirActionError({
                     message: error.message,
                     code: error.code,
-                } satisfies ActionError,
+                    details: {
+                        cause: "mapper_error",
+                    },
+                }),
             };
         }
         if (error instanceof FhirWriteError) {
@@ -164,7 +169,10 @@ export async function saveEncounterProgressAction(
                 error: buildFhirActionError({
                     message: error.message,
                     code: error.code,
-                    details: error.operationOutcome,
+                    details: {
+                        cause: "operation_outcome",
+                        operationOutcome: error.operationOutcome,
+                    },
                 }),
             };
         }

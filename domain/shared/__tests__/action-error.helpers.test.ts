@@ -50,18 +50,24 @@ describe("action-error.helpers", () => {
         expect("details" in withoutCode).toBe(false);
     });
 
-    it("buildFhirActionError returns fhir layer with message, optional code, and optional unknown details", () => {
+    it("buildFhirActionError returns fhir layer with normalized typed details", () => {
         const withDetails = buildFhirActionError({
             message: "FHIR failed",
             code: "FHIR_WRITE_FAILED",
-            details: { resourceType: "OperationOutcome" },
+            details: {
+                cause: "operation_outcome",
+                operationOutcome: { resourceType: "OperationOutcome" },
+            },
         });
 
         expect(withDetails).toEqual({
             layer: "fhir",
             message: "FHIR failed",
             code: "FHIR_WRITE_FAILED",
-            details: { resourceType: "OperationOutcome" },
+            details: {
+                cause: "operation_outcome",
+                operationOutcome: { resourceType: "OperationOutcome" },
+            },
         });
 
         const withoutDetails = buildFhirActionError({
@@ -73,6 +79,20 @@ describe("action-error.helpers", () => {
             message: "FHIR failed without details",
             code: undefined,
             details: undefined,
+        });
+
+        const normalizedRaw = buildFhirActionError({
+            message: "FHIR failed with raw details",
+            details: "backend timeout",
+        });
+
+        expect(normalizedRaw).toEqual({
+            layer: "fhir",
+            message: "FHIR failed with raw details",
+            code: undefined,
+            details: {
+                raw: "backend timeout",
+            },
         });
     });
 });

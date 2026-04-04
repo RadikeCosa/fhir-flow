@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type {
-    ActionError,
     ActionResult,
 } from "../../../../../../domain/shared/action-result.types";
 import {
@@ -44,11 +43,13 @@ export async function registerEncounterAction(
         if (error instanceof FhirMapperError) {
             return {
                 success: false,
-                error: {
-                    layer: "fhir",
+                error: buildFhirActionError({
                     message: error.message,
                     code: error.code,
-                } satisfies ActionError,
+                    details: {
+                        cause: "mapper_error",
+                    },
+                }),
             };
         }
         throw error;
@@ -136,11 +137,13 @@ export async function registerEncounterAction(
         if (error instanceof FhirMapperError) {
             return {
                 success: false,
-                error: {
-                    layer: "fhir",
+                error: buildFhirActionError({
                     message: error.message,
                     code: error.code,
-                } satisfies ActionError,
+                    details: {
+                        cause: "mapper_error",
+                    },
+                }),
             };
         }
 
@@ -150,7 +153,10 @@ export async function registerEncounterAction(
                 error: buildFhirActionError({
                     message: error.message,
                     code: error.code,
-                    details: error.operationOutcome,
+                    details: {
+                        cause: "operation_outcome",
+                        operationOutcome: error.operationOutcome,
+                    },
                 }),
             };
         }

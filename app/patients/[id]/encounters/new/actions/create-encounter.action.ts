@@ -43,7 +43,9 @@ export async function createEncounterAction(
                 error: buildFhirActionError({
                     message: error.message,
                     code: error.code,
-                    details: undefined,
+                    details: {
+                        cause: "mapper_error",
+                    },
                 }),
             };
         }
@@ -101,7 +103,9 @@ export async function createEncounterAction(
                 error: buildFhirActionError({
                     message: error.message,
                     code: error.code,
-                    details: undefined,
+                    details: {
+                        cause: "mapper_error",
+                    },
                 }),
             };
         }
@@ -111,7 +115,10 @@ export async function createEncounterAction(
                 error: buildFhirActionError({
                     message: error.message,
                     code: error.code,
-                    details: error.operationOutcome,
+                    details: {
+                        cause: "operation_outcome",
+                        operationOutcome: error.operationOutcome,
+                    },
                 }),
             };
         }

@@ -146,6 +146,9 @@ describe("finalizeEncounterAction", () => {
                 layer: "fhir",
                 message: "Encounter not found",
                 code: "ENCOUNTER_NOT_FOUND",
+                details: {
+                    cause: "not_found",
+                },
             },
         });
 
@@ -372,7 +375,10 @@ describe("finalizeEncounterAction", () => {
                 layer: "fhir",
                 message: "No se pudo guardar el cierre del encuentro",
                 code: "FHIR_WRITE_FAILED",
-                details: operationOutcome,
+                details: {
+                    cause: "operation_outcome",
+                    operationOutcome,
+                },
             },
         });
     });

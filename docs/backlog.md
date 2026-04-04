@@ -190,7 +190,7 @@ Tracks:
 - Full system continuity (beyond encounter-centric validated surfaces).
 - Canonical read hardening for finished (global, fuera del detail acotado).
 - Longitudinal/historical data consistency.
-- Typed `ActionError.details`.
+- Typed `ActionError.details` fuera del frente encounter write (pendiente de extensión global).
 
 ---
 
@@ -341,10 +341,10 @@ Tracks:
 - **Continuidad clínica full-system** → **Pendiente**
   - El cierre de continuidad aplica solo a encounter detail `in-progress`; no hay garantía de continuidad transversal en todas las surfaces.
 
-- **Tipado de `ActionError.details` por capa** → **Parcial (fase 1 implementada)**
-  - Estado verificado: helper central `domain/shared/action-error.helpers.ts` operativo y adoptado en las Server Actions de encounter write.
-  - `validation` y `domain` quedaron endurecidos en fase 1; `fhir` se mantiene transicional con `details` opcional/`unknown`.
-  - No implica tipado final global de `details` por variante/capa.
+- **Tipado de `ActionError.details` por capa** → **Cerrado en frente encounter write (fase 2)**
+  - Estado verificado: helper central operativo y adopción en las cinco Server Actions de encounter write incluidas en el sprint.
+  - `validation`/`domain` siguen endurecidos y `fhir.details` quedó tipado/normalizado en este frente.
+  - No implica cierre global fuera de este perímetro de sprint.
 
 - **Canonical read de `finished` (global, fuera de detail acotado)** → **Pendiente**
   - El cierre acotado de `finished encounter detail` no equivale a cierre global en todas las surfaces.
@@ -359,8 +359,9 @@ Tracks:
   - Límite explícito: no implica cierre global/system-wide del read longitudinal/histórico ni reapertura de otros tracks.
 2. **Deuda longitudinal/histórica global abierta (system-wide)**
   - Permanece abierta fuera del alcance acotado ya cerrado del sprint de hardening read-global.
-3. **Cierre de tipado por capa de `ActionError.details` (fase siguiente) y practitioner consistency**
-  - `ActionError` tiene cierre parcial en fase 1 (`validation`/`domain` + helper central); sigue pendiente el cierre posterior de `fhir` y del tipado final global.
+3. **Practitioner consistency (siguiente frente)**
+  - El tipado por capa de `ActionError.details` quedó cerrado para encounter write en fase 2.
+  - Practitioner consistency permanece pendiente como deuda separada.
 
 ---
 
