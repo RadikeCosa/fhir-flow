@@ -183,6 +183,110 @@ Entregable obligatorio de T2: decisión documentada del shape final de fhir, inc
 - razón de diseño mínima;
 - ejemplo de payload esperado.
 
+#### Decisión T2 — shape tipado para fhir.details
+
+A partir del baseline de T1, se adopta para este sprint una única variante normalizada de fhir.details en el frente encounter write.
+
+#### Decisión
+
+El objetivo de T2 no es modelar exhaustivamente cada causa posible de error FHIR, sino cerrar la heterogeneidad actual con un contrato pequeño, estable y utilizable por las Server Actions incluidas en el sprint.
+
+Se define como dirección de implementación:
+
+```ts
+type FhirActionErrorDetails = {
+  cause?:
+    | "operation_outcome"
+    | "http_error"
+    | "mapper_error"
+    | "not_found"
+    | "unexpected_fhir_error";
+
+  operationOutcome?: OperationOutcome;
+  statusCode?: number;
+  resourceType?: string;
+  raw?: unknown;
+};
+```
+
+#### Alcance de esta decisión
+
+Aplica únicamente al frente de encounter write incluido en este sprint:
+
+- createEncounterAction
+- startEncounterAction
+- saveEncounterProgressAction
+- finalizeEncounterAction
+- registerEncounterAction
+
+No redefine el contrato de validation ni domain.
+No reemplaza ActionResult.
+No introduce rediseño de UX ni cambios de render de errores.
+
+#### Criterios de diseño adoptados
+
+1. Un único shape normalizado
+
+No se introducen en esta fase sub-shapes discriminados por code o por causa específica.
+La prioridad del sprint es eliminar la heterogeneidad actual de fhir.details, no diseñar una taxonomía completa de errores FHIR.
+
+2. details permanece opcional
+
+La rama fhir deja de depender de unknown en este frente, pero no se fuerza details como obligatorio en todos los casos.
+Esto evita inventar payloads artificiales en errores donde hoy no existe información estructurada útil.
+
+3. cause como clasificación mínima estable
+
+Se agrega cause para expresar de manera uniforme el origen del error FHIR sin obligar a múltiples variantes de contrato.
+
+Los valores adoptados en esta fase son:
+
+- operation_outcome
+- http_error
+- mapper_error
+- not_found
+- unexpected_fhir_error
+
+4. operationOutcome como payload estructurado prioritario
+
+Cuando exista información FHIR estructurada del backend, debe priorizarse operationOutcome como campo explícito del contrato.
+
+5. raw como contenedor residual controlado
+
+La heterogeneidad residual que hoy aparece como error.outcome, error.data u otros payloads no normalizados se encapsula temporalmente en raw.
+
+raw no debe convertirse en vía libre para volver a introducir details amorfo; su uso en esta fase es transicional y controlado para absorber diferencias reales del estado actual sin bloquear el cierre del contrato.
+
+#### Regla de construcción
+
+A partir de esta decisión, la construcción de errores de capa fhir en las acciones incluidas del sprint debe pasar por helper central obligatorio.
+
+Consecuencia práctica:
+
+- no se permiten nuevos inline literals para errores fhir;
+- T3/T4 deben converger la construcción hacia un único punto shared;
+- la estabilidad top-level de layer, message y code permanece intacta.
+
+#### Qué queda explícitamente fuera de T2
+
+Esta decisión no intenta:
+
+- modelar distinto details para cada code;
+- cerrar una taxonomía exhaustiva de errores FHIR;
+- resolver practitioner consistency;
+- tocar validation o domain;
+- extender automáticamente este contrato a flujos fuera del frente encounter.
+
+#### Resultado esperado de T2
+
+Con esta decisión cerrada, T3 puede implementar un contrato fhir.details:
+
+- tipado,
+- uniforme,
+- helper-driven,
+- compatible con ActionResult,
+- y suficientemente pequeño como para no reabrir scope innecesario.
+
 ### T3 — Implementación shared
 
 Aplicar el shape definido en T2 en tipos y helper central.
