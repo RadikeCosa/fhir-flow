@@ -34,7 +34,7 @@ type EncounterWritePayload = FhirResource & {
 };
 
 export function mapToFhirEncounter(input: CreateEncounterInput): EncounterWritePayload {
-    // Required references: patient, episode of care, and performer (from config)
+    // Required references: patient, episode of care, and performer (from write input)
     if (!input.patientId || input.patientId.trim() === "") {
         throw new FhirMapperError("Patient ID cannot be empty", "MISSING_PATIENT_ID");
     }

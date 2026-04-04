@@ -35,6 +35,14 @@ function makeInput(overrides: Partial<CreateEncounterInput> = {}): CreateEncount
 }
 
 describe("mapToFhirEncounter", () => {
+    it("uses performerId from write input (not from runtime config)", async () => {
+        process.env.CURRENT_PRACTITIONER_ID = "config-practitioner";
+        const { mapToFhirEncounter } = await loadMapperModule();
+        const result = mapToFhirEncounter(makeInput({ performerId: "input-practitioner" }));
+
+        expect(result.participant?.[0]?.individual?.reference).toBe("Practitioner/input-practitioner");
+    });
+
     it("writes practitioner display in participant individual", async () => {
         process.env.FHIR_BASE_URL = "http://localhost:8080/fhir";
         const { mapToFhirEncounter } = await loadMapperModule();
