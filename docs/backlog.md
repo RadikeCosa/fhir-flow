@@ -359,9 +359,11 @@ Tracks:
   - Límite explícito: no implica cierre global/system-wide del read longitudinal/histórico ni reapertura de otros tracks.
 2. **Deuda longitudinal/histórica global abierta (system-wide)**
   - Permanece abierta fuera del alcance acotado ya cerrado del sprint de hardening read-global.
-3. **Practitioner consistency (siguiente frente)**
-  - El tipado por capa de `ActionError.details` quedó cerrado para encounter write en fase 2.
-  - Practitioner consistency permanece pendiente como deuda separada.
+3. **Practitioner consistency en encounter write (cerrado)**
+  - Cierre alcanzado en el frente encounter write para `createEncounterAction`, `saveEncounterProgressAction`, `finalizeEncounterAction` y `registerEncounterAction`.
+  - Regla consolidada en ese alcance: practitioner resuelto server-side y transportado por write input (`performerId`, `practitionerName`) hasta repository/mapper.
+  - `startEncounterAction` queda documentado como exención explícita del sprint (transición de estado sobre encounter ya atribuido), no como gap abierto.
+  - No implica rediseño global de identity ni soporte multi-practitioner.
 
 ---
 

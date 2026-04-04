@@ -31,7 +31,7 @@ Este documento reemplaza el enfoque de "aprobado total" por una validación hone
 | Validation layers | **Parcialmente válido** | La separación por capas está bien definida (Form Zod, Domain Rules, Inverse Mapper, FHIR Client), pero requiere enforcement sostenido en implementación. | Secciones de Validation Architecture en ambos docs base. | Mantener checklist por PR y evitar mover reglas clínicas a schema/mapper. |
 | ActionResult / ActionError | **Parcialmente válido (fase 2 cerrada en encounter write)** | `ActionResult` se mantiene como contrato estable; helper central de `ActionError` operativo; `fhir.details` quedó tipado/normalizado en el frente encounter write incluido en el sprint. | ADR + write-phase + sprint fase 2; implementación y tests de encounter write alineados. | Extender cierre solo cuando se adopte en otros frentes, sin romper contrato estable. |
 | Inverse mapper purity | **Parcialmente válido** | Regla arquitectónica es clara: mapper puro, sin resolver identidad ni reglas de negocio. Persisten riesgos de drift cuando la resolución de contexto no entra por input. | copilot instructions + ADR (responsabilidad de practitioner en Server Action). | Verificar por flujo que mapper solo transforme input validado y no lea config. |
-| Practitioner resolution | **Parcialmente válido** | El ADR fija que la resolución de practitioner es server-side y luego via write input. La dirección está cerrada, la implementación requiere consistencia completa entre create/finalize. | ADR sección de practitioner responsibility + write-phase. | Completar uniformidad de input (`performerId`, `practitionerName`) en todos los writes. |
+| Practitioner resolution (encounter write front) | **Válido hoy (alcance acotado)** | En encounter write, los flujos attribution-driven (`createEncounterAction`, `saveEncounterProgressAction`, `finalizeEncounterAction`, `registerEncounterAction`) resuelven practitioner server-side y lo propagan por write input hacia repository/mapper. `startEncounterAction` queda como exención explícita del sprint por ser transición de estado sobre encounter ya atribuido. | ADR sección de practitioner responsibility + write-phase + sprint practitioner consistency (T1–T5). | Mantener cobertura de regresión en ese frente sin extrapolar a rediseño global de identity. |
 | Register flow (`/encounters/register`) | **Válido hoy** | La separación de entry points está operativa: `/encounters/new` planifica y `/encounters/register` registra con `registerEncounterAction` y `completionMode` explícito (`start`/`complete`). | Estado de app layer + write-phase actualizado. | Mantener consistencia documental y evitar regresión semántica entre rutas. |
 | Save progress separado | **Válido hoy** | `saveEncounterProgressAction` existe como operación propia con snapshot transaccional y ownership metadata interoperable para recursos clínicos gestionados por esta app. | write-phase + código de acciones/rules/repositorio. | Mantener hardening de validaciones por estado y ownership. |
 | Lifecycle transition (`planned -> in-progress`) | **Válido hoy** | `startEncounterAction` ya está operativo para encounters planificados y la finalización exige `in-progress`. | Reglas de estado en actions/domain + write-phase actualizado. | Mantener hardening de regresiones y tests de estado. |
@@ -178,7 +178,7 @@ Límite explícito: no implica cierre total de continuidad system-wide ni del re
 
 1. Mantener cerrado y protegido por tests el canonical read de `finished encounter detail`, sin extrapolar ese cierre a otras surfaces/estados.
 2. Extender el tipado por capa de `ActionError.details` a otros frentes, manteniendo `ActionResult` estable.
-3. Cerrar consistencia total de practitioner context en todos los write inputs (pendiente).
+3. Mantener cerrada la consistencia de practitioner context en el frente encounter write ya alineado (`create`, `save-progress`, `finalize`, `register`) y su exención explícita de `startEncounterAction`.
 4. Mantener y proteger el cierre acotado ya logrado del hardening del read global (T1–T5), preservando separación encounter-centric vs longitudinal, fallback temporal controlado y policy de legacy sin `encounterId`, sin sobredeclarar cierre global.
 5. Definir cierre verificable de continuidad clínica `in-progress` en UI si producto lo requiere.
 
@@ -189,7 +189,7 @@ Usar este checklist en cada cambio de write flow:
 - [ ] El dominio no importa FHIR ni devuelve recursos FHIR.
 - [ ] Server Action orquesta: Zod -> Domain Rules -> Repository -> ActionResult.
 - [ ] Domain Rules Validator no hace IO ni efectos secundarios.
-- [ ] Inverse mapper es puro y no resuelve practitioner desde config/sesión.
+- [x] Inverse mapper es puro y no resuelve practitioner desde config/sesión (frente encounter write cubierto por sprint de practitioner consistency).
 - [ ] El error devuelto distingue al menos `layer`, `message` y `code`.
 - [ ] Si un flujo depende de `planned -> finished`, está marcado como transición.
 - [ ] No se afirma como "resuelto" lo que ADR/write-phase aún marcan como deuda.

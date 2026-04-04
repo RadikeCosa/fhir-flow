@@ -1,6 +1,6 @@
 # Sprint — Practitioner consistency en encounter write flows
 
-- Status: proposed
+- Status: closed (scope-bounded)
 - Fecha: 2026-04-04
 
 ## 1. Objetivo
@@ -286,33 +286,29 @@ El trabajo real pasa a ser:
 
 ### T3 — Implementación shared / input-level
 
-Ajustar el artefacto central que T2 defina para transportar practitioner context de forma uniforme.
-Ese artefacto puede ser:
+Resultado real (cerrado): no se requirió artefacto shared nuevo.
 
-- un tipo shared de practitioner write context, o
-- la convergencia explícita de los write inputs existentes si no corresponde crear un tipo nuevo.
-
-Ajustar tipos y contratos shared o write inputs según lo que T2 cierre.
-Mantener boundary correcto entre Server Action, repository y mapper.
-
-Entregable obligatorio de T3: contrato implementado en el artefacto central definido por T2, no solo cambios dispersos por acción.
+- Se validó que los write inputs existentes ya cumplen el contrato uniforme para los flows en alcance:
+  - `createEncounterAction`
+  - `saveEncounterProgressAction`
+  - `finalizeEncounterAction`
+  - `registerEncounterAction`
+- No se introdujeron nuevas abstracciones por simetría.
 
 ### T4 — Adopción en flows encounter
 
-Aplicar el contrato uniforme únicamente a:
+Resultado real (cerrado): no hubo cambio de comportamiento ni adopción amplia adicional.
 
-- createEncounterAction
-- startEncounterAction
-- saveEncounterProgressAction
-- finalizeEncounterAction
-- registerEncounterAction
+- Se aplicó únicamente la corrección mínima pendiente: comentario stale en create mapper para reflejar contrato input-driven.
+- `startEncounterAction` no se tocó y se mantiene como exención explícita de este sprint.
 
 ### T5 — Blindaje y cierre documental mínimo
 
-- tests del contrato;
-- backlog;
-- validación arquitectónica;
-- sprint doc.
+Resultado real (cerrado):
+
+- tests mínimos de regresión sobre contrato input-driven en las superficies existentes del frente;
+- alineación documental mínima en backlog + validación arquitectónica + este sprint doc;
+- cierre acotado al frente encounter write, sin implicar rediseño global de identity ni soporte multi-practitioner.
 
 ## 11. Criterios de aceptación
 

@@ -74,6 +74,8 @@ describe("registerEncounterAction", () => {
                 patientId: "patient-1",
                 completionMode: "start",
                 episodeOfCareId: "episode-1",
+                performerId: "kine-1",
+                practitionerName: "Lic. Ramiro Perez",
                 actualEndAt: undefined,
             })
         );
