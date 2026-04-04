@@ -1,6 +1,6 @@
 Sprint — Hardening global del contrato longitudinal/histórico (fuera del cierre acotado)
 
-Status: proposed
+Status: closed
 Fecha: 2026-04
 
 1. Objetivo
@@ -266,3 +266,25 @@ Este sprint no invalida ni reemplaza el cierre acotado anterior.
 Este sprint no reabre las reglas locales ya blindadas en encounters/data.ts, patient detail o encounter detail, salvo que un test nuevo y específico demuestre una regresión fuera de alcance hasta ahora no cubierta.
 
 Este sprint no usa el subsistema de charts como source-of-truth del problema. Solo puede tocarlo si una brecha verificable del contrato longitudinal/histórico ya aparece materializada en transformación/formateo de series.
+
+15. Resultado de ejecución (cierre por evidencia)
+
+TG1 fue ejecutado en modo read-only sobre las surfaces objetivo:
+
+- app/patients/[id]/encounters/__tests__/data.test.ts
+- app/patients/[id]/__tests__/data.test.ts
+- app/patients/[id]/__tests__/cross-surface.contract.test.ts
+
+Resultado:
+
+- no se encontró brecha técnica verificable fuera del closure acotado;
+- no se justifica pasar a TG2/TG3;
+- el sprint se cierra sin cambios de código productivo.
+
+Guardrail explícito de cierre:
+
+- app/patients/[id]/encounters/data.ts se mantiene bounded-closed en su boundary local ya validado y no se reabre en este sprint.
+
+Nota opcional/no bloqueante:
+
+- puede evaluarse más adelante un único caso cross-surface de legacy derived-by-date sin encounterId; no constituye gap técnico verificable actual ni condición para este cierre.
