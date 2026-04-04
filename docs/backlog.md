@@ -2,6 +2,30 @@
 
 Fecha de actualización: 2026-04-01
 
+## ✅ Sprint cerrado — Hardening operativo del test stack + cierre acotado de 2 flujos browser E2E (2026-04)
+
+- **HT1 — Hardening del test stack** → **Completado (alcance acotado)**
+  - Vitest detecta `.test.ts` y `.test.tsx` en `__tests__`.
+  - `package.json` expone scripts explícitos para Vitest.
+  - `vitest.setup.ts` agrega bootstrap mínimo de entorno.
+  - Resolución runtime de alias activa en Vitest.
+  - Playwright mantiene `reuseExistingServer: false` para evitar acoplamiento con estado previo de servidor.
+  - Seed loaders E2E con contrato más explícito y verificación mínima post-seed.
+
+- **HT2 — Browser E2E finalize cross-surface (sin charts)** → **Completado (alcance acotado)**
+  - Cobertura browser E2E disponible para finalize cross-surface con no-mezcla de datasets.
+
+- **HT3 — Browser E2E start + save-progress + reload/rehydrate (sin finalize ni charts)** → **Completado (alcance acotado)**
+  - Cobertura browser E2E disponible para continuidad del mismo encounter en reload/rehydrate.
+  - El hardening incluyó dos fixes reales:
+    - observabilidad/timing de save-progress antes del reload;
+    - lectura encounter-scoped con `cache: "no-store"` para FC/EVA en repositorios usados por rehidratación.
+
+- **Límite explícito del cierre**
+  - Validado en alcance acotado para estos dos flujos browser E2E.
+  - No implica cierre global system-wide de continuidad completa ni del read longitudinal/histórico.
+  - Sin charts y sin reabrir deudas ya cerradas fuera de este alcance.
+
 ## 🧭 Convenciones
 - **Resuelto:** implementado y validado en el sprint de register flow.
 - **Parcial:** dirección correcta con transición activa.
@@ -149,7 +173,7 @@ Tracks:
 
 ### Open debt (post-sprint)
 
-- Browser E2E validation.
+- Browser E2E validation (global/system-wide, incluyendo longitudinal/histórico).
 - Full system continuity (beyond encounter-centric validated surfaces).
 - Canonical read hardening for finished (global, fuera del detail acotado).
 - Longitudinal/historical data consistency.

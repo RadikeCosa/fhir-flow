@@ -39,6 +39,8 @@ Este documento reemplaza el enfoque de "aprobado total" por una validación hone
 | Encounter-centric vs longitudinal read split | **Parcialmente válido** | Se consolidó la separación: patient/encounter detail operan encounter-centric y el fallback por fecha queda encapsulado para longitudinal. Aún hay deuda en hardening de límites para evitar regresiones de mezcla. | Checkpoint app + auditoría temporal + ajustes recientes en `encounters/data.ts` y patient detail. | Mantener tests de no-filtración del fallback temporal a surfaces encounter-centric. |
 | Clinical linkage (`encounterId`) in read mappers | **Parcialmente válido** | Vital signs y EVA ya hidratan `encounterId` cuando `Observation.encounter.reference` existe (incluyendo casos ausente/relativo/absoluto). Mejora coherencia encounter-centric pero no elimina deuda histórica sin referencia. | Mappers/schemas de lectura y tests endurecidos recientes. | Mantener fallback longitudinal controlado para históricos sin linkage y evaluar backfill futuro. |
 | In-progress continuity (bounded scope) | **validado (alcance acotado)** | Quedó validado en alcance acotado el circuito encounter-centric para surfaces auditadas: encounter detail por `encounterId` + source selection de patient detail (`inProgressEncounter ?? lastFinishedEncounter`). | Tests integrados del flujo crítico + guardas negativas de fallback/mezcla en `encounter detail` y `patient detail`. | Mantener alcance explícito: no implica continuidad global del sistema, ni cierre longitudinal/charts, ni hardening canónico global de finished. |
+| Test stack hardening (Vitest/Playwright/E2E loaders) | **Válido hoy (operativo, alcance acotado)** | El stack quedó más estable operativamente para ejecución local/CI: discovery Vitest en `__tests__`, scripts explícitos, bootstrap mínimo, alias runtime, Playwright sin reutilizar servidor y seed loaders con contrato explícito + verificación mínima. | Configuración de test runner + scripts + setup + loaders E2E vigentes en repositorio. | Mantener hardening incremental sin declarar cierre arquitectónico global. |
+| Browser E2E continuity/finalize (sin charts) | **validado (alcance acotado)** | Hay cobertura browser útil en dos flujos: finalize cross-surface/no-mix y start+save-progress+reload/rehydrate. En este último se corrigieron observabilidad de save y lectura encounter-scoped FC/EVA con `cache: "no-store"`. | Specs browser E2E vigentes y estabilizados para esos flujos. | Mantener wording acotado: no implica cierre total system-wide ni del read longitudinal/histórico. |
 | Documentation drift | **Parcialmente válido** | Documentación alinea dirección, pero hubo deriva de tono (“todo aprobado”) y riesgo de leer transición como estado final. | Diferencia entre validación previa y lenguaje explícito de ADR/write-phase. | Mantener este documento como checklist vivo y actualizar por fase/ticket real. |
 
 ## Revisión explícita por tema solicitado
@@ -137,11 +139,35 @@ Evidencia validada:
 
 Límites explícitos:
 
-- no hay cobertura E2E browser para este cierre;
+- ya existe cobertura browser E2E parcial en dos flujos acotados; el cierre browser system-wide/global sigue abierto;
 - no hay validación montada de RHF `reset(...)`;
 - no hay validación longitudinal/charts;
 - no hay garantía system-wide fuera de las surfaces indicadas;
 - no se declara cerrado el read model global ni la continuidad longitudinal/histórica.
+
+### 13. Test stack hardening (estado operativo)
+
+**Estado:** Válido hoy (operativo, alcance acotado)
+
+El stack de testing quedó más estable para operación diaria: Vitest con discovery en `__tests__` para `.test.ts/.test.tsx`, scripts explícitos, setup mínimo, alias runtime activo, Playwright con `reuseExistingServer: false` y seed loaders E2E con contrato/verificación mínima post-seed.
+
+Este estado no equivale a cierre arquitectónico global del sistema.
+
+### 14. Browser E2E (dos flujos cerrados en alcance acotado, sin charts)
+
+**Estado:** validado (alcance acotado)
+
+Se dispone de cobertura browser E2E útil para:
+
+- finalize cross-surface/no-mix (sin charts);
+- start + save-progress + reload/rehydrate (sin finalize ni charts).
+
+En el segundo flujo se corrigieron dos problemas reales:
+
+- observabilidad/timing de save-progress antes del reload;
+- lectura encounter-scoped de FC/EVA con `cache: "no-store"` en repositorios de rehidratación.
+
+Límite explícito: no implica cierre total de continuidad system-wide ni del read longitudinal/histórico.
 
 ## Pendientes del ADR / tickets siguientes
 

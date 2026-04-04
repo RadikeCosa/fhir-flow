@@ -59,6 +59,9 @@ test("save progress survives reload by rehydrating in-progress form", async ({ p
     page.waitForLoadState("networkidle"),
     page.getByRole("button", { name: "Guardar progreso" }).click(),
   ]);
+  await expect(page.getByRole("status")).toContainText(
+    "Progreso guardado correctamente."
+  );
 
   await page.reload();
   await page.waitForLoadState("networkidle");

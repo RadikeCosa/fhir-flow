@@ -78,7 +78,7 @@ export class VitalSignRecordFhirRepository implements VitalSignRecordRepository 
             category: "vital-signs",
             _sort: "-date",
             _count: "50",
-        });
+        }, { cache: "no-store" });
 
         const resources = await fetchAllPages<FhirResource>(this.client, bundle);
         const valid: FhirVitalSignObservation[] = [];

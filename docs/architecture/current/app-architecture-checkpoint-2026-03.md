@@ -191,6 +191,22 @@ En patient detail, los CTAs condicionados por `inProgressEncounter` y `nextPlann
 #### Result
 El app layer dejó de mezclar semánticas de planificación y registro en una sola entrada.
 
+### 9. hardening acotado de test stack + browser E2E en flows críticos (sin charts)
+
+Se consolidó un hardening operativo acotado del stack de testing y una cobertura browser útil en dos flujos críticos:
+
+- finalize cross-surface/no-mix (sin charts);
+- start + save-progress + reload/rehydrate (sin finalize ni charts).
+
+En el segundo flujo se corrigieron dos problemas reales de continuidad parcial:
+
+- observabilidad/timing del save-progress antes del reload;
+- lectura encounter-scoped de FC/EVA con `cache: "no-store"` para rehidratación.
+
+#### Result
+El comportamiento browser E2E quedó validado para esos flujos en alcance acotado.
+No implica cierre global system-wide del read model ni de continuidad longitudinal/histórica.
+
 ## Architectural outcomes
 
 After this refactor round, the `patients` area now follows a more consistent route pattern.
@@ -313,7 +329,9 @@ When changing route-level UI in the patients/encounters area:
 - possible future partitioning of `FinalizeEncounterForm`
 - lifecycle transition beyond the current transitional runtime model
 - continuidad in-progress system-wide fuera del contrato encounter-centric acotado (el path acotado ya está operativo; pendiente validación/garantía global)
-- continuidad system-wide fuera de encounter detail `in-progress` (incluye validación browser E2E y escenarios longitudinales/históricos)
+- continuidad system-wide fuera de encounter detail `in-progress` (los 2 flujos browser acotados ya están cubiertos; sigue pendiente la validación browser E2E global/longitudinal/histórica)
+
+Nota de alcance: la cobertura browser E2E ya cerró dos flujos acotados (arriba), pero no reemplaza este límite global abierto.
 
 ---
 

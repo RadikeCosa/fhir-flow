@@ -74,7 +74,7 @@ export class EvaAssessmentFhirRepository implements AssessmentRepository {
             category: "survey",
             _sort: "-date",
             _count: "50",
-        });
+        }, { cache: "no-store" });
 
         const resources = await fetchAllPages<FhirResource>(this.client, bundle);
         const valid: FhirEvaObservation[] = [];

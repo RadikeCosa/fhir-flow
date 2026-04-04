@@ -194,9 +194,14 @@ export default function FinalizeEncounterForm({
 
     try {
       const values = getValues();
+      const clinicalNoteElement = document.getElementById("clinicalNote");
+      const clinicalNoteFromDom =
+        clinicalNoteElement instanceof HTMLTextAreaElement
+          ? clinicalNoteElement.value
+          : values.clinicalNote;
 
       const result = await saveEncounterProgressAction(patientId, encounterId, {
-        clinicalNote: values.clinicalNote,
+        clinicalNote: clinicalNoteFromDom,
         reasonDisplay: values.reasonDisplay,
         evaScore: values.evaScore,
         bloodPressureSystolic: values.bloodPressureSystolic,
