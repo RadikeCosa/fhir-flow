@@ -69,4 +69,32 @@ export async function loadContinuityMinimalSeed(): Promise<void> {
       )}`,
     );
   }
+
+  const finishedSiblingResponse = await fetch(
+    `${baseUrl.replace(/\/$/, "")}/Encounter/e2e-continuity-encounter-finished-sibling-1`,
+    {
+      headers: {
+        Accept: "application/fhir+json",
+      },
+    },
+  );
+
+  if (!finishedSiblingResponse.ok) {
+    const body = await finishedSiblingResponse.text().catch(() => "");
+    throw new Error(
+      `Continuity seed verification failed when reading finished sibling (${finishedSiblingResponse.status} ${finishedSiblingResponse.statusText}) from ${baseUrl}: ${body}`,
+    );
+  }
+
+  const finishedSibling = (await finishedSiblingResponse.json()) as {
+    status?: unknown;
+  };
+
+  if (finishedSibling.status !== "finished") {
+    throw new Error(
+      `Continuity seed verification failed: expected Encounter/e2e-continuity-encounter-finished-sibling-1 status=finished but got ${String(
+        finishedSibling.status,
+      )}`,
+    );
+  }
 }

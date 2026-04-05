@@ -124,6 +124,59 @@
         "method": "PUT",
         "url": "Encounter/e2e-continuity-encounter-1"
       }
+    },
+    {
+      "resource": {
+        "resourceType": "Encounter",
+        "id": "e2e-continuity-encounter-finished-sibling-1",
+        "status": "finished",
+        "class": {
+          "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+          "code": "HH",
+          "display": "Home health"
+        },
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://fhir-flow.dev/encounter-type",
+                "code": "follow-up",
+                "display": "Seguimiento"
+              }
+            ],
+            "text": "Seguimiento"
+          }
+        ],
+        "subject": {
+          "reference": "Patient/e2e-continuity-patient-1"
+        },
+        "episodeOfCare": [
+          {
+            "reference": "EpisodeOfCare/e2e-continuity-episode-1"
+          }
+        ],
+        "participant": [
+          {
+            "individual": {
+              "reference": "Practitioner/kine-1",
+              "display": "Continuity Kine E2E"
+            }
+          }
+        ],
+        "period": {
+          "start": "2026-03-31T09:00:00.000Z",
+          "end": "2026-03-31T09:30:00.000Z"
+        },
+        "reasonCode": [
+          {
+            "text": "MOTIVO FINISHED SIBLING E2E (NO MEZCLAR EN PATIENT DETAIL)"
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Encounter/e2e-continuity-encounter-finished-sibling-1"
+      }
     }
   ]
 }
