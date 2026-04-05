@@ -215,6 +215,8 @@ The following `ActionError` fields are stable:
 
 The accepted direction is to evolve toward typed error details by layer, without removing `ActionResult` as the Server Action contract.
 
+Checkpoint note (2026-04-05): in encounter write, typed/normalized details are already closed in bounded scope. Outside encounter write, the current repo state has no active server-action perimeter to extend in implementation yet; remaining work is primarily documentary/drift alignment until such perimeter exists.
+
 ## Current Implemented Model
 
 The current implemented model is a transitional write model, not the target lifecycle design.
@@ -442,6 +444,8 @@ Encounter detail remains the canonical target by architecture, but complete cano
 
 `ActionResult` is stable, but `ActionError.details` is still transitional and not yet fully typed by layer.
 
+This statement is global/transitional in scope and must not be read as a reopen signal for encounter write bounded closure.
+
 ## Implementation Guidance
 
 When contributors add or modify write behavior, they must preserve the following order of responsibility:
@@ -474,6 +478,7 @@ When contributors add or modify write behavior, they must preserve the following
 - full canonical read hardening for finished encounter detail
 - peripheral follow-ups around canonical finished detail (for example, keeping history lean)
 - typed error detail models by layer
+  - note: encounter write bounded closure is already achieved; further extension depends on a real non-encounter implementation perimeter
 
 ### Explicitly Transitional
 

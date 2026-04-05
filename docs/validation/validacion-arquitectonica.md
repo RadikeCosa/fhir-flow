@@ -65,6 +65,8 @@ La arquitectura de validación está correctamente estratificada y definida. Lo 
 
 `ActionResult` permanece como contrato estable de Server Action y los campos top-level (`layer/message/code`) se sostienen estables. En encounter write, `ActionError` quedó endurecido con helper central y `fhir.details` tipado/normalizado. Este cierre no debe sobredeclararse como cierre global fuera de ese frente.
 
+Actualización diagnóstica fase 3 (2026-04-05): en el estado actual del repo se verificó **sin perímetro operativo actual fuera de encounter write** para extender adopción en implementación, con **sin deuda real de implementación confirmada** fuera de ese frente. El remanente vigente se clasifica como **drift documental / deuda nominal**, con **cierre por evidencia diagnóstica/documental** en esta fase; **no implica reapertura de encounter write** ni cierre global eterno del tema.
+
 ### 4. Inverse mapper purity
 
 **Estado:** Parcialmente válido
@@ -179,7 +181,7 @@ Límite explícito: no implica cierre total de continuidad system-wide ni del re
 ## Pendientes del ADR / tickets siguientes
 
 1. Mantener cerrado y protegido por tests el canonical read de `finished encounter detail`, sin extrapolar ese cierre a otras surfaces/estados.
-2. Extender el tipado por capa de `ActionError.details` a otros frentes, manteniendo `ActionResult` estable.
+2. Extender el tipado por capa de `ActionError.details` a otros frentes, manteniendo `ActionResult` estable, **solo si aparece perímetro operativo real fuera de encounter write**.
 3. Mantener cerrada la consistencia de practitioner context en el frente encounter write ya alineado (`create`, `save-progress`, `finalize`, `register`) y su exención explícita de `startEncounterAction`.
 4. Mantener y proteger el cierre acotado ya logrado del hardening del read global (T1–T5), preservando separación encounter-centric vs longitudinal, fallback temporal controlado y policy de legacy sin `encounterId`, sin sobredeclarar cierre global.
 5. Definir cierre verificable de continuidad clínica `in-progress` en UI si producto lo requiere.
