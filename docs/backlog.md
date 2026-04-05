@@ -1,6 +1,24 @@
 # 📋 FHIR Flow — Backlog reordenado (post sprint register flow)
 
-Fecha de actualización: 2026-04-04
+Fecha de actualización: 2026-04-05
+
+## ✅ Sprint cerrado — Auditoría bounded de continuidad clínica transversal (2026-04-05)
+
+- **Resultado** → **Cerrado por evidencia (sin cambios productivos)**
+  - T1/T2 completados y T5 documental aplicado.
+  - **sin bug runtime nuevo verificable** en la matriz bounded auditada.
+  - El gap cross-surface `history <-> patient detail` quedó refutado/cerrado por evidencia existente.
+
+- **Estado de gaps remanentes**
+  - Persisten 2 **huecos de cobertura acotados**:
+    1. browser de `patient detail` con coexistencia explícita `in-progress + finished`;
+    2. contraste post-finalize con más de un seed válido.
+  - Estos puntos **no requiere hardening inmediato** en este sprint.
+
+- **Límite explícito**
+  - Este cierre **no implica cierre global/system-wide** de continuidad clínica.
+  - Este cierre **no implica cierre global/system-wide** del read longitudinal/histórico.
+  - No se reabren practitioner consistency ni frentes cerrados previamente.
 
 ## ✅ Sprint cerrado — Hardening global del contrato longitudinal/histórico (fuera del cierre acotado) (2026-04)
 
