@@ -9,8 +9,13 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   webServer: {
-    command: "npm run build && npm run start",
+    command: "npm run dev",
     port: 3000,
     reuseExistingServer: false,
+    env: {
+      ...process.env,
+      FHIR_BASE_URL: process.env.FHIR_BASE_URL ?? "http://localhost:8080/fhir",
+      CURRENT_PRACTITIONER_ID: process.env.CURRENT_PRACTITIONER_ID ?? "kine-1",
+    },
   },
 });
