@@ -1,7 +1,16 @@
 # Sprint — Validación browser E2E del circuito clínico completo in-progress -> save -> reload -> finalize (alcance acotado)
 
-- Status: proposed
+- Status: closed
 - Fecha: 2026-04-04
+
+## 0. Cierre ejecutado (2026-04-04)
+
+- Gate previo: resuelto.
+- Drift del test EVA: corregido como drift de expectativa, sin bug runtime clínico.
+- Spec browser integrado endurecido en `e2e/flows/encounter-continuity.spec.ts`.
+- Ejecución final: `npm run test:e2e -- e2e/flows/encounter-continuity.spec.ts` -> **2 passed**.
+- Outcome post-finalize en `patient detail` para este seed/estado: contrato vigente de empty-state (`Sin episodio activo` + `No hay visitas registradas en el episodio activo`).
+- Se descartó ajuste productivo: no apareció bug runtime verificable del flujo clínico en este alcance.
 
 ## 1. Objetivo
 
@@ -262,6 +271,8 @@ El cierre debe distinguir explícitamente entre estos dos resultados posibles:
 
 Cierre por evidencia browser integrada satisfactoria, sin cambios productivos o solo con ajustes menores de test/spec/seed. La deuda global/system-wide no se declara cerrada automáticamente.
 
+**Resultado aplicado en este sprint:** Resultado A.
+
 #### Resultado B — se detectó bug runtime y se cerró
 
 Cierre por validación + fix mínimo localizado, con documentación del gap real encontrado y actualización explícita del backlog sin extrapolar a cierre global.
@@ -297,6 +308,12 @@ Al cerrar este sprint, el sistema debería quedar con:
 - menor incertidumbre sobre continuidad encounter-centric real en runtime;
 - mejor base para decidir si queda trabajo productivo de continuidad global o si la deuda remanente es de perímetro/documentación;
 - más confianza para no reabrir frentes estructurales innecesarios.
+
+## 13.1 Resultado observado
+
+- El loop browser integrado quedó validado en alcance acotado.
+- El contrato final de `patient detail` post-finalize para el seed validado corresponde a empty-state; no se exige tarjeta `ÚLTIMA VISITA` para declarar éxito en este escenario.
+- El cierre permanece acotado al flujo y seed validados, sin extrapolación a cierre global/system-wide.
 
 ## 14. Próximo paso después de este sprint
 

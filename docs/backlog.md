@@ -274,6 +274,23 @@ Tracks:
 
 ---
 
+## ✅ Sprint cerrado — Validación browser E2E del circuito clínico completo (alcance acotado) (2026-04)
+
+- **Resultado alcanzado**
+  - Se validó el loop browser integrado: `planned -> start -> save -> reload -> rehydrate -> finalize` en `e2e/flows/encounter-continuity.spec.ts`.
+  - Ejecución final verificada: `npm run test:e2e -- e2e/flows/encounter-continuity.spec.ts` -> **2 passed**.
+
+- **Diagnóstico de cierre**
+  - No se detectó bug runtime clínico verificable en el flujo validado.
+  - El ajuste final fue de expectativa de test en `patient detail` post-finalize.
+  - Para este seed/estado, el contrato vigente compatible es empty-state (`Sin episodio activo` / `No hay visitas registradas en el episodio activo`), no necesariamente tarjeta `ÚLTIMA VISITA`.
+
+- **Límite explícito**
+  - Cierre acotado al spec/seed validados.
+  - No implica cierre global/system-wide de continuidad clínica ni del read longitudinal/histórico.
+
+---
+
 ## 🟡 Parcial / transición activa
 
 ### Track A — Lifecycle
@@ -335,8 +352,9 @@ Tracks:
 - **Datos históricos sin `encounterId`** → **Pendiente**
   - Continúan existiendo casos legacy sin linkage completo que requieren estrategia explícita para no contaminar surfaces encounter-centric.
 
-- **Cobertura E2E browser-level del circuito completo** → **Pendiente**
-  - Existen tests de integración livianos encounter-centric, pero no cobertura browser E2E del circuito completo.
+- **Cobertura E2E browser-level del circuito completo (alcance acotado)** → **Cerrada (este sprint)**
+  - El cierre aplica al loop integrado validado en `e2e/flows/encounter-continuity.spec.ts`.
+  - No se extrapola a cobertura browser global/system-wide.
 
 - **Continuidad clínica full-system** → **Pendiente**
   - El cierre de continuidad aplica solo a encounter detail `in-progress`; no hay garantía de continuidad transversal en todas las surfaces.
