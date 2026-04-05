@@ -381,6 +381,8 @@ Tracks:
   - Estado verificado: helper central operativo y adopción en las cinco Server Actions de encounter write incluidas en el sprint.
   - `validation`/`domain` siguen endurecidos y `fhir.details` quedó tipado/normalizado en este frente.
   - No implica cierre global fuera de este perímetro de sprint.
+  - Actualización fase 3 (2026-04-05): **sin perímetro operativo actual fuera de encounter write** en el estado real del repo, **sin deuda real de implementación confirmada** fuera de ese frente.
+  - Resultado fase 3: **cierre por evidencia diagnóstica/documental** (drift documental / deuda nominal), **no implica reapertura de encounter write** y **no se sobredeclara cierre global**.
 
 - **Canonical read de `finished` (global, fuera de detail acotado)** → **Pendiente**
   - El cierre acotado de `finished encounter detail` no equivale a cierre global en todas las surfaces.
