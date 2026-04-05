@@ -3,6 +3,8 @@ import { loadContinuityMinimalSeed } from "../support/load-continuity-minimal-se
 
 const PATIENT_ID = "e2e-continuity-patient-1";
 const ENCOUNTER_ID = "e2e-continuity-encounter-1";
+const FINISHED_SIBLING_REASON =
+  "MOTIVO FINISHED SIBLING E2E (NO MEZCLAR EN PATIENT DETAIL)";
 const ENCOUNTER_URL = `/patients/${PATIENT_ID}/encounters/${ENCOUNTER_ID}`;
 const PATIENT_URL = `/patients/${PATIENT_ID}`;
 
@@ -28,6 +30,22 @@ test.beforeEach(async () => {
 
 test("planned encounter can be started and becomes in-progress", async ({ page }) => {
   await startEncounterIfPlanned(page);
+});
+
+test("patient detail prioritizes in-progress over finished sibling without mixing datasets", async ({
+  page,
+}) => {
+  await startEncounterIfPlanned(page);
+
+  await page.goto(PATIENT_URL);
+  await page.waitForLoadState("networkidle");
+
+  await expect(page.getByText("VISITA EN CURSO")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Completar visita" })).toHaveAttribute(
+    "href",
+    `/patients/${PATIENT_ID}/encounters/${ENCOUNTER_ID}`,
+  );
+  await expect(page.getByText(FINISHED_SIBLING_REASON)).toHaveCount(0);
 });
 
 test("planned -> start -> save -> reload -> rehydrate -> finalize -> finished -> patient detail source switch", async ({
