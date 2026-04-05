@@ -99,7 +99,8 @@ describe('EvaAssessmentFhirRepository', () => {
         expect(result).toHaveLength(1);
         expect(mockClient.search).toHaveBeenCalledWith(
             'Observation',
-            expect.objectContaining({ encounter: 'Encounter/enc-001' })
+            expect.objectContaining({ encounter: 'Encounter/enc-001' }),
+            expect.objectContaining({ cache: 'no-store' })
         );
     });
 
