@@ -1,7 +1,13 @@
 import crossSurfaceNoMixSeed from "../../seeds/e2e-cross-surface-no-mix.json";
 
-const DEFAULT_FHIR_BASE_URL = "http://localhost:8080/fhir";
-const FHIR_READY_TIMEOUT_MS = 15000;
+const DEFAULT_FHIR_BASE_URL = "http://127.0.0.1:8080/fhir";
+const resolvedReadyTimeout = Number.parseInt(
+  process.env.FHIR_READY_TIMEOUT_MS ?? "60000",
+  10,
+);
+const FHIR_READY_TIMEOUT_MS = Number.isFinite(resolvedReadyTimeout)
+  ? resolvedReadyTimeout
+  : 60000;
 const FHIR_READY_POLL_MS = 500;
 
 function resolveFhirBaseUrl(): string {
@@ -91,7 +97,7 @@ async function waitForFhirAvailability(baseUrl: string): Promise<void> {
   const detail =
     lastError instanceof Error ? lastError.message : String(lastError);
   throw new Error(
-    `FHIR server is not reachable for cross-surface seed within ${FHIR_READY_TIMEOUT_MS}ms at ${metadataUrl}. Last probe error: ${detail}`,
+    `FHIR server is not reachable for cross-surface seed within ${FHIR_READY_TIMEOUT_MS}ms at ${metadataUrl}. Last probe error: ${detail}. Verify FHIR_BASE_URL and that the FHIR server is up before running Playwright.`,
   );
 }
 

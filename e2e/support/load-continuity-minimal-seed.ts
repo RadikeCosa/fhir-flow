@@ -1,6 +1,6 @@
 import minimalContinuitySeed from "../../seeds/e2e-continuity-minimal.json";
 
-const DEFAULT_FHIR_BASE_URL = "http://localhost:8080/fhir";
+const DEFAULT_FHIR_BASE_URL = "http://127.0.0.1:8080/fhir";
 
 function resolveFhirBaseUrl(): string {
   const configured = process.env.FHIR_BASE_URL?.trim();
