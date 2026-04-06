@@ -54,22 +54,22 @@ Este orden también es coherente con la validación arquitectónica vigente: hoy
 - patient detail
 - encounter detail
 - encounter history:
-- lista
-- navegación por encounterId
-- consistencia cross-surface con patient detail y encounter detail
+	- lista
+	- navegación por encounterId
+	- consistencia cross-surface con patient detail y encounter detail
 
 ### Invariants incluidos
 
 - No-mezcla cross-encounter en surfaces encounter-centric.
 - No-mezcla cross-patient / fail-closed por ownership y route consistency.
 - Source-of-truth correcto por surface:
-- encounter-centric por encounterId donde corresponda;
-- sin filtración de fallback temporal a surfaces encounter-centric.
+	- encounter-centric por encounterId donde corresponda;
+	- sin filtración de fallback temporal a surfaces encounter-centric.
 - Consistencia cross-surface:
-- patient detail no debe exponer como fuente clínica un encounter distinto del que luego se abre o representa en encounter detail, cuando la interacción del usuario implica continuidad sobre la misma visita;
-- encounter history no debe navegar a un encounterId que contradiga la identidad clínica mostrada por la surface de origen;
-- diferencias de orden visual o priorización entre surfaces no constituyen violación por sí mismas;
-- sí constituye violación cualquier caso donde dos surfaces aparenten referirse a “la misma visita” pero consuman o expongan identidad clínica distinta.
+	- patient detail no debe exponer como fuente clínica un encounter distinto del que luego se abre o representa en encounter detail, cuando la interacción del usuario implica continuidad sobre la misma visita;
+	- encounter history no debe navegar a un encounterId que contradiga la identidad clínica mostrada por la surface de origen;
+	- diferencias de orden visual o priorización entre surfaces no constituyen violación por sí mismas;
+	- sí constituye violación cualquier caso donde dos surfaces aparenten referirse a “la misma visita” pero consuman o expongan identidad clínica distinta.
 
 ### Ejemplo explícito de violación del invariant 4
 
@@ -290,9 +290,9 @@ Este sprint puede cerrarse como cerrado en alcance acotado (G1) si se cumplen to
 - no queda fila crítica sin diagnóstico explícito;
 - cualquier fila ámbar remanente cumple el criterio de aceptabilidad definido en este documento;
 - el cierre documental deja textual que:
-- no implica cierre global/system-wide;
-- no reemplaza G2, G3 ni G4;
-- no reabre bounded closures previas.
+	- no implica cierre global/system-wide;
+	- no reemplaza G2, G3 ni G4;
+	- no reabre bounded closures previas.
 
 Si aparecen filas rojas con bug runtime nuevo verificable dentro del alcance, el sprint puede mutar a:
 
