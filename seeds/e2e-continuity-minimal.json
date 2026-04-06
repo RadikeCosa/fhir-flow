@@ -11,7 +11,10 @@
           {
             "use": "official",
             "family": "E2E",
-            "given": ["Continuity", "Kine"]
+            "given": [
+              "Continuity",
+              "Kine"
+            ]
           }
         ]
       },
@@ -35,7 +38,10 @@
           {
             "use": "official",
             "family": "Continuidad",
-            "given": ["Paciente", "E2E"]
+            "given": [
+              "Paciente",
+              "E2E"
+            ]
           }
         ],
         "gender": "female",
@@ -66,11 +72,49 @@
         ],
         "period": {
           "start": "2026-04-01"
-        }
+        },
+        "diagnosis": [
+          {
+            "condition": {
+              "reference": "Condition/e2e-continuity-condition-1"
+            }
+          }
+        ]
       },
       "request": {
         "method": "PUT",
         "url": "EpisodeOfCare/e2e-continuity-episode-1"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Condition",
+        "id": "e2e-continuity-condition-1",
+        "subject": {
+          "reference": "Patient/e2e-continuity-patient-1"
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/icd-10",
+              "code": "M54.5",
+              "display": "Low back pain"
+            }
+          ],
+          "text": "Dolor lumbar"
+        },
+        "bodySite": [
+          {
+            "text": "Zona lumbar"
+          }
+        ],
+        "severity": {
+          "text": "Moderada"
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Condition/e2e-continuity-condition-1"
       }
     },
     {
