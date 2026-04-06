@@ -97,6 +97,9 @@ describe("LastEncounterSection finished render", () => {
         expect(html).toContain("ÚLTIMA VISITA");
         expect(html).toContain("22/03/2026 14:30");
         expect(html).toContain("30 min");
+        expect(html).toContain('href="/patients/pat-1/encounters/enc-finished-1"');
+        expect(html).toContain("Abrir detalle clínico");
+        expect(html).toContain('href="/patients/pat-1/encounters"');
         expect(html).not.toContain("10/03/2026 07:00");
         expect(html).not.toContain("No hay visitas registradas en el episodio activo");
     });

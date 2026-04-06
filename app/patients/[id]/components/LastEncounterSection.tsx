@@ -181,8 +181,16 @@ export const LastEncounterSection: React.FC<Props> = ({
         </>
       )}
 
-      {/* footer link */}
-      <div className="border-t border-border mt-3 pt-3 flex justify-end">
+      {/* footer links */}
+      <div className="border-t border-border mt-3 pt-3 flex flex-wrap justify-end gap-4">
+        {lastEncounter && (
+          <Link
+            href={`/patients/${patientId}/encounters/${lastEncounter.id}`}
+            className="text-xs text-primary hover:underline"
+          >
+            Abrir detalle clínico →
+          </Link>
+        )}
         <Link
           href={`/patients/${patientId}/encounters`}
           className="text-xs text-primary hover:underline"
