@@ -68,7 +68,7 @@ vi.mock('@/config/fhir.config', () => ({
     currentPractitionerId: 'prac-001',
 }));
 
-import { getPatientDetailData } from '../data';
+import { PatientNotFoundError, getPatientDetailData } from '../data';
 
 const patientFixture: Patient = {
     id: 'patient-001',
@@ -646,5 +646,20 @@ describe('getPatientDetailData re-assessment filtering', () => {
             siblingFinished.id
         );
         expect(result.lastEncounterVitalSigns).toEqual([]);
+    });
+
+    it('fails closed when route patient is missing and does not load encounter-scoped clinical datasets', async () => {
+        repositories.patientRepo.findById.mockResolvedValue(null);
+        repositories.episodeRepo.findAllByPatientId.mockResolvedValue([]);
+
+        await expect(getPatientDetailData('patient-foreign')).rejects.toBeInstanceOf(PatientNotFoundError);
+
+        expect(repositories.episodeRepo.findAllByPatientId).toHaveBeenCalledWith('patient-foreign');
+        expect(repositories.encounterRepo.findNextPlannedByPatientIdAndPractitionerId).not.toHaveBeenCalled();
+        expect(repositories.encounterRepo.findInitialByEpisodeOfCareId).not.toHaveBeenCalled();
+        expect(repositories.encounterRepo.findAllByEpisodeOfCareId).not.toHaveBeenCalled();
+        expect(repositories.vitalRepo.findAllByEncounterId).not.toHaveBeenCalled();
+        expect(repositories.assessmentRepo.findEvaByEncounterId).not.toHaveBeenCalled();
+        expect(repositories.procedureRepo.findAllByEncounterId).not.toHaveBeenCalled();
     });
 });
