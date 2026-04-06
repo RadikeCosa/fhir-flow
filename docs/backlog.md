@@ -2,6 +2,19 @@
 
 Fecha de actualización: 2026-04-06
 
+## ✅ Sprint cerrado — Auditoría bounded v2 de continuidad clínica transversal (2026-04-06)
+
+- **Resultado** -> **cerrado por evidencia**
+  - T1, T2 y T3 cerrados en alcance acotado.
+  - **sin bug runtime nuevo verificable** en los invariants auditados.
+  - El único invariant pendiente de T2 en encounter detail encounter-centric quedó **invariant refutado por evidencia existente**.
+  - **no fue necesario T4**.
+  - Sin cambios productivos.
+
+- **Límite explícito**
+  - Este cierre **no implica cierre global/system-wide**.
+  - No se reabren practitioner consistency, ActionError fuera de encounter write, cobertura browser bounded ya cerrada ni longitudinal global por hipótesis.
+
 ## ✅ Sprint cerrado — Validación bounded de cobertura browser faltante en continuidad clínica (2026-04-06)
 
 - **Resultado** -> **Cerrado (T4 documental aplicado)**
