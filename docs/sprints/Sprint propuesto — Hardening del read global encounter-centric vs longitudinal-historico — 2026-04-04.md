@@ -146,11 +146,13 @@ No incluye:
   - tolerancia de legacy sin `encounterId` solo en longitudinal;
   - precedencia explícita de `linked-by-encounter` cuando ambos criterios matchean.
 - **T4**: completado en regresión mínima del loader longitudinal (guardas para no-filtración a maps/cards encounter-centric).
+- **T4 (refuerzo documental G3, 2026-04-06)**: evidencia cross-surface reforzada en alcance acotado con test integrado (`app/patients/[id]/__tests__/cross-surface.contract.test.ts`) para coexistencia explícita `linked-by-encounter` / `derived-by-date` sin contaminación de `patient detail`.
 - **T5**: completado en alineación documental mínima (sprint + backlog + validación arquitectónica).
 
 Límite explícito de esta actualización:
 - no declara cierre global del read model longitudinal/histórico;
 - no cambia el estado “parcialmente válido” del split a nivel system-wide.
+- no sustituye G4 ni abre hardening legacy global fuera del perímetro auditado.
 
 ## 9. Criterios de aceptación (cumplidos en alcance acotado)
 
@@ -162,6 +164,7 @@ Quedó explícito y verificable que:
 4. existe blindaje de regresión mínimo alineado al alcance;
 5. backlog, validación arquitectónica y este documento quedaron alineados con el mismo límite, sin sobredeclarar cierre global;
 6. no se reabrieron frentes ya cerrados ni se mezcló trabajo fuera del objetivo.
+7. el refuerzo G3 (2026-04-06) quedó documentado como evidencia acotada, con sin bug runtime nuevo verificable y sin cambios productivos.
 
 ## 10. Límites explícitos
 
