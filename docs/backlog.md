@@ -2,6 +2,22 @@
 
 Fecha de actualización: 2026-04-06
 
+## ✅ Cierre documental acotado — G4 (legacy sin `encounterId`) (2026-04-06)
+
+- **Resultado** -> **policy operativa mínima verificable para legacy sin `encounterId`**
+  - Se explicitó policy por surface para distinguir permitido/prohibido entre longitudinal/histórico y encounter-centric.
+  - Se deja trazado el **guardrail técnico puntual aplicado** en `resolveLongitudinalLinkageOrigin(...)`:
+    - registros sin `encounterId` pueden entrar por `derived-by-date` en longitudinal/histórico;
+    - registros con `encounterId` explícito externo al episodio no ingresan por fallback de fecha.
+  - Cierre documental alineado con fix + test ya existentes.
+  - **sin bug runtime nuevo verificable fuera del caso corregido**.
+
+- **Límite explícito**
+  - **sin refactor general**.
+  - **sin migración/backfill masivo**.
+  - **no implica cierre global/system-wide**.
+  - **no reabre G1/G2/G3**.
+
 ## ✅ Cierre documental acotado — G3 (longitudinal/histórico vs encounter-centric) (2026-04-06)
 
 - **Resultado** -> **evidencia G3 reforzada en alcance acotado**

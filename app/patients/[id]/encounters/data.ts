@@ -64,6 +64,10 @@ export function resolveLongitudinalLinkageOrigin(
         return "linked-by-encounter";
     }
 
+    if (typeof record.encounterId === "string") {
+        return null;
+    }
+
     if (isLongitudinallyLinkedByDate(encounterDates, record.date)) {
         // Legacy tolerance: records without encounterId can participate only in
         // longitudinal/history datasets via same-day fallback.
