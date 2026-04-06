@@ -18,7 +18,12 @@ async function startEncounterIfPlanned(page: Page, encounterUrl: string) {
   await page.waitForLoadState("networkidle");
 
   const startButton = page.getByRole("button", { name: "Iniciar visita" });
+  const saveProgressButton = page.getByRole("button", { name: "Guardar progreso" });
+
   if ((await startButton.count()) === 0) {
+    if ((await saveProgressButton.count()) > 0) {
+      await expect(saveProgressButton).toBeVisible();
+    }
     return;
   }
 
@@ -27,6 +32,7 @@ async function startEncounterIfPlanned(page: Page, encounterUrl: string) {
   await page.getByLabel("Hora real").fill("10:00");
   await startButton.click();
   await page.waitForLoadState("networkidle");
+  await expect(saveProgressButton).toBeVisible();
 }
 
 async function finalizeSeededEncounter(
