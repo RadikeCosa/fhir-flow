@@ -315,6 +315,17 @@ Al cerrar este sprint, el sistema debería quedar con:
 - El contrato final de `patient detail` post-finalize para el seed validado corresponde a empty-state; no se exige tarjeta `ÚLTIMA VISITA` para declarar éxito en este escenario.
 - El cierre permanece acotado al flujo y seed validados, sin extrapolación a cierre global/system-wide.
 
+
+## 13.2 Actualización documental acotada vinculada a G2 (2026-04-06)
+
+- Se documenta cobertura adicional del hueco principal de evidencia browser de G2 con corrida verde de:
+  - `e2e/flows/encounter-cross-surface-no-mix.spec.ts`
+- Loop cubierto en browser real (alcance acotado):
+  - `save -> reload/remount -> rehydrate -> patient detail -> finalize -> history -> return detail`
+- Resultado documental: **cobertura browser G2 validada en alcance acotado** y **sin bug runtime nuevo verificable**.
+- El ajuste de readiness en seed loader (`load-cross-surface-no-mix-seed.ts`) se registra como fix mínimo de harness; **sin cambios productivos de app runtime**.
+- Límite explícito: este resultado aislado **no implica cierre global/system-wide** y **no sustituye G3/G4**.
+
 ## 14. Próximo paso después de este sprint
 
 Una vez ejecutado este sprint:

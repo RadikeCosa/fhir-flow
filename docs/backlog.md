@@ -473,7 +473,7 @@ Tracks:
 
 ### T3 — Subtickets accionables del frente global (único frente, ejecución por fases)
 
-- **Estado** → **Parcialmente ejecutado (G1 cerrado por evidencia en alcance acotado; G2/G3/G4 abiertos)**.
+- **Estado** → **Parcialmente ejecutado (G1 cerrado por evidencia; G2 con cierre documental acotado del hueco principal de evidencia browser; G3/G4 abiertos)**.
 - **Criterio de agrupación**: prioridad por criticidad de invariant + dependencia entre surfaces (primero encounter-centric/cross-surface, luego longitudinal, luego legacy).
 
 #### Orden sugerido de ejecución
@@ -498,10 +498,17 @@ Tracks:
   - no reabre canonical read bounded de `finished detail` ni practitioner/write closures.
 
 **G2 — Continuidad browser system-wide (sin reabrir bounded)**
+- **Estado**: **parcial (cierre documental acotado del hueco principal de evidencia browser de G2)**.
 - **Objetivo**: verificar continuidad clínica global en ciclo `save -> reload/remount -> rehydrate -> finalize` atravesando las surfaces del perímetro T2 donde aplica.
-- **Scope**: evidencia browser orientada a contrato cross-surface global; reutiliza bounded closures existentes como base.
-- **Evidencia esperada**: corrida E2E/integrada trazable a invariants 4/5 en la matriz, sin contradicción con contratos vigentes por seed/estado.
-- **Límite explícito**: no duplicar ni reabrir specs bounded ya cerrados; solo cubrir brechas globales faltantes.
+- **Evidencia nueva incorporada (alcance acotado)**:
+  - corrida verde de `e2e/flows/encounter-cross-surface-no-mix.spec.ts` para el loop `save -> reload/remount -> rehydrate -> patient detail -> finalize -> history -> return detail`;
+  - **cobertura browser G2 validada en alcance acotado** para el hueco principal de evidencia;
+  - **sin bug runtime nuevo verificable**;
+  - **sin cambios productivos de app runtime** (fix mínimo de readiness en seed loader E2E).
+- **Límite explícito**:
+  - **no implica cierre global/system-wide** del frente G2;
+  - **no sustituye G3/G4**;
+  - no duplicar ni reabrir specs bounded ya cerrados; solo cubrir brechas globales faltantes.
 
 **G3 — Longitudinal/histórico (consistencia y frontera de fallback)**
 - **Objetivo**: validar que fallback temporal quede confinado a longitudinal/histórico y no contamine surfaces encounter-centric.
