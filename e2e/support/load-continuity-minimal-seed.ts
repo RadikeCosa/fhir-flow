@@ -97,4 +97,58 @@ export async function loadContinuityMinimalSeed(): Promise<void> {
       )}`,
     );
   }
+
+  const episodeResponse = await fetch(
+    `${baseUrl.replace(/\/$/, "")}/EpisodeOfCare/e2e-continuity-episode-1`,
+    {
+      headers: {
+        Accept: "application/fhir+json",
+      },
+    },
+  );
+
+  if (!episodeResponse.ok) {
+    const body = await episodeResponse.text().catch(() => "");
+    throw new Error(
+      `Continuity seed verification failed when reading episode (${episodeResponse.status} ${episodeResponse.statusText}) from ${baseUrl}: ${body}`,
+    );
+  }
+
+  const episode = (await episodeResponse.json()) as {
+    status?: unknown;
+    diagnosis?: Array<{ condition?: { reference?: unknown } }>;
+  };
+
+  if (episode.status !== "active") {
+    throw new Error(
+      `Continuity seed verification failed: expected EpisodeOfCare/e2e-continuity-episode-1 status=active but got ${String(
+        episode.status,
+      )}`,
+    );
+  }
+
+  const diagnosisReference = episode.diagnosis?.[0]?.condition?.reference;
+  if (diagnosisReference !== "Condition/e2e-continuity-condition-1") {
+    throw new Error(
+      `Continuity seed verification failed: expected EpisodeOfCare/e2e-continuity-episode-1 diagnosis reference Condition/e2e-continuity-condition-1 but got ${String(
+        diagnosisReference,
+      )}`,
+    );
+  }
+
+  const conditionResponse = await fetch(
+    `${baseUrl.replace(/\/$/, "")}/Condition/e2e-continuity-condition-1`,
+    {
+      headers: {
+        Accept: "application/fhir+json",
+      },
+    },
+  );
+
+  if (!conditionResponse.ok) {
+    const body = await conditionResponse.text().catch(() => "");
+    throw new Error(
+      `Continuity seed verification failed when reading condition (${conditionResponse.status} ${conditionResponse.statusText}) from ${baseUrl}: ${body}`,
+    );
+  }
 }

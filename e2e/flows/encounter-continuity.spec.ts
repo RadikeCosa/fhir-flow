@@ -5,6 +5,7 @@ const PATIENT_ID = "e2e-continuity-patient-1";
 const ENCOUNTER_ID = "e2e-continuity-encounter-1";
 const FINISHED_SIBLING_REASON =
   "MOTIVO FINISHED SIBLING E2E (NO MEZCLAR EN PATIENT DETAIL)";
+const IN_PROGRESS_REASON = "Escenario determinístico e2e continuity";
 const ENCOUNTER_URL = `/patients/${PATIENT_ID}/encounters/${ENCOUNTER_ID}`;
 const PATIENT_URL = `/patients/${PATIENT_ID}`;
 
@@ -40,11 +41,16 @@ test("patient detail prioritizes in-progress over finished sibling without mixin
   await page.goto(PATIENT_URL);
   await page.waitForLoadState("networkidle");
 
-  await expect(page.getByText("VISITA EN CURSO")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Completar visita" })).toHaveAttribute(
+  await expect(page.getByText("Sin episodio activo")).toHaveCount(0);
+  await expect(page.getByText("No hay visitas registradas en el episodio activo")).toHaveCount(0);
+
+  const completeVisitLink = page.getByRole("link", { name: "Completar visita" });
+  await expect(completeVisitLink).toBeVisible();
+  await expect(completeVisitLink).toHaveAttribute(
     "href",
     `/patients/${PATIENT_ID}/encounters/${ENCOUNTER_ID}`,
   );
+  await expect(page.getByText(IN_PROGRESS_REASON)).toBeVisible();
   await expect(page.getByText(FINISHED_SIBLING_REASON)).toHaveCount(0);
 });
 
