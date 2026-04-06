@@ -1,9 +1,30 @@
 # Sprint técnico G1 — Invariants críticos encounter-centric / cross-surface — 2026-04-06
 
-- Status: Proposed
+- Status: Cerrado por evidencia (alcance G1 / acotado)
 - Tipo: Sprint técnico acotado
 - Frente: Continuidad clínica global / system-wide
 - Origen: Handoff operativo T5 del backlog vigente
+
+
+## 0. Estado de ejecución
+
+- T1 (matriz `surface × invariant × evidencia`) ejecutado en modo diagnóstico: `docs/sprints/g1-t1-matriz-auditoria-2026-04-06.md`.
+- T2 (hardening mínimo de evidencia negativa ownership/cross-patient) ejecutado: `docs/sprints/g1-t2-hardening-evidence-2026-04-06.md`.
+- T3/T4: absorbidos por evidencia suficiente para el alcance G1 (no requieren ticket técnico adicional en este sprint).
+- T5: aplicado (cierre documental honesto).
+
+### Cierre explícito del sprint G1
+
+- **cerrado por evidencia (alcance G1 / acotado)** en las surfaces auditadas:
+  - `patient detail`
+  - `encounter detail`
+  - `encounter history` (contrato observable)
+- **sin bug runtime nuevo verificable** durante T1 + T2.
+- Los 2 ámbar de T1 (invariant 2 en `patient detail` y `encounter history`) quedaron en verde por evidencia negativa explícita agregada en T2.
+- **sin cambios productivos** en G1.
+- Este cierre **no implica cierre global/system-wide**.
+- Este cierre **no sustituye G2/G3/G4**.
+- Este cierre **no reabre bounded closures previas**.
 
 ## 1. Objetivo
 

@@ -368,6 +368,21 @@ describe("getEncountersPageData sorting", () => {
             "vs-included-by-date",
         ]);
     });
+
+    it("fails closed when route patient is missing and skips encounter/history composition", async () => {
+        repositories.patientRepo.findById.mockResolvedValue(null);
+        repositories.episodeRepo.findAllByPatientId.mockResolvedValue([]);
+
+        const { getEncountersPageData } = await import("../data");
+
+        await expect(getEncountersPageData("patient-foreign")).rejects.toThrow("patient-foreign");
+
+        expect(repositories.episodeRepo.findAllByPatientId).toHaveBeenCalledWith("patient-foreign");
+        expect(repositories.encounterRepo.findAllByEpisodeOfCareId).not.toHaveBeenCalled();
+        expect(repositories.vitalRepo.findAllByPatientId).not.toHaveBeenCalled();
+        expect(repositories.assessmentRepo.findEvaByPatientId).not.toHaveBeenCalled();
+        expect(repositories.procedureRepo.findAllByPatientId).not.toHaveBeenCalled();
+    });
 });
 
 describe("resolveLongitudinalLinkageOrigin", () => {

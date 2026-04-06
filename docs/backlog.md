@@ -473,11 +473,11 @@ Tracks:
 
 ### T3 — Subtickets accionables del frente global (único frente, ejecución por fases)
 
-- **Estado** → **Abierto real (plan operativo definido, no ejecutado)**.
+- **Estado** → **Parcialmente ejecutado (G1 cerrado por evidencia en alcance acotado; G2/G3/G4 abiertos)**.
 - **Criterio de agrupación**: prioridad por criticidad de invariant + dependencia entre surfaces (primero encounter-centric/cross-surface, luego longitudinal, luego legacy).
 
 #### Orden sugerido de ejecución
-1. **G1 — Invariants críticos encounter-centric/cross-surface**
+1. **G1 — Invariants críticos encounter-centric/cross-surface** ✅
 2. **G2 — Continuidad browser system-wide de superficies incluidas**
 3. **G3 — Longitudinal/histórico: límites de fallback y consistencia con encounter-centric**
 4. **G4 — Legacy sin `encounterId`: policy verificable y guardrails finales**
@@ -485,10 +485,17 @@ Tracks:
 #### Subtickets (ejecutables)
 
 **G1 — Invariants críticos encounter-centric/cross-surface**
-- **Objetivo**: cerrar no-mezcla cross-encounter/cross-patient y source-of-truth por `encounterId` en `patient detail`, `encounter detail` y navegación/lista de `encounter history`.
-- **Scope**: validación integrada + guardas negativas en surfaces encounter-centric del perímetro T2.
-- **Evidencia esperada**: matriz actualizada con filas en verde para invariants 1/2/3/5 + tests integrados referenciados por surface.
-- **Límite explícito**: no reabre canonical read bounded de `finished detail` ni practitioner/write closures.
+- **Estado**: **cerrado por evidencia (alcance G1 / acotado)**.
+- **Resultado**:
+  - matriz `surface × invariant × evidencia × estado` cerrada para `patient detail`, `encounter detail` y `encounter history` (contrato observable);
+  - **sin bug runtime nuevo verificable**;
+  - los 2 ámbar de T1 (invariant 2 en `patient detail` y `encounter history`) pasaron a verde en T2 por evidencia negativa explícita;
+  - T3/T4 absorbidos por evidencia suficiente para el alcance G1;
+  - **sin cambios productivos**.
+- **Límite explícito**:
+  - **no implica cierre global/system-wide**;
+  - **no sustituye G2/G3/G4**;
+  - no reabre canonical read bounded de `finished detail` ni practitioner/write closures.
 
 **G2 — Continuidad browser system-wide (sin reabrir bounded)**
 - **Objetivo**: verificar continuidad clínica global en ciclo `save -> reload/remount -> rehydrate -> finalize` atravesando las surfaces del perímetro T2 donde aplica.
@@ -537,18 +544,9 @@ Tracks:
 
 ### T5 — Handoff operativo al próximo sprint técnico (recomendación principal)
 
-- **Sprint técnico recomendado (primero en abrir):** `Sprint técnico G1 — Invariants críticos encounter-centric/cross-surface`.
-- **Objetivo:** ejecutar hardening/validación técnica del subticket **G1** del frente global, dejando evidencia verificable de no-mezcla y source-of-truth por `encounterId` en surfaces encounter-centric priorizadas.
-- **Alcance:** `patient detail`, `encounter detail`, `encounter history` (lista/navegación/cross-surface) dentro del perímetro T2/T3.
-- **No alcance:** G2–G4 en ejecución plena, practitioner consistency encounter write, `ActionError` fuera de encounter write, refactors UI/UX de polish, rediseños arquitectónicos fuera del frente global delimitado.
-- **Evidencia mínima esperada:**
-  1. actualización de matriz `surface × invariant × evidencia` para invariants G1 (1/2/3/5) con estado por fila;
-  2. al menos una prueba integrada o E2E por surface incluida que cubra no-mezcla + source-of-truth;
-  3. al menos una guarda negativa relevante (mixing/fallback indebido/ownership).
-- **Riesgo principal:** extrapolar un verde parcial de G1 como cierre system-wide completo.
-- **Dependencia explícita:** reutiliza bounded closures existentes como baseline (no reabrir sin evidencia nueva verificable).
-- **No debe reabrirse durante este sprint técnico:** canonical read bounded de `finished detail`, cobertura browser bounded cerrada, practitioner consistency encounter write, ni `ActionError` fuera de encounter write como urgencia.
-- **Criterio de interpretación:** este sprint **sí** ejecuta G1; **no** cierra automáticamente todo el frente global; **no** habilita inferencia de cierre system-wide por resultados parciales.
+- **Siguiente sprint técnico recomendado (primero en abrir):** `G2 — Continuidad browser system-wide de superficies incluidas`.
+- **Objetivo:** continuar el frente global con G2/G3/G4, manteniendo G1 cerrado por evidencia en alcance acotado.
+- **No alcance:** reapertura de G1 sin evidencia nueva verificable.
 
 ---
 
