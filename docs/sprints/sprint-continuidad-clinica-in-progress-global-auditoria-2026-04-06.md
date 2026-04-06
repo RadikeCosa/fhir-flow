@@ -77,8 +77,9 @@ Cobertura del nuevo escenario:
 
 Resultado:
 
-- cierre del hueco principal como **evidencia cross-surface pre-finalize**;
-- sin cambios productivos de runtime;
+- cierre del hueco principal como **evidencia browser cross-surface pre-finalize en alcance acotado**;
+- **sin bug runtime nuevo verificable**;
+- **sin cambios productivos adicionales**;
 - sin reapertura de frentes cerrados.
 
 ## 6) Límites respetados
@@ -91,4 +92,4 @@ Resultado:
 - no se tocó practitioner consistency;
 - no se tocó `ActionError.details`;
 - no hubo refactor general de loaders;
-- no se sobredeclara cierre global/system-wide total.
+- no se sobredeclara cierre global/system-wide absoluto.
