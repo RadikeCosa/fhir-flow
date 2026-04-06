@@ -2,6 +2,20 @@
 
 Fecha de actualización: 2026-04-06
 
+## ✅ Cierre documental acotado — Continuidad clínica full-system `in-progress` (scope global auditado) (2026-04-06)
+
+- **Resultado** -> **hueco principal de evidencia browser de continuidad global `in-progress` cubierto en alcance acotado**
+  - El gap principal identificado en este frente fue de evidencia browser cross-surface pre-finalize (no de bug runtime nuevo).
+  - Queda trazada la evidencia ya cubierta en `e2e/flows/encounter-cross-surface-no-mix.spec.ts`, incluyendo el roundtrip pre-finalize:
+    - `encounter detail -> patient detail -> history -> encounter detail`.
+  - Resultado del cierre documental: **sin bug runtime nuevo verificable** y **sin cambios productivos adicionales**.
+
+- **Límite explícito**
+  - Este cierre **no implica cierre global/system-wide absoluto** de toda continuidad clínica.
+  - Este cierre documental **no reabre G1–G4**.
+  - Este cierre documental **no reabre canonical read `finished`**.
+  - Este cierre documental no sustituye deudas fuera de este frente.
+
 ## ✅ Cierre documental acotado — G4 (legacy sin `encounterId`) (2026-04-06)
 
 - **Resultado** -> **policy operativa mínima verificable para legacy sin `encounterId`**
