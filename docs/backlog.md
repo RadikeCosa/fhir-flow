@@ -445,10 +445,23 @@ Tracks:
   - Resultado fase 3: cierre por evidencia diagnóstica/documental (drift nominal), sin reapertura de encounter write y sin sobredeclarar cierre global.
   - **No tratar como urgencia técnica salvo evidencia nueva de perímetro operativo**.
 
-## 🔴 Abierto real (pendiente post-sprint)
+## ✅ Cierre documental acotado — Canonical read hardening global de `finished` (más allá de detail) (2026-04-06)
 
-- **Canonical read hardening global de `finished` (más allá de detail)** → **Abierto real**
-  - `finished encounter detail` ya quedó validado; sigue pendiente la cobertura/hardening global en surfaces restantes.
+- **Estado**: cierre documental acotado con hardening mínimo correcto en señalización canónica cross-surface.
+- **Diagnóstico/fix aplicado**:
+  - gap principal identificado: ambigüedad de señalización canónica en `patient detail` (resumen clínico del encounter fuente sin acceso directo visible al detail canónico);
+  - hardening mínimo aplicado: `patient detail` ahora refuerza navegación al detail canónico del `lastEncounter` (`Abrir detalle clínico →`);
+  - `encounter history` permanece como resumen/navegación secundaria.
+- **Resultado**:
+  - **sin bug runtime nuevo verificable** en este frente;
+  - **sin refactor general**;
+  - **no reabre** el closure bounded de `finished encounter detail`;
+  - **no reabre G1–G4**.
+- **Límite explícito**:
+  - este cierre es documental/acotado y **no implica cierre global/system-wide** del canonical read de `finished`;
+  - la deuda global longitudinal/histórica y de continuidad system-wide permanece abierta.
+
+## 🔴 Abierto real (pendiente post-sprint)
 
 - **Datos históricos sin `encounterId`** → **Abierto real**
   - Continúan existiendo casos legacy sin linkage completo que requieren estrategia explícita para no contaminar surfaces encounter-centric.
