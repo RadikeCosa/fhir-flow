@@ -100,8 +100,12 @@ test("planned -> start -> save -> reload -> rehydrate -> finalize -> finished ->
   await page.goto(PATIENT_URL);
   await page.waitForLoadState("networkidle");
 
-  await expect(page.getByText("Sin episodio activo")).toBeVisible();
-  await expect(page.getByText("No hay visitas registradas en el episodio activo")).toBeVisible();
+  await expect(page.getByText("ÚLTIMA VISITA")).toBeVisible();
+  await expect(page.getByText("Sin episodio activo")).toHaveCount(0);
+  await expect(page.getByText("No hay visitas registradas en el episodio activo")).toHaveCount(0);
+  await expect(page.getByText(noteSentinel)).toBeVisible();
+  await expect(page.getByText(IN_PROGRESS_REASON)).toBeVisible();
+  await expect(page.getByText(FINISHED_SIBLING_REASON)).toHaveCount(0);
   await expect(page.getByText("VISITA EN CURSO")).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Completar visita" })).toHaveCount(0);
 });
