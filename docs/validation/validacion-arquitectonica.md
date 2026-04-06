@@ -5,6 +5,7 @@ Este documento describe el estado real del sistema en relación a la arquitectur
 ## Rol del documento
 
 Este documento ofrece una validación honesta del estado real de la arquitectura: distingue lo válido hoy, lo transicional y la deuda conocida sin presentar el estado actual como cierre definitivo.
+No redefine autoridad ni crea frentes paralelos: cuando un frente ya está unificado operativamente en backlog (p. ej. continuidad system-wide), aquí se reporta su estado con el mismo límite de alcance.
 
 Fecha: 2026-04-06
 
@@ -77,9 +78,9 @@ La pureza del inverse mapper está definida como regla no negociable. La deuda a
 
 ### 5. Practitioner resolution
 
-**Estado:** Parcialmente válido
+**Estado:** Válido hoy (alcance encounter write)
 
-La responsabilidad quedó correctamente asignada por ADR: resolver practitioner en Server Action y pasar contexto al repositorio/mapper por input. La consistencia total entre flujos aún es trabajo en curso.
+La responsabilidad quedó correctamente asignada por ADR en el frente encounter write: resolver practitioner en Server Action y pasar contexto al repositorio/mapper por input. Fuera de ese frente no hay perímetro operativo nuevo que justifique abrir deuda técnica urgente en este documento; se mantiene como guardrail de alcance.
 
 ### 6. Register flow separado (`/encounters/register`)
 
@@ -185,10 +186,10 @@ Actualización de cierre bounded (2026-04-06): se cerró el sprint de cobertura 
 ## Pendientes del ADR / tickets siguientes
 
 1. Mantener cerrado y protegido por tests el canonical read de `finished encounter detail`, sin extrapolar ese cierre a otras surfaces/estados.
-2. Extender el tipado por capa de `ActionError.details` a otros frentes, manteniendo `ActionResult` estable, **solo si aparece perímetro operativo real fuera de encounter write**.
+2. Extender el tipado por capa de `ActionError.details` a otros frentes, manteniendo `ActionResult` estable, **solo si aparece perímetro operativo real fuera de encounter write** (hasta entonces, tratarlo como deuda nominal/documental y no como urgencia técnica).
 3. Mantener cerrada la consistencia de practitioner context en el frente encounter write ya alineado (`create`, `save-progress`, `finalize`, `register`) y su exención explícita de `startEncounterAction`.
 4. Mantener y proteger el cierre acotado ya logrado del hardening del read global (T1–T5), preservando separación encounter-centric vs longitudinal, fallback temporal controlado y policy de legacy sin `encounterId`, sin sobredeclarar cierre global.
-5. Definir cierre verificable de continuidad clínica `in-progress` en UI si producto lo requiere.
+5. Ejecutar el frente global de continuidad clínica únicamente bajo el perímetro/subtickets ya delimitados en backlog (T2/T3), sin abrir frentes paralelos por surface.
 
 ## Checklist vigente para validación de cambios
 
