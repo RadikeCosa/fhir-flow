@@ -75,6 +75,8 @@ La arquitectura de validación está correctamente estratificada y definida. Lo 
 
 Actualización diagnóstica fase 3 (2026-04-05): en el estado actual del repo se verificó **sin perímetro operativo actual fuera de encounter write** para extender adopción en implementación, con **sin deuda real de implementación confirmada** fuera de ese frente. El remanente vigente se clasifica como **drift documental / deuda nominal**, con **cierre por evidencia diagnóstica/documental** en esta fase; **no implica reapertura de encounter write** ni cierre global eterno del tema.
 
+Revalidación diagnóstica (2026-04-06): el inventario actual de Server Actions (`"use server"`) sigue acotado al frente `app/patients/[id]/encounters/**`; no se encontró consumer runtime real fuera de encounter write que haga branching/parseo de `error.details` (incluyendo `fieldErrors`, `formErrors`, `OperationOutcome` o `issue[]`). Con evidencia vigente, se mantiene **veredicto documental/nominal** y no corresponde abrir implementación por simetría.
+
 ### 4. Inverse mapper purity
 
 **Estado:** Parcialmente válido

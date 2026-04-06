@@ -457,6 +457,7 @@ Tracks:
 - **Tipado de `ActionError.details` por capa (fuera de encounter write)** → **Cierre por evidencia diagnóstica/documental (nominal)**
   - En el estado real del repo no hay perímetro operativo actual fuera de encounter write con deuda real de implementación confirmada.
   - Resultado fase 3: cierre por evidencia diagnóstica/documental (drift nominal), sin reapertura de encounter write y sin sobredeclarar cierre global.
+  - Revalidación diagnóstica (2026-04-06): no aparecen Server Actions fuera de `app/patients/[id]/encounters/**` ni consumers runtime no-encounter que lean `error.details`; los consumers UI vigentes renderizan `error.message` (y opcionalmente `error.code`) en el frente encounter write.
   - **No tratar como urgencia técnica salvo evidencia nueva de perímetro operativo**.
 
 ## ✅ Cierre documental acotado — Canonical read hardening global de `finished` (más allá de detail) (2026-04-06)
