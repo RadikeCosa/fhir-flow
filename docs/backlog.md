@@ -502,14 +502,14 @@ Tracks:
 
 ### T3 — Subtickets accionables del frente global (único frente, ejecución por fases)
 
-- **Estado** → **Parcialmente ejecutado (G1 cerrado por evidencia; G2 con cierre documental acotado del hueco principal de evidencia browser; G3/G4 abiertos)**.
+- **Estado** → **Parcialmente ejecutado (G1 cerrado por evidencia; G2 con hueco principal de evidencia browser cubierto en alcance acotado; G3 reforzado y G4 endurecido/cerrado en alcance acotado)**.
 - **Criterio de agrupación**: prioridad por criticidad de invariant + dependencia entre surfaces (primero encounter-centric/cross-surface, luego longitudinal, luego legacy).
 
 #### Orden sugerido de ejecución
 1. **G1 — Invariants críticos encounter-centric/cross-surface** ✅
-2. **G2 — Continuidad browser system-wide de superficies incluidas**
-3. **G3 — Longitudinal/histórico: límites de fallback y consistencia con encounter-centric**
-4. **G4 — Legacy sin `encounterId`: policy verificable y guardrails finales**
+2. **G2 — Continuidad browser system-wide de superficies incluidas** ✅ (hueco principal ya cubierto en alcance acotado)
+3. **G3 — Longitudinal/histórico: límites de fallback y consistencia con encounter-centric** ✅ (reforzado en alcance acotado)
+4. **G4 — Legacy sin `encounterId`: policy verificable y guardrails finales** ✅ (policy mínima verificable + guardrail puntual)
 
 #### Subtickets (ejecutables)
 
@@ -540,15 +540,13 @@ Tracks:
   - no duplicar ni reabrir specs bounded ya cerrados; solo cubrir brechas globales faltantes.
 
 **G3 — Longitudinal/histórico (consistencia y frontera de fallback)**
-- **Objetivo**: validar que fallback temporal quede confinado a longitudinal/histórico y no contamine surfaces encounter-centric.
-- **Scope**: route de history/charts + frontera explícita con datasets encounter-centric.
-- **Evidencia esperada**: guardas negativas de no-filtración + filas de matriz en verde para invariant 3 (frontera de source-of-truth) e invariant 5 (consistencia cross-surface).
-- **Límite explícito**: no refactor UI/UX de charts ni rediseño de modelo longitudinal en esta fase.
+- **Estado**: **reforzado/cerrado en alcance acotado (evidencia incorporada)**.
+- **Resultado**: se reforzó la frontera fallback longitudinal/histórico vs encounter-centric sin bug runtime nuevo verificable en el perímetro auditado.
+- **Límite explícito**: cierre acotado; no implica cierre global/system-wide ni refactor UI/UX de charts.
 
 **G4 — Legacy sin `encounterId` (policy operativa verificable)**
-- **Objetivo**: dejar criterio ejecutable para casos legacy sin linkage completo, permitidos en longitudinal bajo policy controlada y excluidos como source-of-truth encounter-centric.
-- **Scope**: reglas de aceptación/rechazo por surface + evidencias de no contaminación en encounter-centric.
-- **Evidencia esperada**: filas de matriz en verde para invariant 6 + pruebas/fixtures de casos legacy representativos.
+- **Estado**: **endurecido/cerrado en alcance acotado (policy mínima verificable)**.
+- **Resultado**: policy operativa mínima por surface + guardrail técnico puntual para legacy sin `encounterId`, evitando contaminación encounter-centric en el caso cubierto.
 - **Límite explícito**: no implica backfill masivo ni cierre global automático del frente longitudinal/histórico.
 
 #### Fuera de alcance de T3 (explícito)
@@ -580,9 +578,10 @@ Tracks:
 
 ### T5 — Handoff operativo al próximo sprint técnico (recomendación principal)
 
-- **Siguiente sprint técnico recomendado (primero en abrir):** `G2 — Continuidad browser system-wide de superficies incluidas`.
-- **Objetivo:** continuar el frente global con G2/G3/G4, manteniendo G1 cerrado por evidencia en alcance acotado.
-- **No alcance:** reapertura de G1 sin evidencia nueva verificable.
+- **Estado handoff G1–G4:** G1 cerrado por evidencia; G2 con hueco principal de evidencia browser cubierto en alcance acotado; G3 reforzado y G4 endurecido/cerrado en alcance acotado.
+- **Siguiente sprint técnico recomendado (frente lógico real):** `Canonical read hardening global de finished (más allá de detail)`.
+- **Objetivo:** abrir hardening global de `finished` fuera del closure bounded de encounter detail, sin reabrir cierres acotados previos de G1–G4.
+- **No alcance:** esta priorización no sustituye otras deudas abiertas system-wide; solo prioriza el frente con mejor retorno técnico actual.
 
 ---
 
