@@ -1,6 +1,6 @@
 # Sprint — Validación bounded de cobertura browser faltante en continuidad clínica
 
-- Status: proposed-ready
+- Status: closed
 - Fecha: 2026-04-05
 - Tipo: validación (sin cambios productivos por defecto)
 
@@ -136,3 +136,24 @@ Este sprint doc queda listo para arrancar T1 cuando:
 - la definición de coexistencia explícita se respeta tal cual sección 4.1;
 - se mantiene secuencia T1 -> T2 (sin paralelo);
 - se respeta la frontera de no cambio productivo y guardrails.
+
+## 11) Cierre real del sprint (T4 documental)
+
+Resultado de cierre:
+
+- **cobertura browser bounded cerrada** para los 2 huecos definidos en alcance:
+  - coexistencia explícita `in-progress + finished` en `patient detail`;
+  - contraste post-finalize con dos outcomes contractuales válidos.
+- **sin bug runtime nuevo verificable** en los escenarios auditados.
+- **no fue necesario abrir T3**.
+- **sin cambios productivos** (solo ajustes acotados en seed/spec/helper de spec).
+
+Evidencia de ejecución verificada en cierre:
+
+- `npm run test:e2e -- e2e/flows/encounter-continuity.spec.ts` -> verde.
+- `npm run test:e2e -- e2e/flows/encounter-finalize.seeded.spec.ts` -> 3 passed.
+
+Límite explícito del cierre:
+
+- este cierre **no implica cierre global/system-wide** de continuidad clínica;
+- este cierre se limita al perímetro bounded de cobertura browser definido en este sprint.

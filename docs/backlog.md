@@ -1,6 +1,25 @@
 # 📋 FHIR Flow — Backlog reordenado (post sprint register flow)
 
-Fecha de actualización: 2026-04-05
+Fecha de actualización: 2026-04-06
+
+## ✅ Sprint cerrado — Validación bounded de cobertura browser faltante en continuidad clínica (2026-04-06)
+
+- **Resultado** -> **Cerrado (T4 documental aplicado)**
+  - T1 y T2 cerrados en alcance acotado.
+  - **cobertura browser bounded cerrada** en los dos huecos pendientes:
+    1. coexistencia explícita `in-progress + finished` en `patient detail`;
+    2. contraste post-finalize con dos outcomes contractuales válidos.
+  - **sin bug runtime nuevo verificable**.
+  - **no fue necesario abrir T3**.
+  - **sin cambios productivos** (solo ajustes acotados en seed/spec/helper de spec).
+
+- **Evidencia**
+  - `npm run test:e2e -- e2e/flows/encounter-continuity.spec.ts` -> verde.
+  - `npm run test:e2e -- e2e/flows/encounter-finalize.seeded.spec.ts` -> **3 passed**.
+
+- **Límite explícito**
+  - Este cierre **no implica cierre global/system-wide** de continuidad clínica.
+  - No reabre practitioner consistency, ActionError fuera de encounter write, lifecycle ni longitudinal/histórico global.
 
 ## ✅ Sprint cerrado — Auditoría bounded de continuidad clínica transversal (2026-04-05)
 
