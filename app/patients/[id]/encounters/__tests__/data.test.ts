@@ -430,6 +430,21 @@ describe("resolveLongitudinalLinkageOrigin", () => {
         expect(origin).toBe("derived-by-date");
     });
 
+    it("returns null when record has a foreign encounterId even if date matches episode day", async () => {
+        const { resolveLongitudinalLinkageOrigin } = await import("../data");
+
+        const origin = resolveLongitudinalLinkageOrigin(
+            new Set(["enc-1"]),
+            new Set(["2026-03-15"]),
+            {
+                date: "2026-03-15T09:30:00.000Z",
+                encounterId: "enc-outside-episode",
+            }
+        );
+
+        expect(origin).toBeNull();
+    });
+
     it("returns null when record is outside encounter and date longitudinal boundaries", async () => {
         const { resolveLongitudinalLinkageOrigin } = await import("../data");
 
