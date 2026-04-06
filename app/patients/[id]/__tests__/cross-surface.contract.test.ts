@@ -237,4 +237,78 @@ describe("cross-surface contract (patient detail ↔ encounter history)", () => 
     expect(html).toContain("En curso");
     expect(html.indexOf("Próximas sesiones")).toBeLessThan(html.indexOf("En curso"));
   });
+
+  it("confines date-derived fallback to history longitudinal datasets without contaminating encounter-centric source selection", async () => {
+    const selectedEncounter = makeEncounter({
+      id: "enc-selected",
+      status: "in-progress",
+      actualStartAt: "2026-03-20T11:00:00.000Z",
+      periodStart: "2026-03-20T11:00:00.000Z",
+    });
+
+    repositories.encounterRepo.findAllByEpisodeOfCareId.mockResolvedValue([
+      selectedEncounter,
+    ]);
+    repositories.encounterRepo.findNextPlannedByPatientIdAndPractitionerId.mockResolvedValue(null);
+
+    const encounterLinkedVital: VitalSignRecord = {
+      id: "vs-enc-linked",
+      patientId: patientFixture.id,
+      encounterId: selectedEncounter.id,
+      date: "2026-03-20T11:05:00.000Z",
+      recordedBy: { id: "prac-001", display: "Dr. Test" },
+      heartRate: 81,
+    };
+    const dateDerivedVital: VitalSignRecord = {
+      id: "vs-date-derived",
+      patientId: patientFixture.id,
+      date: "2026-03-20T09:00:00.000Z",
+      recordedBy: { id: "prac-001", display: "Dr. Test" },
+      heartRate: 70,
+    };
+
+    repositories.vitalRepo.findAllByEncounterId.mockImplementation(async (encounterId: string) =>
+      encounterId === selectedEncounter.id ? [encounterLinkedVital] : []
+    );
+    repositories.assessmentRepo.findEvaByEncounterId.mockResolvedValue([]);
+    repositories.procedureRepo.findAllByEncounterId.mockResolvedValue([]);
+
+    repositories.vitalRepo.findAllByPatientId.mockResolvedValue([
+      encounterLinkedVital,
+      dateDerivedVital,
+    ]);
+    repositories.assessmentRepo.findEvaByPatientId.mockResolvedValue([]);
+    repositories.procedureRepo.findAllByPatientId.mockResolvedValue([]);
+
+    const { getPatientDetailData } = await import("../data");
+    const { getEncountersPageData, resolveLongitudinalLinkageOrigin } = await import("../encounters/data");
+
+    const patientDetail = await getPatientDetailData(patientFixture.id);
+    const history = await getEncountersPageData(patientFixture.id);
+
+    expect(patientDetail.lastEncounter?.id).toBe(selectedEncounter.id);
+    expect(patientDetail.lastEncounterVitalSigns).toEqual([encounterLinkedVital]);
+
+    expect(history.vitalSigns.map((record) => record.id)).toEqual([
+      "vs-enc-linked",
+      "vs-date-derived",
+    ]);
+    expect(history.vitalsByEncounterId[selectedEncounter.id]).toEqual([
+      encounterLinkedVital,
+    ]);
+
+    const linkedOrigin = resolveLongitudinalLinkageOrigin(
+      new Set([selectedEncounter.id]),
+      new Set(["2026-03-20"]),
+      encounterLinkedVital,
+    );
+    const derivedOrigin = resolveLongitudinalLinkageOrigin(
+      new Set([selectedEncounter.id]),
+      new Set(["2026-03-20"]),
+      dateDerivedVital,
+    );
+
+    expect(linkedOrigin).toBe("linked-by-encounter");
+    expect(derivedOrigin).toBe("derived-by-date");
+  });
 });

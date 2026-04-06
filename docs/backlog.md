@@ -2,6 +2,19 @@
 
 Fecha de actualización: 2026-04-06
 
+## ✅ Cierre documental acotado — G3 (longitudinal/histórico vs encounter-centric) (2026-04-06)
+
+- **Resultado** -> **evidencia G3 reforzada en alcance acotado**
+  - Se reforzó evidencia en la frontera fallback-longitudinal vs encounter-centric usando test integrado cross-surface en `app/patients/[id]/__tests__/cross-surface.contract.test.ts`.
+  - El perímetro auditado confirma coexistencia trazable `linked-by-encounter` / `derived-by-date` sin ambigüedad operacional.
+  - **sin bug runtime nuevo verificable**.
+  - **sin cambios productivos**.
+
+- **Límite explícito**
+  - Este cierre documental **no implica cierre global/system-wide**.
+  - Este cierre documental **no sustituye G4**.
+  - El fallback por fecha queda confinado a longitudinal/histórico solo en el perímetro auditado.
+
 ## ✅ Sprint cerrado — Auditoría bounded v2 de continuidad clínica transversal (2026-04-06)
 
 - **Resultado** -> **cerrado por evidencia**
