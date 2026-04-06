@@ -14,7 +14,7 @@ export default defineConfig({
     reuseExistingServer: false,
     env: {
       ...process.env,
-      FHIR_BASE_URL: process.env.FHIR_BASE_URL ?? "http://localhost:8080/fhir",
+      FHIR_BASE_URL: process.env.FHIR_BASE_URL ?? "http://127.0.0.1:8080/fhir",
       CURRENT_PRACTITIONER_ID: process.env.CURRENT_PRACTITIONER_ID ?? "kine-1",
     },
   },

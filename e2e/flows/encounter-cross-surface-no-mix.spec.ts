@@ -218,3 +218,49 @@ test("save -> reload/remount -> rehydrate -> finalize remains consistent across 
   await expect(page.getByText(FINAL_NOTE)).toBeVisible();
   await expect(page.getByText(SIBLING_NOTE)).toHaveCount(0);
 });
+
+test("in-progress continuity survives patient detail <-> history <-> encounter detail roundtrip before finalize", async ({
+  page,
+}) => {
+  const inProgressRoundtripNote = "Nota roundtrip in-progress global";
+
+  await openTargetEncounter(page);
+  await page.getByLabel("Nota clínica *").fill(inProgressRoundtripNote);
+  await Promise.all([
+    page.waitForLoadState("networkidle"),
+    page.getByRole("button", { name: "Guardar progreso" }).click(),
+  ]);
+  await expect(page.getByRole("status")).toContainText(
+    "Progreso guardado correctamente.",
+  );
+
+  await page.goto(PATIENT_URL);
+  await page.waitForLoadState("networkidle");
+  await expect(page.getByText("VISITA EN CURSO")).toBeVisible();
+  await expect(page.getByText(inProgressRoundtripNote)).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Completar visita" }),
+  ).toHaveAttribute("href", TARGET_ENCOUNTER_URL);
+
+  await page.goto(HISTORY_URL);
+  await page.waitForLoadState("networkidle");
+  const targetEncounterLink = page.locator(
+    `a[href="/patients/${PATIENT_ID}/encounters/${TARGET_ENCOUNTER_ID}"]`,
+  );
+  await expect(targetEncounterLink).toBeVisible();
+  await expect(page.getByText(SIBLING_REASON)).toBeVisible();
+
+  await targetEncounterLink.click();
+  await page.waitForLoadState("networkidle");
+  await expect(page).toHaveURL(TARGET_ENCOUNTER_URL);
+  await expect(page.getByLabel("Nota clínica *")).toHaveValue(
+    inProgressRoundtripNote,
+  );
+  await expect(
+    page.getByRole("button", { name: "Guardar progreso" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Finalizar visita" }),
+  ).toBeVisible();
+  await expect(page.getByText(SIBLING_NOTE)).toHaveCount(0);
+});
