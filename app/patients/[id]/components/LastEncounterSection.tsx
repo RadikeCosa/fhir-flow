@@ -14,10 +14,6 @@ import type { Procedure } from "@/domain/procedures/procedure";
 import type { EvaAssessment } from "@/domain/assessments/eva-assessment";
 import type { VitalSignRecord } from "@/domain/vital-sign-record/vital-sign-record";
 import EncounterBadgesRow from "@/app/patients/[id]/encounters/components/EncounterBadgesRow";
-import EncounterClinicalNote from "@/app/patients/[id]/encounters/components/EncounterClinicalNote";
-import EncounterVitalSignsSection from "@/app/patients/[id]/encounters/components/EncounterVitalSignsSection";
-import EncounterEvaSection from "@/app/patients/[id]/encounters/components/EncounterEvaSection";
-import EncounterProcedures from "@/app/patients/[id]/encounters/components/EncounterProcedures";
 
 interface Props {
   lastEncounter: Encounter | null;
@@ -46,10 +42,15 @@ export const LastEncounterSection: React.FC<Props> = ({
     nextPlannedEncounter?.plannedDate,
     nextPlannedEncounter?.plannedTime,
   );
+  const relevantSummary = lastEncounter?.reasonDisplay?.trim();
+  const presenceIndicators = [
+    evaRecords.length > 0 ? "EVA" : null,
+    vitalSigns.length > 0 ? "Vitales" : null,
+    procedures.length > 0 ? "Procedimientos" : null,
+  ].filter((value): value is string => value !== null);
 
   return (
-    <SectionCard title="Visitas">
-      {/* last encounter block */}
+    <SectionCard title="Visita relevante">
       {lastEncounter ? (
         <>
           <div className="text-xs font-semibold uppercase tracking-wide text-muted mb-2">
@@ -86,31 +87,28 @@ export const LastEncounterSection: React.FC<Props> = ({
               </>
             )}
 
-            {lastEncounter.reasonDisplay?.trim() && (
-              <>
-                <dt className="text-xs text-muted font-medium">Motivo:</dt>
-                <dd className="text-sm text-foreground">
-                  {lastEncounter.reasonDisplay}
-                </dd>
-              </>
-            )}
+            <dt className="text-xs text-muted font-medium">Resumen:</dt>
+            <dd className="text-sm text-foreground">
+              {relevantSummary || "Sin resumen registrado"}
+            </dd>
           </dl>
 
-          {lastEncounter.clinicalNote?.trim() && (
-            <EncounterClinicalNote note={lastEncounter.clinicalNote ?? ""} />
-          )}
-
-          {evaRecords.length > 0 && (
-            <EncounterEvaSection records={evaRecords} summary />
-          )}
-
-          {vitalSigns.length > 0 && (
-            <EncounterVitalSignsSection records={vitalSigns} />
-          )}
-
-          {procedures.length > 0 && (
-            <EncounterProcedures procedures={procedures} />
-          )}
+          <div className="flex flex-wrap items-center gap-2 mt-3">
+            {presenceIndicators.length > 0 ? (
+              presenceIndicators.map((label) => (
+                <span
+                  key={label}
+                  className="inline-flex items-center rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-muted"
+                >
+                  {label}
+                </span>
+              ))
+            ) : (
+              <span className="text-xs text-muted">
+                Sin indicadores clínicos visibles
+              </span>
+            )}
+          </div>
         </>
       ) : (
         <p className="text-xs text-muted italic">
@@ -118,12 +116,10 @@ export const LastEncounterSection: React.FC<Props> = ({
         </p>
       )}
 
-      {/* divider between blocks */}
       {lastEncounter && nextPlannedEncounter && (
         <div className="border-t border-border my-3" />
       )}
 
-      {/* next planned encounter block */}
       {nextPlannedEncounter && (
         <>
           <div className="text-xs font-semibold uppercase tracking-wide text-muted mb-2">
@@ -141,47 +137,14 @@ export const LastEncounterSection: React.FC<Props> = ({
           </div>
 
           <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
-            <>
-              <dt className="text-xs text-muted font-medium">Hora programada:</dt>
-              <dd className="text-sm text-foreground">
-                {nextPlannedSchedule.plannedTimeLabel ?? "Sin horario definido"}
-              </dd>
-            </>
-
-            {nextPlannedEncounter.participant && (
-              <>
-                <dt className="text-xs text-muted font-medium">Profesional:</dt>
-                <dd className="text-sm text-foreground">
-                  {nextPlannedEncounter.participant.practitionerName ||
-                    "Profesional asignado"}
-                </dd>
-              </>
-            )}
-
-            {formatEncounterDuration(nextPlannedEncounter.durationMinutes) && (
-              <>
-                <dt className="text-xs text-muted font-medium">Duración:</dt>
-                <dd className="text-sm text-foreground">
-                  {formatEncounterDuration(
-                    nextPlannedEncounter.durationMinutes,
-                  )}
-                </dd>
-              </>
-            )}
-
-            {nextPlannedEncounter.reasonDisplay?.trim() && (
-              <>
-                <dt className="text-xs text-muted font-medium">Motivo:</dt>
-                <dd className="text-sm text-foreground">
-                  {nextPlannedEncounter.reasonDisplay}
-                </dd>
-              </>
-            )}
+            <dt className="text-xs text-muted font-medium">Hora programada:</dt>
+            <dd className="text-sm text-foreground">
+              {nextPlannedSchedule.plannedTimeLabel ?? "Sin horario definido"}
+            </dd>
           </dl>
         </>
       )}
 
-      {/* footer links */}
       <div className="border-t border-border mt-3 pt-3 flex flex-wrap justify-end gap-4">
         {lastEncounter && (
           <Link

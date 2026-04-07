@@ -44,7 +44,6 @@ export const EpisodeOfCareSection: React.FC<Props> = ({
 
         return (
           <div key={episode.id} className="mb-4 last:mb-0">
-            {/* Block A — Diagnosis hero */}
             <div>
               <p className="text-base font-medium text-foreground">
                 {episode.condition.description}
@@ -73,52 +72,57 @@ export const EpisodeOfCareSection: React.FC<Props> = ({
               </div>
             </div>
 
-            {/* Block B — Metadata grid */}
-            {(hasReferral || hasCoverage) && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-border pt-3 mt-3">
-                {hasReferral && (
-                  <div className={hasCoverage ? "" : "col-span-2"}>
-                    <div className="text-xs font-semibold uppercase tracking-wide text-muted">
-                      Pedido de atención
-                    </div>
-                    <div className="mt-1 text-sm text-foreground">
-                      {formatReferralLine(episode.referral)}
-                    </div>
-                    {episode.referral?.reasonText && (
-                      <div className="mt-1 text-sm text-muted">
-                        {episode.referral.reasonText}
+            {(hasReferral || hasCoverage || episode.referral?.requestNote) && (
+              <details className="mt-3 pt-3 border-t border-border">
+                <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wide text-muted">
+                  Ver información administrativa del episodio
+                </summary>
+                {(hasReferral || hasCoverage) && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
+                    {hasReferral && (
+                      <div className={hasCoverage ? "" : "col-span-2"}>
+                        <div className="text-xs font-semibold uppercase tracking-wide text-muted">
+                          Pedido de atención
+                        </div>
+                        <div className="mt-1 text-sm text-foreground">
+                          {formatReferralLine(episode.referral)}
+                        </div>
+                        {episode.referral?.reasonText && (
+                          <div className="mt-1 text-sm text-muted">
+                            {episode.referral.reasonText}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {hasCoverage && (
+                      <div className={hasReferral ? "" : "col-span-2"}>
+                        <div className="text-xs font-semibold uppercase tracking-wide text-muted">
+                          Cobertura
+                        </div>
+                        <div className="mt-1 text-sm text-foreground">
+                          {episode.coverage?.payorName}
+                        </div>
+                        {episode.coverage?.planName && (
+                          <div className="mt-1 text-xs text-muted">
+                            {episode.coverage.planName}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
                 )}
-                {hasCoverage && (
-                  <div className={hasReferral ? "" : "col-span-2"}>
-                    <div className="text-xs font-semibold uppercase tracking-wide text-muted">
-                      Cobertura
-                    </div>
-                    <div className="mt-1 text-sm text-foreground">
-                      {episode.coverage?.payorName}
-                    </div>
-                    {episode.coverage?.planName && (
-                      <div className="mt-1 text-xs text-muted">
-                        {episode.coverage.planName}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
 
-            {/* Block C — Indicaciones */}
-            {episode.referral?.requestNote && (
-              <div className="border-t border-border pt-3 mt-3">
-                <div className="text-xs font-semibold uppercase tracking-wide text-muted">
-                  Indicaciones
-                </div>
-                <div className="border-l-2 border-primary pl-3 mt-1 text-sm text-muted italic">
-                  {episode.referral.requestNote}
-                </div>
-              </div>
+                {episode.referral?.requestNote && (
+                  <div className="mt-3">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-muted">
+                      Indicaciones
+                    </div>
+                    <div className="border-l-2 border-primary pl-3 mt-1 text-sm text-muted italic">
+                      {episode.referral.requestNote}
+                    </div>
+                  </div>
+                )}
+              </details>
             )}
           </div>
         );

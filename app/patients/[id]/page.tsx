@@ -56,80 +56,62 @@ export default async function Page({ params }: Props) {
   );
   const inProgressEncounter = data.inProgressEncounter;
   const nextPlannedEncounter = data.nextPlannedEncounter;
+  const operationalStatus = !hasActiveEpisode
+    ? "Sin episodio activo"
+    : inProgressEncounter
+      ? "Visita en curso"
+      : nextPlannedEncounter
+        ? "Próxima visita planificada"
+        : "Sin visita activa";
+
+  const primaryAction = !hasActiveEpisode
+    ? null
+    : inProgressEncounter
+      ? {
+          label: "Completar visita",
+          href: `/patients/${id}/encounters/${inProgressEncounter.id}`,
+        }
+      : nextPlannedEncounter
+        ? {
+            label: "Ver próxima visita",
+            href: `/patients/${id}/encounters/${nextPlannedEncounter.id}`,
+          }
+        : {
+            label: "Registrar visita",
+            href: `/patients/${id}/encounters/register`,
+          };
 
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="min-w-0 flex-1">
           <Breadcrumbs patientName={patientFullName} />
-        </div>
-        {hasActiveEpisode && (
-          <div className="flex flex-wrap items-center gap-2">
-            {!inProgressEncounter && !nextPlannedEncounter && (
-              <>
-                <Link
-                  href={`/patients/${id}/encounters/register`}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-hover transition-colors duration-150"
-                >
-                  Registrar visita
-                </Link>
-                <Link
-                  href={`/patients/${id}/encounters/new`}
-                  className="inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-foreground hover:bg-surface transition-colors duration-150"
-                >
-                  Planificar visita
-                </Link>
-              </>
-            )}
-
-            {inProgressEncounter && !nextPlannedEncounter && (
-              <>
-                <Link
-                  href={`/patients/${id}/encounters/${inProgressEncounter.id}`}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-hover transition-colors duration-150"
-                >
-                  Completar visita
-                </Link>
-                <Link
-                  href={`/patients/${id}/encounters/new`}
-                  className="inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-foreground hover:bg-surface transition-colors duration-150"
-                >
-                  Planificar visita
-                </Link>
-              </>
-            )}
-
-            {!inProgressEncounter && nextPlannedEncounter && (
-              <>
-                <span className="text-sm text-muted">Tenés una visita planificada</span>
-                <Link
-                  href={`/patients/${id}/encounters/${nextPlannedEncounter.id}`}
-                  className="inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-foreground hover:bg-surface transition-colors duration-150"
-                >
-                  Ver detalle
-                </Link>
-              </>
-            )}
-
-            {inProgressEncounter && nextPlannedEncounter && (
-              <>
-                <Link
-                  href={`/patients/${id}/encounters/${inProgressEncounter.id}`}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-hover transition-colors duration-150"
-                >
-                  Completar visita
-                </Link>
-                <Link
-                  href={`/patients/${id}/encounters/new`}
-                  className="inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-foreground hover:bg-surface transition-colors duration-150"
-                >
-                  Planificar visita
-                </Link>
-                <span className="text-sm text-muted">Además tenés una visita planificada</span>
-              </>
-            )}
+          <h1 className="text-xl font-semibold text-foreground mt-2">
+            {patientFullName}
+          </h1>
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted">
+            <span>{operationalStatus}</span>
+            {data.patient.identifier && <span>• DNI {data.patient.identifier}</span>}
           </div>
-        )}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {primaryAction && (
+            <Link
+              href={primaryAction.href}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-hover transition-colors duration-150"
+            >
+              {primaryAction.label}
+            </Link>
+          )}
+          {hasActiveEpisode && (
+            <Link
+              href={`/patients/${id}/encounters`}
+              className="inline-flex items-center px-3 py-2 border border-border text-xs font-medium rounded-md text-foreground hover:bg-surface transition-colors duration-150"
+            >
+              Ver historial
+            </Link>
+          )}
+        </div>
       </div>
       <div className="mb-4">
         <Link href="/patients" className="text-sm text-primary">
@@ -138,16 +120,6 @@ export default async function Page({ params }: Props) {
       </div>
 
       <div className="grid grid-cols-1 gap-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <PatientPersonalSection
-            patient={data.patient}
-            practitioners={data.patient.generalPractitioner}
-          />
-          <PatientContactSection
-            patient={data.patient}
-            contacts={data.patient.contact}
-          />
-        </div>
         <EpisodeOfCareSection episodes={data.episodes} patientId={id} />
         <LastEncounterSection
           lastEncounter={data.lastEncounter}
@@ -157,6 +129,22 @@ export default async function Page({ params }: Props) {
           evaRecords={data.lastEncounterEvaRecords}
           vitalSigns={data.lastEncounterVitalSigns}
         />
+        <details className="rounded-lg border border-border bg-surface p-4">
+          <summary className="cursor-pointer text-sm font-medium text-foreground">
+            Ver datos del paciente
+          </summary>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+            <PatientPersonalSection
+              patient={data.patient}
+              practitioners={data.patient.generalPractitioner}
+            />
+            <PatientContactSection
+              patient={data.patient}
+              contacts={data.patient.contact}
+            />
+          </div>
+        </details>
+        <div className="opacity-90">
         <InitialEvaluationSection
           encounterId={data.initialEncounter?.id ?? null}
           encounterDate={
@@ -175,6 +163,7 @@ export default async function Page({ params }: Props) {
             data.barthelAssessment ? [data.barthelAssessment] : []
           }
         />
+        </div>
       </div>
     </>
   );

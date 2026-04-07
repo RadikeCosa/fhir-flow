@@ -40,6 +40,7 @@ describe("EncounterCard planned render", () => {
         expect(html).toContain("22/03/2026");
         expect(html).toContain("14:30");
         expect(html).not.toContain("2099");
+        expect(html).not.toContain("Ver contexto");
     });
 
     it("renders 'Sin horario definido' when planned time is absent", () => {

@@ -71,6 +71,8 @@ describe("EncounterCard finished render", () => {
         );
 
         expect(html).toContain('href="/patients/pat-42/encounters/enc-finished-nav-42"');
+        expect(html).toContain("Abrir detalle");
+        expect(html).not.toContain("Ver contexto");
     });
 
     it("keeps identity-driven navigation even for planned encounters", () => {
