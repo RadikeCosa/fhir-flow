@@ -34,7 +34,7 @@ vi.mock("next/navigation", () => ({
 describe("registerEncounterAction", () => {
     beforeEach(() => {
         vi.useFakeTimers();
-        vi.setSystemTime(new Date("2026-03-20T10:00:00.000Z"));
+        vi.setSystemTime(new Date("2026-03-20T15:00:00.000Z"));
         vi.clearAllMocks();
     });
 
@@ -115,6 +115,56 @@ describe("registerEncounterAction", () => {
         });
 
         expect(registerMock).not.toHaveBeenCalled();
+    });
+
+    it("rechaza fecha y hora de inicio futuras en register", async () => {
+        const { registerEncounterAction } = await import("../register-encounter.action");
+
+        await expect(
+            registerEncounterAction("patient-1", {
+                completionMode: "start",
+                episodeOfCareId: "episode-1",
+                visitType: "follow-up",
+                actualDate: "2026-03-21",
+                actualStartTime: "08:00",
+                procedures: [],
+            })
+        ).resolves.toMatchObject({
+            success: false,
+            error: {
+                layer: "validation",
+                code: "FORM_VALIDATION_FAILED",
+            },
+        });
+
+        expect(registerMock).not.toHaveBeenCalled();
+        expect(findAllByPatientIdMock).not.toHaveBeenCalled();
+    });
+
+    it("rechaza hora de fin futura cuando la visita se completa", async () => {
+        const { registerEncounterAction } = await import("../register-encounter.action");
+
+        await expect(
+            registerEncounterAction("patient-1", {
+                completionMode: "complete",
+                episodeOfCareId: "episode-1",
+                visitType: "follow-up",
+                actualDate: "2026-03-20",
+                actualStartTime: "09:00",
+                actualEndTime: "12:30",
+                clinicalNote: "Paciente estable.",
+                procedures: [],
+            })
+        ).resolves.toMatchObject({
+            success: false,
+            error: {
+                layer: "validation",
+                code: "FORM_VALIDATION_FAILED",
+            },
+        });
+
+        expect(registerMock).not.toHaveBeenCalled();
+        expect(findAllByPatientIdMock).not.toHaveBeenCalled();
     });
 
     it("valida server-side que el episodio exista y esté activo para ese paciente", async () => {
