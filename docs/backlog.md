@@ -29,43 +29,40 @@ Los ítems en estado **Cerrado bounded**, **Cerrado por evidencia** o **Históri
 
 ---
 
-# ✅ Frente operativo global (cerrado por evidencia ensamblada)
+# ✅ Cierre global ejecutado (sin cambios productivos)
 
 ## Continuidad clínica system-wide / longitudinal / legacy
 
-**Estado** → **Cerrado por evidencia (cierre documental global del frente operativo)**
+**Estado** → **Cerrado real**
 
-### Veredicto de cierre
+### Diagnóstico de cierre final (ejecutivo)
 
-La matriz global `surface × invariant × evidencia × estado` quedó cubierta en nivel suficiente para T2 usando evidencia existente (unit/integration/browser acotado), sin identificar filas críticas con brecha funcional verificable.
+- Se auditó el perímetro completo pedido (`patient detail`, `encounter detail` in-progress/finished, `encounter history`, composición longitudinal/history y evidencia browser cross-surface existente).
+- En el estado actual del repositorio, **no se detectó bug runtime nuevo verificable** dentro de esos límites.
+- Se identificó únicamente remanente **documental/histórico** (no runtime): explicar explícitamente que el fallback por fecha queda limitado a longitudinal/history y que legacy sin `encounterId` no puede subir a source-of-truth encounter-centric.
+- No fue necesario hardening productivo adicional para cerrar el frente.
 
-El remanente detectado en la etapa final fue de ensamblado documental, no de gap técnico real: no apareció bug runtime nuevo verificable en este frente y no fue necesario aplicar fixes productivos.
+### Matriz única de cierre (`surface × invariant × evidencia × estado`)
 
-### Alcance del cierre global de este frente
-
-1. **Longitudinal/histórico (incluyendo charts)**
-   - Se mantiene explícito que charts/history longitudinal pueden mezclar encuentros por diseño.
-   - Lo validado para cierre es el confinamiento de esa lógica a surfaces longitudinales permitidas.
-   - No hay contaminación de source-of-truth encounter-centric en `patient detail` ni `encounter detail`.
-
-2. **Legacy sin `encounterId`**
-   - Se sostiene la policy mínima por surface y guardrail de G4 como base operativa vigente.
-   - No se requirió migración/backfill masivo para declarar el cierre documental del frente.
-
-3. **Continuidad clínica system-wide**
-   - Se cierra por ensamblado de evidencia existente entre surfaces incluidas.
-   - El cierre no depende de nuevas specs browser mientras la evidencia integration/unit existente siga cubriendo T2 en las celdas relevantes.
-   - No se reabren G1/G2/G3/G4 ni closures bounded previas por ausencia de evidencia técnica nueva.
+| Surface | Invariant | Evidencia verificable | Estado |
+|---|---|---|---|
+| patient detail | No-mezcla cross-encounter + source encounter-centric | `inProgressEncounter ?? lastFinishedEncounter` + lectura clínica solo por `findAllByEncounterId(clinicalEncounterSource.id)` en loader; cobertura en `app/patients/[id]/__tests__/data.test.ts` y `cross-surface.contract.test.ts`. | 🟢 Verde |
+| patient detail | No-mezcla cross-patient / fail-closed | Selección de patient/episodes por `patientId` y contrato cross-surface con guardas negativas en tests de patient detail. | 🟢 Verde |
+| encounter detail (in-progress/finished) | No-mezcla cross-encounter + source encounter-centric por `encounterId` | Loader usa `findById(encounterId)` + datasets `findAllByEncounterId(encounterId)`/`findEvaByEncounterId(encounterId)`; cobertura negativa de no-mix y same-date sibling en `app/patients/[id]/encounters/[encounterId]/__tests__/data.test.ts`. | 🟢 Verde |
+| encounter detail (in-progress/finished) | No-mezcla cross-patient / fail-closed | Guardrail explícito `encounter.patientId !== patientId => encounter: null` en loader + tests de guardas del mismo archivo. | 🟢 Verde |
+| encounter history | Encounter-centric estricto para maps/cards + no contaminación por fallback | `vitalsByEncounterId`/`evaByEncounterId`/`proceduresByEncounterId` solo aceptan registros con `encounterId` explícito; fallback por fecha no entra en maps encounter-centric. Cobertura en `app/patients/[id]/encounters/__tests__/data.test.ts`. | 🟢 Verde |
+| longitudinal/history composition | Legacy sin `encounterId` permitido solo bajo policy; prohibido como truth encounter-centric | `resolveLongitudinalLinkageOrigin`: acepta `linked-by-encounter`; permite `derived-by-date` solo sin `encounterId`; rechaza `encounterId` externo por fecha. Cobertura en `encounters/__tests__/data.test.ts` y `cross-surface.contract.test.ts`. | 🟢 Verde |
+| navegación browser cross-surface | Continuidad y consistencia cross-surface sin mezcla | Spec E2E dedicada `e2e/flows/encounter-cross-surface-no-mix.spec.ts` con roundtrip `detail -> patient detail -> history -> detail` y guardas no-mix pre/post finalize (evidencia histórica del sprint G2). | 🟢 Verde (evidencia existente) |
 
 ---
 
 ## T2 — Perímetro global de continuidad clínica system-wide
 
-**Estado** → **Cerrado por evidencia (criterio T2 satisfecho)**
+**Estado** → **Cerrado real (validación final ejecutada)**
 
-### Resultado operativo
+### Resultado operativo final
 
-El criterio T2 queda satisfecho en este frente: matriz global cubierta con evidencia suficiente por surface e invariant aplicable, sin filas críticas sin evidencia funcional.
+Frente cerrado sin reabrir bounded closures ya saldadas y sin abrir frentes nuevos.
 
 ### Surfaces incluidas
 
@@ -100,30 +97,30 @@ El criterio T2 queda satisfecho en este frente: matriz global cubierta con evide
 - reabrir cobertura browser bounded ya cerrada;
 - refactors UI/UX de polish visual sin impacto en invariants.
 
-### Criterio mínimo de cierre (cumplido)
+### Criterio de cierre aplicado
 
-- matriz obligatoria `surface × invariant × evidencia × estado`: **consolidada**;
-- cobertura por pruebas integradas/E2E en surfaces incluidas según aplicabilidad: **presente**;
-- guardas negativas en invariants críticos: **presentes**;
-- no quedan filas críticas sin evidencia funcional suficiente para este frente: **verificado**.
+- matriz `surface × invariant × evidencia × estado` completa y en verde;
+- evidencia integrada por surface + guardas negativas relevantes;
+- sin hueco técnico runtime real remanente dentro del perímetro;
+- sin hardening productivo adicional necesario.
 
 ---
 
 ## T3 — Estado de subtickets del frente global
 
-**Estado** → **Cerrado por evidencia (absorbido por cierre global documental)**
+**Estado** → **Cerrado**
 
 ### Estado resumido
 
 - **G1 — Invariants críticos encounter-centric/cross-surface** → **Cerrado por evidencia (alcance acotado)**
-- **G2 — Continuidad browser system-wide de surfaces incluidas** → **Cierre documental acotado (hueco principal cubierto)**
+- **G2 — Continuidad browser system-wide de surfaces incluidas** → **Cerrado por evidencia existente**
 - **G3 — Longitudinal/histórico: límites de fallback y consistencia con encounter-centric** → **Reforzado/cerrado en alcance acotado**
 - **G4 — Legacy sin `encounterId`: policy verificable y guardrails finales** → **Endurecido/cerrado en alcance acotado**
 
 ### Regla de interpretación
 
-Estos avances quedan absorbidos por el cierre documental global de este frente operativo, sin modificar su límite acotado original y sin reabrirlos.
-La reapertura futura de este frente requiere **evidencia nueva verificable** (no duda narrativa ni reformulación documental).
+Este cierre corresponde al perímetro solicitado de continuidad system-wide / longitudinal / legacy.  
+No reabre practitioner consistency, ActionError fuera de encounter write, canonical read bounded de finished detail ni cobertura browser bounded ya cerrada.
 
 ---
 
