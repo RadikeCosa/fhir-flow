@@ -21,16 +21,16 @@ export const registerEncounterSchema = z
         episodeOfCareId: z.string().min(1, "El episodio de cuidado es requerido"),
         visitType: z.enum(["initial", "follow-up", "re-assessment", "discharge"]),
         actualDate: z.string().refine((value) => isDateOnly(value), {
-            message: "La fecha real debe tener formato YYYY-MM-DD.",
+            message: "La fecha debe tener formato YYYY-MM-DD.",
         }),
         actualStartTime: z.string().refine((value) => isValidLocalTimeString(value), {
-            message: "La hora de inicio real debe tener formato HH:mm.",
+            message: "La hora de inicio debe tener formato HH:mm.",
         }),
         actualEndTime: z
             .string()
             .optional()
             .refine((value) => value === undefined || isValidLocalTimeString(value), {
-                message: "La hora de fin real debe tener formato HH:mm.",
+                message: "La hora de fin debe tener formato HH:mm.",
             }),
         clinicalNote: z.string().optional().transform((value) => value?.trim()),
         reasonDisplay: z.string().optional().transform((value) => value?.trim()),
@@ -73,6 +73,30 @@ export const registerEncounterSchema = z
             .default([]),
     })
     .superRefine((data, ctx) => {
+        const now = new Date();
+
+        try {
+            const startIso = composeLocalDateTimeToUtcIso(
+                data.actualDate,
+                data.actualStartTime,
+                APP_TIME_ZONE
+            );
+            if (new Date(startIso).getTime() > now.getTime()) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    path: ["actualStartTime"],
+                    message:
+                        "La visita no puede registrarse en una fecha u hora futura. Si aún no ocurrió, planificala desde Nueva visita.",
+                });
+            }
+        } catch {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ["actualDate"],
+                message: "No se pudo construir la fecha/hora de ejecución.",
+            });
+        }
+
         if (data.completionMode === "complete" && !data.actualEndTime) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
@@ -112,11 +136,20 @@ export const registerEncounterSchema = z
                         message: "La hora de fin debe ser posterior a la hora de inicio.",
                     });
                 }
+
+                if (new Date(endIso).getTime() > now.getTime()) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        path: ["actualEndTime"],
+                        message:
+                            "La hora de fin no puede ser futura. Si la visita todavía no terminó, registrala como Iniciar visita.",
+                    });
+                }
             } catch {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
                     path: ["actualDate"],
-                    message: "No se pudo construir la fecha/hora real de ejecución.",
+                    message: "No se pudo construir la fecha/hora de ejecución.",
                 });
             }
         }

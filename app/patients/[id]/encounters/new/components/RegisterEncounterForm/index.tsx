@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { BaseSyntheticEvent } from "react";
@@ -10,6 +10,7 @@ import type { ActionResult } from "../../../../../../../domain/shared/action-res
 import { formatEncounterVisitType } from "../../../../../../../lib/patient/formatters/encounter.formatters";
 import {
   APP_TIME_ZONE,
+  composeLocalDateTimeToUtcIso,
   formatCalendarDateInTimeZone,
   isDateOnly,
   isValidLocalTimeString,
@@ -20,10 +21,10 @@ const registerEncounterFormSchema = z.object({
   episodeOfCareId: z.string().min(1, "El episodio de cuidado es requerido"),
   visitType: z.enum(["initial", "follow-up", "re-assessment", "discharge"]),
   actualDate: z.string().refine((value) => isDateOnly(value), {
-    message: "La fecha real debe tener formato YYYY-MM-DD.",
+    message: "La fecha debe tener formato YYYY-MM-DD.",
   }),
   actualStartTime: z.string().refine((value) => isValidLocalTimeString(value), {
-    message: "La hora de inicio real debe tener formato HH:mm.",
+    message: "La hora de inicio debe tener formato HH:mm.",
   }),
   actualEndTime: z.preprocess(
     (value) => {
@@ -34,7 +35,7 @@ const registerEncounterFormSchema = z.object({
     z
       .string()
       .refine((value) => isValidLocalTimeString(value), {
-        message: "La hora de fin real debe tener formato HH:mm.",
+        message: "La hora de fin debe tener formato HH:mm.",
       })
       .optional(),
   ),
@@ -45,6 +46,68 @@ const registerEncounterFormSchema = z.object({
       const normalized = value?.trim();
       return normalized === "" ? undefined : normalized;
     }),
+}).superRefine((data, ctx) => {
+  const now = new Date();
+  try {
+    const startIso = composeLocalDateTimeToUtcIso(
+      data.actualDate,
+      data.actualStartTime,
+      APP_TIME_ZONE,
+    );
+
+    if (new Date(startIso).getTime() > now.getTime()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["actualStartTime"],
+        message:
+          "La visita no puede registrarse en una fecha u hora futura. Si aún no ocurrió, planificala desde Nueva visita.",
+      });
+    }
+  } catch {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["actualDate"],
+      message: "No se pudo construir la fecha/hora de ejecución.",
+    });
+  }
+
+  if (data.actualEndTime) {
+    try {
+      const startIso = composeLocalDateTimeToUtcIso(
+        data.actualDate,
+        data.actualStartTime,
+        APP_TIME_ZONE,
+      );
+      const endIso = composeLocalDateTimeToUtcIso(
+        data.actualDate,
+        data.actualEndTime,
+        APP_TIME_ZONE,
+      );
+
+      if (new Date(endIso).getTime() <= new Date(startIso).getTime()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["actualEndTime"],
+          message: "La hora de fin debe ser posterior a la hora de inicio.",
+        });
+      }
+
+      if (new Date(endIso).getTime() > now.getTime()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["actualEndTime"],
+          message:
+            "La hora de fin no puede ser futura. Si la visita todavía no terminó, registrala como Iniciar visita.",
+        });
+      }
+    } catch {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["actualDate"],
+        message: "No se pudo construir la fecha/hora de ejecución.",
+      });
+    }
+  }
 });
 
 type RegisterEncounterFormInput = z.input<typeof registerEncounterFormSchema>;
@@ -98,6 +161,7 @@ export function RegisterEncounterForm({
     encounterId: string;
   }> | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isClinicalNoteExpanded, setIsClinicalNoteExpanded] = useState(false);
 
   const now = new Date();
   const todayDate = formatCalendarDateInTimeZone(now, APP_TIME_ZONE);
@@ -120,6 +184,13 @@ export function RegisterEncounterForm({
   });
 
   const error = actionResult?.success === false ? actionResult.error : null;
+  const hasClinicalNoteError = Boolean(form.formState.errors.clinicalNote);
+
+  useEffect(() => {
+    if (hasClinicalNoteError) {
+      setIsClinicalNoteExpanded(true);
+    }
+  }, [hasClinicalNoteError]);
 
   const onSubmit = async (
     values: RegisterEncounterFormValues,
@@ -216,7 +287,7 @@ export function RegisterEncounterForm({
             htmlFor="actualDate"
             className="block text-sm font-medium text-foreground"
           >
-            Fecha real
+            Fecha
           </label>
           <input
             type="date"
@@ -237,7 +308,7 @@ export function RegisterEncounterForm({
             htmlFor="actualStartTime"
             className="block text-sm font-medium text-foreground"
           >
-            Hora real de inicio
+            Hora de inicio
           </label>
           <input
             type="time"
@@ -259,7 +330,7 @@ export function RegisterEncounterForm({
             htmlFor="actualEndTime"
             className="block text-sm font-medium text-foreground"
           >
-            Hora real de fin
+            Hora de fin
           </label>
           <input
             type="time"
@@ -277,30 +348,46 @@ export function RegisterEncounterForm({
         </div>
       </div>
 
-      <div>
-        <label
-          htmlFor="clinicalNote"
-          className="block text-sm font-medium text-foreground"
-        >
-          Nota clínica
-        </label>
-        <textarea
-          id="clinicalNote"
-          {...form.register("clinicalNote")}
-          rows={4}
-          className="mt-1 block w-full rounded-md border border-border px-3 py-2 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm"
-          disabled={isSubmitting}
-        />
-        {form.formState.errors.clinicalNote && (
-          <p className="mt-1 text-sm text-error">
-            {form.formState.errors.clinicalNote.message}
+      <div className="rounded-md border border-border bg-surface p-4">
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-sm font-medium text-foreground">Nota clínica</p>
+          {!isClinicalNoteExpanded && (
+            <button
+              type="button"
+              className="text-sm font-medium text-primary hover:underline"
+              onClick={() => setIsClinicalNoteExpanded(true)}
+              aria-expanded={isClinicalNoteExpanded}
+              aria-controls="clinical-note-section"
+            >
+              Agregar nota clínica
+            </button>
+          )}
+        </div>
+
+        {isClinicalNoteExpanded ? (
+          <div id="clinical-note-section" className="mt-3">
+            <textarea
+              id="clinicalNote"
+              {...form.register("clinicalNote")}
+              rows={4}
+              className="block w-full rounded-md border border-border px-3 py-2 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm"
+              disabled={isSubmitting}
+            />
+            {form.formState.errors.clinicalNote && (
+              <p className="mt-1 text-sm text-error">
+                {form.formState.errors.clinicalNote.message}
+              </p>
+            )}
+          </div>
+        ) : (
+          <p className="mt-2 text-xs text-muted">
+            Podés agregarla ahora o al finalizar la visita.
           </p>
         )}
       </div>
 
-      <div className="rounded-md border border-border bg-surface px-4 py-3 text-sm text-muted">
-        <p className="font-medium text-foreground">Profesional</p>
-        <p>{practitionerName}</p>
+      <div className="rounded-md border border-dashed border-border px-3 py-2 text-xs text-muted">
+        Registrado por {practitionerName}
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row">
