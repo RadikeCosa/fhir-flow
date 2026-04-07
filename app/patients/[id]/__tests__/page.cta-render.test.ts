@@ -12,30 +12,6 @@ vi.mock("../../../components/Breadcrumbs", () => ({
         React.createElement("nav", {}, patientName),
 }));
 
-vi.mock("../components/PatientPersonalSection", () => ({
-    PatientPersonalSection: () => React.createElement("section", {}, "personal"),
-}));
-
-vi.mock("../components/PatientContactSection", () => ({
-    PatientContactSection: () => React.createElement("section", {}, "contact"),
-}));
-
-vi.mock("../components/EpisodeOfCareSection", () => ({
-    EpisodeOfCareSection: () => React.createElement("section", {}, "episodes"),
-}));
-
-vi.mock("../components/InitialEvaluationSection", () => ({
-    InitialEvaluationSection: () => React.createElement("section", {}, "initial"),
-}));
-
-vi.mock("../components/LastEncounterSection", () => ({
-    LastEncounterSection: () => React.createElement("section", {}, "last-encounter"),
-}));
-
-vi.mock("../components/ReAssessmentSection", () => ({
-    default: () => React.createElement("section", {}, "reassessments"),
-}));
-
 vi.mock("next/link", () => ({
     default: ({ href, children, className }: { href: string; children: React.ReactNode; className?: string }) =>
         React.createElement("a", { href, className }, children),
@@ -47,10 +23,9 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/lib/patient/formatters", () => ({
     formatPatientName: () => "Ana Perez",
-}));
-
-vi.mock("@/lib/patient/formatters/encounter.formatters", () => ({
-    getEncounterRepresentativeStart: () => "2026-03-28T10:00:00.000Z",
+    formatAddress: () => "Dirección mock",
+    formatContactName: () => "Contacto mock",
+    formatRelationship: () => "Relación mock",
 }));
 
 vi.mock("../data", () => ({
@@ -142,17 +117,17 @@ describe("Patient detail CTA render", () => {
 
         expect(html).toContain(">Registrar visita<");
         expect(html).not.toContain(">Completar visita<");
-        expect(html).toContain("Ver datos del paciente");
+        expect(html).toContain("Ver contacto");
+        expect(html).toContain("Ver historial");
         expect(html).not.toContain("Sin visita activa");
-        expect(html).toContain("personal");
-        expect(html).toContain("contact");
-        expect(html).toContain("episodes");
-        expect(html).toContain("last-encounter");
-        expect(html).toContain("initial");
-        expect(html).toContain("reassessments");
+        expect(html).toContain("DNI 123");
+        expect(html).toContain("Condition");
+        expect(html).toContain("Última visita: sin registros");
+        expect(html).toContain("Próxima visita: no planificada");
+        expect(html).toContain("Visita relevante: sin contexto adicional");
         expect(countOccurrences(html, 'href="/patients/pat-1/encounters/register"')).toBe(1);
+        expect(countOccurrences(html, 'href="/patients/pat-1/encounters"')).toBe(1);
         expect(countOccurrences(html, 'href="/patients/pat-1/encounters/new"')).toBe(0);
-        expect(countOccurrences(html, 'href="/patients/pat-1/encounters"')).toBe(0);
         expect(countOccurrences(html, "Ana Perez")).toBe(1);
     });
 
@@ -173,6 +148,8 @@ describe("Patient detail CTA render", () => {
         expect(html).toContain(">Completar visita<");
         expect(html).not.toContain(">Registrar visita<");
         expect(html).toContain("Visita en curso");
+        expect(html).toContain("Visita en curso: pendiente de finalización");
+        expect(html).toContain("Visita relevante: Visita de seguimiento");
         expect(countOccurrences(html, 'href="/patients/pat-1/encounters/enc-in-progress-1"')).toBe(1);
         expect(countOccurrences(html, 'href="/patients/pat-1/encounters/new"')).toBe(0);
     });
@@ -193,6 +170,7 @@ describe("Patient detail CTA render", () => {
         expect(html).toContain("Próxima visita planificada");
         expect(html).toContain(">Ver próxima visita<");
         expect(html).not.toContain(">Registrar visita<");
+        expect(html).toContain("Próxima visita:");
         expect(countOccurrences(html, 'href="/patients/pat-1/encounters/enc-planned-1"')).toBe(1);
         expect(countOccurrences(html, 'href="/patients/pat-1/encounters/new"')).toBe(0);
         expect(countOccurrences(html, 'href="/patients/pat-1/encounters/register"')).toBe(0);
