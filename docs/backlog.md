@@ -140,6 +140,14 @@ No reabre practitioner consistency, ActionError fuera de encounter write, canoni
 - No corresponde a bug de dataset ni de scoping.
 - No tratar como frente técnico principal.
 
+## Register form — refinamiento UX/semántico acotado
+**Estado** → **Abierto nominal/documental**
+
+- Frente acotado al surface `/encounters/register`: copy, jerarquía visual y affordances de interacción.
+- No se trata como cambio arquitectónico ni como reapertura de lifecycle/write/planning-vs-register.
+- Regla explícita a sostener en documentación y futuros criterios UX: register corresponde a visitas ocurridas o en curso; visitas futuras corresponden a planning (`/encounters/new`).
+- Sprint documental preparado en `docs/sprints/sprint-ux-register-form-acotado-2026-04-07.md`, sin cambios productivos en esta etapa.
+
 ## Patient detail — refinamiento UX/jerarquía (estado estabilizado)
 **Estado** → **Histórico (estabilizado / fuera de foco inmediato)**
 

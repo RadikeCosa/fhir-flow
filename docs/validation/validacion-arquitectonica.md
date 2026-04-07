@@ -44,6 +44,7 @@ Resultado del diagnóstico:
 | Inverse mapper purity | **Parcialmente válido** | Regla arquitectónica es clara: mapper puro, sin resolver identidad ni reglas de negocio. Persisten riesgos de drift cuando la resolución de contexto no entra por input. | copilot instructions + ADR (responsabilidad de practitioner en Server Action). | Verificar por flujo que mapper solo transforme input validado y no lea config. |
 | Practitioner resolution (encounter write front) | **Válido hoy (alcance acotado)** | En encounter write, los flujos attribution-driven (`createEncounterAction`, `saveEncounterProgressAction`, `finalizeEncounterAction`, `registerEncounterAction`) resuelven practitioner server-side y lo propagan por write input hacia repository/mapper. `startEncounterAction` queda como exención explícita del sprint por ser transición de estado sobre encounter ya atribuido. | ADR sección de practitioner responsibility + write-phase + sprint practitioner consistency (T1–T5). | Mantener cobertura de regresión en ese frente sin extrapolar a rediseño global de identity. |
 | Register flow (`/encounters/register`) | **Válido hoy** | La separación de entry points está operativa: `/encounters/new` planifica y `/encounters/register` registra con `registerEncounterAction` y `completionMode` explícito (`start`/`complete`). | Estado de app layer + write-phase actualizado. | Mantener consistencia documental y evitar regresión semántica entre rutas. |
+| Register UX/semántica (surface de formulario) | **Parcialmente válido (refinamiento UX pendiente, sin brecha arquitectónica)** | El surface `register` está operativo y consistente con lifecycle, pero conserva señales semánticas mejorables (etiqueta "real" en fecha/horas, bloque "Profesional" visible sin aportar decisión, affordance de nota clínica siempre expandida y necesidad de reforzar en UI que no corresponde registrar visitas futuras desde register). | ADR-001 + ADR-003 + write-phase + checkpoint app architecture + sprint UX documental 2026-04-07. | Ejecutar sprint UX acotado del formulario sin alterar arquitectura ni reglas de cierre clínico. |
 | Save progress separado | **Válido hoy** | `saveEncounterProgressAction` existe como operación propia con snapshot transaccional y ownership metadata interoperable para recursos clínicos gestionados por esta app. | write-phase + código de acciones/rules/repositorio. | Mantener hardening de validaciones por estado y ownership. |
 | Lifecycle transition (`planned -> in-progress`) | **Válido hoy** | `startEncounterAction` ya está operativo para encounters planificados y la finalización exige `in-progress`. | Reglas de estado en actions/domain + write-phase actualizado. | Mantener hardening de regresiones y tests de estado. |
 | Canonical read (finished detail) | **Validado (alcance acotado)** | El path `finished encounter detail` quedó validado como lectura canónica encounter-centric por `encounterId`, sin fallback temporal como source of truth en ese surface. El hardening global de read model fuera de ese alcance permanece abierto. | ADR + write-phase + backlog vigente + validación específica del sprint 2026-03 (auditoría + tests). | Sostener cobertura de regresión en `finished detail` y mantener explícita la deuda global fuera de este surface. |
@@ -112,6 +113,19 @@ La separación de entry points está implementada: `/encounters/new` planifica y
 **Estado:** Válido hoy
 
 `saveEncounterProgressAction` existe como operación separada para encuentros en `in-progress`, con persistencia transaccional de snapshot clínico y metadata de ownership para interoperabilidad de recursos gestionados por esta app.
+
+### 6.2 Register UX/semántica del formulario (refinamiento acotado)
+
+**Estado:** Parcialmente válido (documentado para sprint UX, sin cambio arquitectónico)
+
+Se identifica un frente UX puntual en `/encounters/register` que no modifica arquitectura ni lifecycle:
+
+- revisar si "real" sigue aportando claridad en campos de fecha/hora de inicio/hora de fin;
+- evaluar si el bloque "Profesional" visible aporta valor operativo o agrega ruido;
+- reforzar semántica de producto: register no corresponde a visitas futuras (esas pertenecen a planning);
+- permitir entrada progresiva de nota clínica vía bloque colapsable/expandible, sin relajar la regla vigente de nota requerida cuando la intención es completar/finalizar.
+
+Este frente queda explicitado como sprint UX/documental acotado (`docs/sprints/sprint-ux-register-form-acotado-2026-04-07.md`) y no reabre decisiones cerradas de ADR-001/ADR-003 ni separación planning/register.
 
 ### 7. Lifecycle transition en encounters planificados
 
