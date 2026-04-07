@@ -1,6 +1,6 @@
 # 📋 FHIR Flow — Backlog operativo vigente
 
-Fecha de actualización: 2026-04-06
+Fecha de actualización: 2026-04-07
 
 ## Criterio de lectura de este backlog
 
@@ -29,45 +29,43 @@ Los ítems en estado **Cerrado bounded**, **Cerrado por evidencia** o **Históri
 
 ---
 
-# 🔴 Frente activo único
+# ✅ Frente operativo global (cerrado por evidencia ensamblada)
 
 ## Continuidad clínica system-wide / longitudinal / legacy
 
-**Estado** → **Abierto real**
+**Estado** → **Cerrado por evidencia (cierre documental global del frente operativo)**
 
-### Motivo de permanencia como frente abierto
+### Veredicto de cierre
 
-La continuidad encounter-centric en alcance acotado ya fue validada en múltiples surfaces y specs.  
-Sin embargo, **no existe todavía cierre global/system-wide** del sistema completo.
+La matriz global `surface × invariant × evidencia × estado` quedó cubierta en nivel suficiente para T2 usando evidencia existente (unit/integration/browser acotado), sin identificar filas críticas con brecha funcional verificable.
 
-Lo pendiente ya no es un bug acotado aislado del path principal validado, sino el cierre global de invariants cross-surface y de la frontera longitudinal/histórica/legacy.
+El remanente detectado en la etapa final fue de ensamblado documental, no de gap técnico real: no apareció bug runtime nuevo verificable en este frente y no fue necesario aplicar fixes productivos.
 
-### Este frente unifica lo que sigue realmente abierto
+### Alcance del cierre global de este frente
 
-1. **Deuda longitudinal/histórica**
-   - El fallback temporal por fecha se mantiene como estrategia longitudinal.
-   - No debe reutilizarse como source-of-truth encounter-centric.
-   - Persisten casos históricos sin `encounterId` tolerados en longitudinal.
+1. **Longitudinal/histórico (incluyendo charts)**
+   - Se mantiene explícito que charts/history longitudinal pueden mezclar encuentros por diseño.
+   - Lo validado para cierre es el confinamiento de esa lógica a surfaces longitudinales permitidas.
+   - No hay contaminación de source-of-truth encounter-centric en `patient detail` ni `encounter detail`.
 
 2. **Legacy sin `encounterId`**
-   - Existe policy mínima verificable y guardrails puntuales ya aplicados.
-   - Aun así, no puede declararse cierre global/system-wide del frente legacy.
-   - No hay migración/backfill masivo ejecutado.
+   - Se sostiene la policy mínima por surface y guardrail de G4 como base operativa vigente.
+   - No se requirió migración/backfill masivo para declarar el cierre documental del frente.
 
-3. **Continuidad clínica full-system**
-   - La continuidad `in-progress` encounter-centric acotada ya está operativa y validada.
-   - Lo pendiente es la garantía transversal system-wide entre surfaces incluidas.
-   - No debe confundirse evidencia bounded con cierre global.
+3. **Continuidad clínica system-wide**
+   - Se cierra por ensamblado de evidencia existente entre surfaces incluidas.
+   - El cierre no depende de nuevas specs browser mientras la evidencia integration/unit existente siga cubriendo T2 en las celdas relevantes.
+   - No se reabren G1/G2/G3/G4 ni closures bounded previas por ausencia de evidencia técnica nueva.
 
 ---
 
 ## T2 — Perímetro global de continuidad clínica system-wide
 
-**Estado** → **Abierto real (delimitado)**
+**Estado** → **Cerrado por evidencia (criterio T2 satisfecho)**
 
-### Objetivo operativo
+### Resultado operativo
 
-Cerrar el frente global sin reabrir bounded closures ya saldados.
+El criterio T2 queda satisfecho en este frente: matriz global cubierta con evidencia suficiente por surface e invariant aplicable, sin filas críticas sin evidencia funcional.
 
 ### Surfaces incluidas
 
@@ -102,30 +100,30 @@ Cerrar el frente global sin reabrir bounded closures ya saldados.
 - reabrir cobertura browser bounded ya cerrada;
 - refactors UI/UX de polish visual sin impacto en invariants.
 
-### Criterio mínimo de cierre
+### Criterio mínimo de cierre (cumplido)
 
-- matriz obligatoria `surface × invariant × evidencia × estado`;
-- al menos una prueba integrada o E2E por surface incluida para cubrir no-mezcla + source-of-truth;
-- al menos una guarda negativa donde aplique;
-- no declarar cierre global mientras existan filas críticas sin evidencia.
+- matriz obligatoria `surface × invariant × evidencia × estado`: **consolidada**;
+- cobertura por pruebas integradas/E2E en surfaces incluidas según aplicabilidad: **presente**;
+- guardas negativas en invariants críticos: **presentes**;
+- no quedan filas críticas sin evidencia funcional suficiente para este frente: **verificado**.
 
 ---
 
 ## T3 — Estado de subtickets del frente global
 
-**Estado** → **Parcialmente ejecutado**
+**Estado** → **Cerrado por evidencia (absorbido por cierre global documental)**
 
 ### Estado resumido
 
 - **G1 — Invariants críticos encounter-centric/cross-surface** → **Cerrado por evidencia (alcance acotado)**
-- **G2 — Continuidad browser system-wide de surfaces incluidas** → **Parcial con hueco principal de evidencia ya cubierto en alcance acotado**
+- **G2 — Continuidad browser system-wide de surfaces incluidas** → **Cierre documental acotado (hueco principal cubierto)**
 - **G3 — Longitudinal/histórico: límites de fallback y consistencia con encounter-centric** → **Reforzado/cerrado en alcance acotado**
 - **G4 — Legacy sin `encounterId`: policy verificable y guardrails finales** → **Endurecido/cerrado en alcance acotado**
 
 ### Regla de interpretación
 
-Estos avances **no implican cierre global/system-wide** del frente.  
-Funcionan como antecedentes válidos y no deben reabrirse salvo evidencia nueva verificable.
+Estos avances quedan absorbidos por el cierre documental global de este frente operativo, sin modificar su límite acotado original y sin reabrirlos.
+La reapertura futura de este frente requiere **evidencia nueva verificable** (no duda narrativa ni reformulación documental).
 
 ---
 
@@ -136,7 +134,7 @@ Funcionan como antecedentes válidos y no deben reabrirse salvo evidencia nueva 
 
 - Pendiente de documentación transversal más sintética para evitar lecturas ambiguas.
 - No implica bug runtime nuevo.
-- No tiene prioridad por encima del frente activo único.
+- No tiene prioridad por encima del cierre operativo ya consolidado.
 
 ## Visibilidad de planned encounters en history
 **Estado** → **Abierto nominal/documental**

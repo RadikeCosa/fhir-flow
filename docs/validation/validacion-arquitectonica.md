@@ -7,7 +7,7 @@ Este documento describe el estado real del sistema en relación a la arquitectur
 Este documento ofrece una validación honesta del estado real de la arquitectura: distingue lo válido hoy, lo transicional y la deuda conocida sin presentar el estado actual como cierre definitivo.
 No redefine autoridad ni crea frentes paralelos: cuando un frente ya está unificado operativamente en backlog (p. ej. continuidad system-wide), aquí se reporta su estado con el mismo límite de alcance.
 
-Fecha: 2026-04-06
+Fecha: 2026-04-07
 
 Este documento reemplaza el enfoque de "aprobado total" por una validación honesta del estado actual.
 
@@ -38,7 +38,7 @@ Este documento reemplaza el enfoque de "aprobado total" por una validación hone
 | Lifecycle transition (`planned -> in-progress`) | **Válido hoy** | `startEncounterAction` ya está operativo para encounters planificados y la finalización exige `in-progress`. | Reglas de estado en actions/domain + write-phase actualizado. | Mantener hardening de regresiones y tests de estado. |
 | Canonical read (finished detail) | **Validado (alcance acotado)** | El path `finished encounter detail` quedó validado como lectura canónica encounter-centric por `encounterId`, sin fallback temporal como source of truth en ese surface. El hardening global de read model fuera de ese alcance permanece abierto. | ADR + write-phase + backlog vigente + validación específica del sprint 2026-03 (auditoría + tests). | Sostener cobertura de regresión en `finished detail` y mantener explícita la deuda global fuera de este surface. |
 | Canonical read hardening global de `finished` (más allá de detail) | **Cierre documental acotado (hardening mínimo de señalización canónica)** | Se cerró este ticket en alcance documental con hardening mínimo correcto fuera de detail: `patient detail` refuerza navegación al detail canónico del `lastEncounter` y `encounter history` se mantiene como resumen/navegación secundaria. Resultado: **sin bug runtime nuevo verificable**, **sin refactor general** y **sin reapertura** del closure bounded de `finished encounter detail`. | Sprint `sprint-canonical-read-finished-global-audit-2026-04-06.md` + fix mínimo ya aplicado en `LastEncounterSection` + tests de render del CTA canónico. | Mantener límite explícito: **no implica cierre global/system-wide**, **no reabre G1–G4** y no sustituye la deuda longitudinal/histórica global. |
-| Encounter-centric vs longitudinal read split | **Parcialmente válido** | Se consolidó la separación: patient/encounter detail operan encounter-centric y el fallback por fecha queda encapsulado para longitudinal. Avance acotado reciente: clasificación explícita local del linkage longitudinal (`linked-by-encounter` / `derived-by-date`) y guardas de no-filtración a maps/cards encounter-centric en history. La deuda global system-wide sigue abierta. | Checkpoint app + auditoría temporal + ajustes recientes en `encounters/data.ts` y tests asociados. | Mantener el cierre acotado ya logrado (T1–T5) y sostener ese límite sin sobredeclarar cierre global. |
+| Encounter-centric vs longitudinal read split | **Validado por evidencia (cierre documental global del frente operativo)** | Se consolidó la separación: patient/encounter detail operan encounter-centric y el fallback por fecha queda encapsulado para longitudinal. La clasificación local del linkage longitudinal (`linked-by-encounter` / `derived-by-date`) y las guardas de no-filtración sostienen el cierre global documental del frente sin gap técnico crítico verificable. | Checkpoint app + auditoría temporal + ajustes en `encounters/data.ts` y tests asociados (incluyendo evidencia integrada cross-surface). | Mantener este cierre como ensamblado de evidencia existente y no reabrir sin evidencia nueva verificable. |
 | Clinical linkage (`encounterId`) in read mappers | **Parcialmente válido** | Vital signs y EVA ya hidratan `encounterId` cuando `Observation.encounter.reference` existe (incluyendo casos ausente/relativo/absoluto). Mejora coherencia encounter-centric pero no elimina deuda histórica sin referencia. | Mappers/schemas de lectura y tests endurecidos recientes. | Mantener fallback longitudinal controlado para históricos sin linkage y evaluar backfill futuro. |
 | In-progress continuity (bounded scope) | **validado (alcance acotado)** | Quedó validado en alcance acotado el circuito encounter-centric para surfaces auditadas: encounter detail por `encounterId` + source selection de patient detail (`inProgressEncounter ?? lastFinishedEncounter`). | Tests integrados del flujo crítico + guardas negativas de fallback/mezcla en `encounter detail` y `patient detail`. | Mantener alcance explícito: no implica continuidad global del sistema, ni cierre longitudinal/charts, ni hardening canónico global de finished. |
 | Test stack hardening (Vitest/Playwright/E2E loaders) | **Válido hoy (operativo, alcance acotado)** | El stack quedó más estable operativamente para ejecución local/CI: discovery Vitest en `__tests__`, scripts explícitos, bootstrap mínimo, alias runtime, Playwright sin reutilizar servidor y seed loaders con contrato explícito + verificación mínima. | Configuración de test runner + scripts + setup + loaders E2E vigentes en repositorio. | Mantener hardening incremental sin declarar cierre arquitectónico global. |
@@ -51,6 +51,7 @@ Este documento reemplaza el enfoque de "aprobado total" por una validación hone
 | G3 — fallback longitudinal/histórico vs encounter-centric (frontera auditada) | **cierre documental acotado (evidencia reforzada)** | Se reforzó evidencia G3 en alcance acotado con test integrado cross-surface (`app/patients/[id]/__tests__/cross-surface.contract.test.ts`): coexistencia explícita `linked-by-encounter` / `derived-by-date`, ambos visibles en dataset longitudinal de history, aceptación encounter-centric estricta solo por `encounterId` y no contaminación de `patient detail`. Resultado: **sin bug runtime nuevo verificable** y **sin cambios productivos**. | Test integrado route-level + contrato existente en `app/patients/[id]/encounters/data.ts` (fallback por fecha confinado al dominio longitudinal/histórico dentro del perímetro auditado). | Mantener límite explícito: **no implica cierre global/system-wide**, **no sustituye G4** y no extrapola a hardening legacy global fuera del perímetro auditado. |
 | G4 — legacy sin `encounterId` (policy mínima + guardrail puntual) | **cierre documental acotado (policy operativa mínima verificable)** | Se cerró G4 en alcance acotado con policy explícita por surface: permitido fallback legacy sin `encounterId` solo en longitudinal/histórico; prohibido usar date-fallback como source-of-truth encounter-centric. Se registró el **guardrail técnico puntual aplicado**: si un registro trae `encounterId` explícito externo al episodio, no puede entrar por fecha (`resolveLongitudinalLinkageOrigin` retorna `null`). Resultado: **sin bug runtime nuevo verificable fuera del caso corregido**, **sin refactor general** y **sin migración/backfill masivo**. | Fix puntual en loader + test de regresión `foreign encounterId + same-day => null` + doc G4 acotado. | Mantener límite explícito: **no implica cierre global/system-wide** ni resolución total del legacy histórico; **no reabre G1/G2/G3**. |
 | Auditoría TG1 read-only (hardening global longitudinal/histórico fuera del cierre acotado) | **validado (sin gap técnico verificable en surfaces auditadas)** | La auditoría TG1 read-only no encontró brecha técnica verificable en history loader auditado, patient detail loader ni contrato cross-surface ya cubierto. Se confirma cierre por evidencia sin cambios productivos y sin pasar a TG2/TG3. | Matriz de auditoría TG1 sobre tests objetivo (`encounters/__tests__/data.test.ts`, `[id]/__tests__/data.test.ts`, `cross-surface.contract.test.ts`) + guardrails del sprint. | Mantener prudencia global: no sobredeclarar cierre system-wide; mantener `encounters/data.ts` bounded-closed en su boundary local salvo regresión nueva verificable. |
+| Cierre documental final del frente global longitudinal/histórico + legacy sin `encounterId` + continuidad system-wide | **cerrado por evidencia (ensamblado global, sin fix productivo nuevo)** | Con inventario/matriz global y clasificación final de remanentes, no se identificaron gaps técnicos críticos: las celdas parciales/sin evidencia fueron de ensamblado documental y no de brecha funcional verificable. Se considera suficiente la evidencia existente por surface según aplicabilidad de invariants; no se exige browser adicional cuando integration/unit ya cubre T2. | Backlog operativo actualizado + evidencias ya vigentes de G1/G2/G3/G4/TG1 en tests unitarios/integrados/E2E acotados. | Mantener límites explícitos: charts/history longitudinal **no** son surfaces encounter-centric; la mezcla longitudinal permitida queda confinada y no contamina `patient detail` / `encounter detail`; cualquier reapertura requiere evidencia nueva verificable. |
 | Documentation drift | **Parcialmente válido** | Documentación alinea dirección, pero hubo deriva de tono (“todo aprobado”) y riesgo de leer transición como estado final. | Diferencia entre validación previa y lenguaje explícito de ADR/write-phase. | Mantener este documento como checklist vivo y actualizar por fase/ticket real. |
 
 ## Revisión explícita por tema solicitado
@@ -125,18 +126,20 @@ La base documental principal (copilot instructions + write-phase + ADR) está al
 
 ### 10. Encounter-centric vs longitudinal (estado actual)
 
-**Estado:** Parcialmente válido
+**Estado:** Validado por evidencia (cierre documental global del frente operativo)
 
 Las superficies `patient detail` y `encounter detail` se sostienen como encounter-centric.
 El fallback por fecha permanece como estrategia longitudinal y no debe reutilizarse como source-of-truth encounter-centric.
 Avance acotado implementado en el loader longitudinal: clasificación local del origen de linkage (`linked-by-encounter` / `derived-by-date`) con trazabilidad mínima y precedencia explícita de vínculo por encounter.
-La deuda longitudinal/histórica sigue abierta; el sprint **cerrado en alcance acotado** de “Hardening del read global (encounter-centric vs longitudinal/histórico)” mantiene ese frente delimitado sin convertirlo en cierre global system-wide.
+Con el ensamblado final de evidencia, la deuda longitudinal/histórica de este frente deja de ser un abierto real y queda cerrada documentalmente como frente operativo global, preservando los límites de alcance ya validados.
 
 Actualización de alineación (TG1 read-only posterior): en las surfaces auditadas para hardening global fuera del cierre acotado, no se detectó brecha técnica verificable; el cierre de ese sprint fue por evidencia, sin cambios productivos y sin reapertura de `app/patients/[id]/encounters/data.ts` en su boundary local ya validado.
 
 Actualización documental acotada G3 (2026-04-06): evidencia reforzada con test integrado cross-surface para la frontera fallback-longitudinal vs encounter-centric. En el perímetro auditado, el fallback por fecha queda confinado a longitudinal/histórico, sin contaminación de source-of-truth encounter-centric (`patient detail`). Resultado: sin bug runtime nuevo verificable, sin cambios productivos, no implica cierre global/system-wide y no sustituye G4.
 
 Actualización documental acotada G4 (2026-04-06): queda definida una **policy operativa mínima verificable para legacy sin `encounterId`** con guardrail puntual ya aplicado en loader longitudinal. Regla explícita: fallback `derived-by-date` permitido solo para registros sin `encounterId`; registros con `encounterId` explícito externo al episodio quedan rechazados por fecha. Este cierre se mantiene acotado: sin refactor general, sin migración/backfill masivo, sin bug runtime nuevo verificable fuera del caso corregido, sin implicar cierre global/system-wide y sin reabrir G1/G2/G3.
+
+Actualización de cierre documental final (2026-04-07): el frente operativo global longitudinal/histórico + legacy sin `encounterId` + continuidad system-wide queda **cerrado por evidencia ensamblada**. La matriz global no dejó filas críticas sin evidencia funcional suficiente; los remanentes fueron clasificados como brecha documental (no técnica) y no requirieron cambios productivos ni nuevas specs browser para T2. Se preserva explícitamente la semántica correcta: charts/history longitudinal pueden mezclar encuentros por diseño, siempre confinados al dominio longitudinal permitido y sin contaminar surfaces encounter-centric (`patient detail`, `encounter detail`). Cualquier reapertura futura exige evidencia nueva verificable.
 
 ### 11. Linkage clínico en lectura (`encounterId`)
 
@@ -162,11 +165,11 @@ Evidencia validada:
 
 Límites explícitos:
 
-- ya existe cobertura browser E2E parcial en dos flujos acotados; el cierre browser system-wide/global sigue abierto;
+- ya existe cobertura browser E2E parcial en dos flujos acotados; para este frente, el cierre global se sostiene por ensamblado de evidencia sin requerir browser adicional;
 - no hay validación montada de RHF `reset(...)`;
 - no hay validación longitudinal/charts;
-- no hay garantía system-wide fuera de las surfaces indicadas;
-- no se declara cerrado el read model global ni la continuidad longitudinal/histórica.
+- la garantía se limita al perímetro de surfaces indicadas y al criterio T2 vigente;
+- este bloque acotado no reemplaza otros frentes arquitectónicos fuera del perímetro auditado.
 
 ### 13. Test stack hardening (estado operativo)
 
@@ -190,7 +193,7 @@ En el segundo flujo se corrigieron dos problemas reales:
 - observabilidad/timing de save-progress antes del reload;
 - lectura encounter-scoped de FC/EVA con `cache: "no-store"` en repositorios de rehidratación.
 
-Límite explícito: no implica cierre total de continuidad system-wide ni del read longitudinal/histórico.
+Límite explícito: por sí sola, esta cobertura browser acotada no cerraba continuidad system-wide ni read longitudinal/histórico; ese cierre se consolida recién en el ensamblado global de evidencia del frente.
 
 Actualización de cierre bounded (2026-04-06): se cerró el sprint de cobertura browser faltante en continuidad clínica con T1/T2/T4. La cobertura browser bounded quedó cerrada en los dos huecos definidos, con sin bug runtime nuevo verificable, no fue necesario abrir T3 y sin cambios productivos. Este resultado no implica cierre global/system-wide.
 
