@@ -140,6 +140,15 @@ No reabre practitioner consistency, ActionError fuera de encounter write, canoni
 - No corresponde a bug de dataset ni de scoping.
 - No tratar como frente técnico principal.
 
+## Patient detail — refinamiento UX/jerarquía (estado estabilizado)
+**Estado** → **Histórico (estabilizado / fuera de foco inmediato)**
+
+- Refinamiento ejecutado en esta iteración para consolidar `patient detail` como pantalla operativa compacta.
+- Resultado vigente: identificación mínima visible, diagnóstico principal con tags relevantes, señal operativa breve, CTA principal único por estado, acciones secundarias subordinadas, contacto como acceso secundario expandible y recuperación de contexto mínimo de “visita relevante” sin inflar la pantalla.
+- Alcance acotado al frente de presentación/jerarquía: sin cambios arquitectónicos, sin reapertura de lifecycle ni lógica clínica.
+- No se marca cierre definitivo del frente: queda pausado/estabilizado para uso actual y fuera del foco inmediato.
+- Evolución posterior posible: surface `episode detail`, fuera del alcance de este registro y no activada como deuda urgente.
+
 ---
 
 # ✅ Cerrado bounded / por evidencia (no reabrir sin evidencia nueva)
