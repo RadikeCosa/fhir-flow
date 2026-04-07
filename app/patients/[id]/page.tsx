@@ -62,7 +62,7 @@ export default async function Page({ params }: Props) {
       ? "Visita en curso"
       : nextPlannedEncounter
         ? "Próxima visita planificada"
-        : "Sin visita activa";
+        : null;
 
   const primaryAction = !hasActiveEpisode
     ? null
@@ -83,32 +83,36 @@ export default async function Page({ params }: Props) {
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <Breadcrumbs patientName={patientFullName} />
-          <h1 className="text-xl font-semibold text-foreground mt-2">
-            {patientFullName}
-          </h1>
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted">
-            <span>{operationalStatus}</span>
-            {data.patient.identifier && <span>• DNI {data.patient.identifier}</span>}
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
+            {operationalStatus && <span>{operationalStatus}</span>}
+            {data.patient.identifier && <span>DNI {data.patient.identifier}</span>}
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <details className="rounded-md border border-border bg-surface px-3 py-2 text-xs text-foreground">
+            <summary className="cursor-pointer list-none font-medium">
+              Ver datos del paciente
+            </summary>
+            <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2 md:min-w-[40rem]">
+              <PatientPersonalSection
+                patient={data.patient}
+                practitioners={data.patient.generalPractitioner}
+              />
+              <PatientContactSection
+                patient={data.patient}
+                contacts={data.patient.contact}
+              />
+            </div>
+          </details>
           {primaryAction && (
             <Link
               href={primaryAction.href}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-hover transition-colors duration-150"
             >
               {primaryAction.label}
-            </Link>
-          )}
-          {hasActiveEpisode && (
-            <Link
-              href={`/patients/${id}/encounters`}
-              className="inline-flex items-center px-3 py-2 border border-border text-xs font-medium rounded-md text-foreground hover:bg-surface transition-colors duration-150"
-            >
-              Ver historial
             </Link>
           )}
         </div>
@@ -119,7 +123,7 @@ export default async function Page({ params }: Props) {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
         <EpisodeOfCareSection episodes={data.episodes} patientId={id} />
         <LastEncounterSection
           lastEncounter={data.lastEncounter}
@@ -129,22 +133,8 @@ export default async function Page({ params }: Props) {
           evaRecords={data.lastEncounterEvaRecords}
           vitalSigns={data.lastEncounterVitalSigns}
         />
-        <details className="rounded-lg border border-border bg-surface p-4">
-          <summary className="cursor-pointer text-sm font-medium text-foreground">
-            Ver datos del paciente
-          </summary>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-            <PatientPersonalSection
-              patient={data.patient}
-              practitioners={data.patient.generalPractitioner}
-            />
-            <PatientContactSection
-              patient={data.patient}
-              contacts={data.patient.contact}
-            />
-          </div>
-        </details>
-        <div className="opacity-90">
+      </div>
+      <div className="mt-4 opacity-90">
         <InitialEvaluationSection
           encounterId={data.initialEncounter?.id ?? null}
           encounterDate={
@@ -163,7 +153,6 @@ export default async function Page({ params }: Props) {
             data.barthelAssessment ? [data.barthelAssessment] : []
           }
         />
-        </div>
       </div>
     </>
   );
