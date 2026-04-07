@@ -132,6 +132,6 @@ describe("LastEncounterSection planned render", () => {
         );
 
         expect(html).toContain("No hay visitas registradas en el episodio activo");
-        expect(html).toContain("Visitas");
+        expect(html).toContain("Visita relevante");
     });
 });

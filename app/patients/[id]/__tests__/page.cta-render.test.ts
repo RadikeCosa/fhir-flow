@@ -129,7 +129,7 @@ function makePatientDetailData(overrides: Partial<PatientDetailData> = {}): Pati
 }
 
 describe("Patient detail CTA render", () => {
-    it("renders register + plan CTAs when there is no in-progress nor planned encounter", async () => {
+    it("renders single primary CTA + secondary history CTA when there is no in-progress nor planned encounter", async () => {
         vi.mocked(getPatientDetailData).mockResolvedValue(
             makePatientDetailData(),
         );
@@ -141,8 +141,10 @@ describe("Patient detail CTA render", () => {
         const html = renderToStaticMarkup(element);
 
         expect(html).toContain(">Registrar visita<");
-        expect(html).toContain(">Planificar visita<");
         expect(html).not.toContain(">Completar visita<");
+        expect(html).toContain(">Ver historial<");
+        expect(html).toContain("Sin visita activa");
+        expect(html).toContain("Ver datos del paciente");
         expect(html).toContain("personal");
         expect(html).toContain("contact");
         expect(html).toContain("episodes");
@@ -150,10 +152,11 @@ describe("Patient detail CTA render", () => {
         expect(html).toContain("initial");
         expect(html).toContain("reassessments");
         expect(countOccurrences(html, 'href="/patients/pat-1/encounters/register"')).toBe(1);
-        expect(countOccurrences(html, 'href="/patients/pat-1/encounters/new"')).toBe(1);
+        expect(countOccurrences(html, 'href="/patients/pat-1/encounters/new"')).toBe(0);
+        expect(countOccurrences(html, 'href="/patients/pat-1/encounters"')).toBe(1);
     });
 
-    it("renders complete + plan CTAs when there is an in-progress encounter without planned encounter", async () => {
+    it("renders complete CTA as primary action when there is an in-progress encounter", async () => {
         vi.mocked(getPatientDetailData).mockResolvedValue(
             makePatientDetailData({
                 inProgressEncounter: makeEncounter("in-progress"),
@@ -168,13 +171,14 @@ describe("Patient detail CTA render", () => {
         const html = renderToStaticMarkup(element);
 
         expect(html).toContain(">Completar visita<");
-        expect(html).toContain(">Planificar visita<");
+        expect(html).toContain(">Ver historial<");
         expect(html).not.toContain(">Registrar visita<");
+        expect(html).toContain("Visita en curso");
         expect(countOccurrences(html, 'href="/patients/pat-1/encounters/enc-in-progress-1"')).toBe(1);
-        expect(countOccurrences(html, 'href="/patients/pat-1/encounters/new"')).toBe(1);
+        expect(countOccurrences(html, 'href="/patients/pat-1/encounters/new"')).toBe(0);
     });
 
-    it("renders planned-message + detail CTA when there is planned encounter without in-progress encounter", async () => {
+    it("renders planned detail CTA as primary action when there is planned encounter without in-progress encounter", async () => {
         vi.mocked(getPatientDetailData).mockResolvedValue(
             makePatientDetailData({
                 nextPlannedEncounter: makeEncounter("planned"),
@@ -187,15 +191,16 @@ describe("Patient detail CTA render", () => {
 
         const html = renderToStaticMarkup(element);
 
-        expect(html).toContain("Tenés una visita planificada");
-        expect(html).toContain(">Ver detalle<");
+        expect(html).toContain("Próxima visita planificada");
+        expect(html).toContain(">Ver próxima visita<");
+        expect(html).toContain(">Ver historial<");
         expect(html).not.toContain(">Registrar visita<");
         expect(countOccurrences(html, 'href="/patients/pat-1/encounters/enc-planned-1"')).toBe(1);
         expect(countOccurrences(html, 'href="/patients/pat-1/encounters/new"')).toBe(0);
         expect(countOccurrences(html, 'href="/patients/pat-1/encounters/register"')).toBe(0);
     });
 
-    it("renders complete + plan CTAs and planned helper message when both encounters exist", async () => {
+    it("keeps single primary action when both encounters exist", async () => {
         vi.mocked(getPatientDetailData).mockResolvedValue(
             makePatientDetailData({
                 inProgressEncounter: makeEncounter("in-progress"),
@@ -211,10 +216,10 @@ describe("Patient detail CTA render", () => {
         const html = renderToStaticMarkup(element);
 
         expect(html).toContain(">Completar visita<");
-        expect(html).toContain(">Planificar visita<");
-        expect(html).toContain("Además tenés una visita planificada");
+        expect(html).toContain(">Ver historial<");
+        expect(html).toContain("Visita en curso");
         expect(html).not.toContain(">Registrar visita<");
         expect(countOccurrences(html, 'href="/patients/pat-1/encounters/enc-in-progress-1"')).toBe(1);
-        expect(countOccurrences(html, 'href="/patients/pat-1/encounters/new"')).toBe(1);
+        expect(countOccurrences(html, 'href="/patients/pat-1/encounters/new"')).toBe(0);
     });
 });
