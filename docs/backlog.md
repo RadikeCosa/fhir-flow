@@ -1,6 +1,6 @@
 # 📋 FHIR Flow — Backlog operativo vigente
 
-Fecha de actualización: 2026-04-06
+Fecha de actualización: 2026-04-07
 
 ## Criterio de lectura de este backlog
 
@@ -131,7 +131,7 @@ No reabre practitioner consistency, ActionError fuera de encounter write, canoni
 
 - Pendiente de documentación transversal más sintética para evitar lecturas ambiguas.
 - No implica bug runtime nuevo.
-- No tiene prioridad por encima del frente activo único.
+- No tiene prioridad por encima del cierre operativo ya consolidado.
 
 ## Visibilidad de planned encounters en history
 **Estado** → **Abierto nominal/documental**
