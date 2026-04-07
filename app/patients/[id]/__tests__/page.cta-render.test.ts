@@ -129,7 +129,7 @@ function makePatientDetailData(overrides: Partial<PatientDetailData> = {}): Pati
 }
 
 describe("Patient detail CTA render", () => {
-    it("renders single primary CTA + secondary history CTA when there is no in-progress nor planned encounter", async () => {
+    it("renders single primary CTA and compact patient data access when there is no in-progress nor planned encounter", async () => {
         vi.mocked(getPatientDetailData).mockResolvedValue(
             makePatientDetailData(),
         );
@@ -142,9 +142,8 @@ describe("Patient detail CTA render", () => {
 
         expect(html).toContain(">Registrar visita<");
         expect(html).not.toContain(">Completar visita<");
-        expect(html).toContain(">Ver historial<");
-        expect(html).toContain("Sin visita activa");
         expect(html).toContain("Ver datos del paciente");
+        expect(html).not.toContain("Sin visita activa");
         expect(html).toContain("personal");
         expect(html).toContain("contact");
         expect(html).toContain("episodes");
@@ -153,7 +152,8 @@ describe("Patient detail CTA render", () => {
         expect(html).toContain("reassessments");
         expect(countOccurrences(html, 'href="/patients/pat-1/encounters/register"')).toBe(1);
         expect(countOccurrences(html, 'href="/patients/pat-1/encounters/new"')).toBe(0);
-        expect(countOccurrences(html, 'href="/patients/pat-1/encounters"')).toBe(1);
+        expect(countOccurrences(html, 'href="/patients/pat-1/encounters"')).toBe(0);
+        expect(countOccurrences(html, "Ana Perez")).toBe(1);
     });
 
     it("renders complete CTA as primary action when there is an in-progress encounter", async () => {
@@ -171,7 +171,6 @@ describe("Patient detail CTA render", () => {
         const html = renderToStaticMarkup(element);
 
         expect(html).toContain(">Completar visita<");
-        expect(html).toContain(">Ver historial<");
         expect(html).not.toContain(">Registrar visita<");
         expect(html).toContain("Visita en curso");
         expect(countOccurrences(html, 'href="/patients/pat-1/encounters/enc-in-progress-1"')).toBe(1);
@@ -193,7 +192,6 @@ describe("Patient detail CTA render", () => {
 
         expect(html).toContain("Próxima visita planificada");
         expect(html).toContain(">Ver próxima visita<");
-        expect(html).toContain(">Ver historial<");
         expect(html).not.toContain(">Registrar visita<");
         expect(countOccurrences(html, 'href="/patients/pat-1/encounters/enc-planned-1"')).toBe(1);
         expect(countOccurrences(html, 'href="/patients/pat-1/encounters/new"')).toBe(0);
@@ -216,7 +214,6 @@ describe("Patient detail CTA render", () => {
         const html = renderToStaticMarkup(element);
 
         expect(html).toContain(">Completar visita<");
-        expect(html).toContain(">Ver historial<");
         expect(html).toContain("Visita en curso");
         expect(html).not.toContain(">Registrar visita<");
         expect(countOccurrences(html, 'href="/patients/pat-1/encounters/enc-in-progress-1"')).toBe(1);
