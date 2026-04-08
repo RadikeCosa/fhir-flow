@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { RegisterEncounterForm } from "../new/components/RegisterEncounterForm";
 import { getNewEncounterPageData, type NewEncounterPageData } from "../new/data";
+import { getRegisterEncounterContinuationData } from "./data";
+import { mapInProgressEncounterDetailToFormInitialValues } from "@/lib/patient/mappers/in-progress-encounter-detail.mapper";
 
 export const metadata: Metadata = {
   title: "Registrar visita | FHIR Flow",
@@ -10,10 +12,16 @@ export const metadata: Metadata = {
 
 interface PageProps {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<{ encounterId?: string }>;
 }
 
-export default async function RegisterEncounterPage({ params }: PageProps) {
+export default async function RegisterEncounterPage({
+  params,
+  searchParams,
+}: PageProps) {
   const { id: patientId } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const encounterId = resolvedSearchParams?.encounterId;
 
   const data: NewEncounterPageData = await getNewEncounterPageData(patientId);
   const { patientName, practitionerName, activeEpisodes } = data;
@@ -63,6 +71,19 @@ export default async function RegisterEncounterPage({ params }: PageProps) {
   }
 
   const activeEpisode = activeEpisodes[0];
+  const continuationData =
+    typeof encounterId === "string" && encounterId.trim() !== ""
+      ? await getRegisterEncounterContinuationData(patientId, encounterId)
+      : null;
+
+  const initialEncounterId = continuationData?.encounter?.id;
+  const initialVisitType = continuationData?.encounter?.visitType;
+  const initialActualStartAt = continuationData?.encounter?.actualStartAt;
+  const initialValues = continuationData?.inProgressInitialValues
+    ? mapInProgressEncounterDetailToFormInitialValues(
+        continuationData.inProgressInitialValues,
+      )
+    : undefined;
 
   return (
     <div className="max-w-2xl mx-auto py-8 px-4">
@@ -87,6 +108,10 @@ export default async function RegisterEncounterPage({ params }: PageProps) {
             patientId={patientId}
             episodeOfCareId={activeEpisode.id}
             practitionerName={practitionerName}
+            initialEncounterId={initialEncounterId}
+            initialVisitType={initialVisitType}
+            initialActualStartAt={initialActualStartAt}
+            initialValues={initialValues}
           />
         </div>
       </div>

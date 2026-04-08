@@ -40,6 +40,11 @@ const baseEncounter = {
     clinicalNote: undefined,
 };
 
+const baseSaveProgressPayload = {
+    actualDate: "2026-03-20",
+    actualStartTime: "09:15",
+};
+
 describe("saveEncounterProgressAction", () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -71,7 +76,7 @@ describe("saveEncounterProgressAction", () => {
         const { saveEncounterProgressAction } = await import("../save-encounter-progress.action");
 
         await expect(
-            saveEncounterProgressAction("patient-1", "enc-404", {})
+            saveEncounterProgressAction("patient-1", "enc-404", baseSaveProgressPayload)
         ).resolves.toEqual({
             success: false,
             error: {
@@ -97,7 +102,7 @@ describe("saveEncounterProgressAction", () => {
         const { saveEncounterProgressAction } = await import("../save-encounter-progress.action");
 
         await expect(
-            saveEncounterProgressAction("patient-1", "enc-123", {})
+            saveEncounterProgressAction("patient-1", "enc-123", baseSaveProgressPayload)
         ).resolves.toEqual({
             success: false,
             error: {
@@ -123,6 +128,7 @@ describe("saveEncounterProgressAction", () => {
 
         await expect(
             saveEncounterProgressAction("patient-1", "enc-123", {
+                ...baseSaveProgressPayload,
                 clinicalNote: "Paciente estable durante sesión",
                 heartRate: 80,
                 procedures: [],
@@ -139,7 +145,7 @@ describe("saveEncounterProgressAction", () => {
                 performerId: "prac-1",
                 practitionerName: "Lic. Ramiro Perez",
                 visitType: "follow-up",
-                actualStartAt: "2026-03-20T09:15:00.000Z",
+                actualStartAt: "2026-03-20T12:15:00.000Z",
                 clinicalNote: "Paciente estable durante sesión",
                 heartRate: 80,
                 procedures: [],
@@ -179,7 +185,10 @@ describe("saveEncounterProgressAction", () => {
         const { saveEncounterProgressAction } = await import("../save-encounter-progress.action");
 
         await expect(
-            saveEncounterProgressAction("patient-1", "enc-123", { procedures: [] })
+            saveEncounterProgressAction("patient-1", "enc-123", {
+                ...baseSaveProgressPayload,
+                procedures: [],
+            })
         ).resolves.toEqual({
             success: false,
             error: {

@@ -2,6 +2,12 @@ import { z } from "zod";
 import { coerceOptionalNumber } from "../../../../../../lib/clinical/coerce";
 import { VITAL_SIGN_CAPTURE_RANGES } from "../../../../../../lib/clinical/vital-sign-capture-ranges";
 import {
+    APP_TIME_ZONE,
+    composeLocalDateTimeToUtcIso,
+    isDateOnly,
+    isValidLocalTimeString,
+} from "../../../../../../lib/date-time/date-time.utils";
+import {
     ProcedureCategoryValues,
     ProcedureCodeValues,
     type ProcedureCategory,
@@ -11,6 +17,12 @@ import { PROCEDURE_CODES_BY_CATEGORY } from "../../../../../../domain/procedures
 
 export const saveEncounterProgressSchema = z
     .object({
+        actualDate: z.string().refine((value) => isDateOnly(value), {
+            message: "La fecha debe tener formato YYYY-MM-DD.",
+        }),
+        actualStartTime: z.string().refine((value) => isValidLocalTimeString(value), {
+            message: "La hora de inicio debe tener formato HH:mm.",
+        }),
         clinicalNote: z.string().optional().transform((value) => value?.trim()),
         reasonDisplay: z.string().optional().transform((value) => value?.trim()),
         evaScore: z
@@ -104,6 +116,29 @@ export const saveEncounterProgressSchema = z
             .default([]),
     })
     .superRefine((data, ctx) => {
+        const now = new Date();
+        try {
+            const startIso = composeLocalDateTimeToUtcIso(
+                data.actualDate,
+                data.actualStartTime,
+                APP_TIME_ZONE
+            );
+            if (new Date(startIso).getTime() > now.getTime()) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    path: ["actualStartTime"],
+                    message:
+                        "La visita no puede registrarse en una fecha u hora futura. Si aún no ocurrió, planificala desde Nueva visita.",
+                });
+            }
+        } catch {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ["actualDate"],
+                message: "No se pudo construir la fecha/hora de ejecución.",
+            });
+        }
+
         const hasSystolic = data.bloodPressureSystolic !== undefined;
         const hasDiastolic = data.bloodPressureDiastolic !== undefined;
 

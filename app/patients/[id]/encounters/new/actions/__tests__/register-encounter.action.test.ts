@@ -84,6 +84,36 @@ describe("registerEncounterAction", () => {
         expect(revalidatePathMock).toHaveBeenNthCalledWith(3, "/patients/patient-1/encounters/enc-100");
     });
 
+    it("register start puede retornar encounterId sin redirect cuando se solicita continuidad en register", async () => {
+        getCurrentPractitionerMock.mockResolvedValue({
+            id: "kine-1",
+            displayName: "Lic. Ramiro Perez",
+        });
+        findAllByPatientIdMock.mockResolvedValue([
+            { id: "episode-1", status: "active" },
+        ]);
+        registerMock.mockResolvedValue({ id: "enc-101" });
+
+        const { registerEncounterAction } = await import("../register-encounter.action");
+
+        await expect(
+            registerEncounterAction("patient-1", {
+                completionMode: "start",
+                redirectToDetail: false,
+                episodeOfCareId: "episode-1",
+                visitType: "follow-up",
+                actualDate: "2026-03-20",
+                actualStartTime: "10:30",
+                procedures: [],
+            })
+        ).resolves.toEqual({
+            success: true,
+            data: { encounterId: "enc-101" },
+        });
+
+        expect(redirectMock).not.toHaveBeenCalled();
+    });
+
     it("register complete exige reglas shared de finished", async () => {
         getCurrentPractitionerMock.mockResolvedValue({
             id: "kine-1",
