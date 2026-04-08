@@ -236,6 +236,8 @@ export default function FinalizeEncounterForm({
           : values.clinicalNote;
 
       const result = await saveEncounterProgressAction(patientId, encounterId, {
+        actualDate: values.actualDate,
+        actualStartTime: values.actualStartTime,
         clinicalNote: clinicalNoteFromDom,
         reasonDisplay: values.reasonDisplay,
         evaScore: values.evaScore,

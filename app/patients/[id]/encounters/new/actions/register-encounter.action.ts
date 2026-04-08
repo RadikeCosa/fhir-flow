@@ -132,6 +132,17 @@ export async function registerEncounterAction(
         revalidatePath(`/patients/${patientId}`);
         revalidatePath(`/patients/${patientId}/encounters`);
         revalidatePath(encounterDetailPath);
+
+        if (
+            parseResult.data.completionMode === "start"
+            && parseResult.data.redirectToDetail === false
+        ) {
+            return {
+                success: true,
+                data: { encounterId: result.id },
+            };
+        }
+
         redirect(encounterDetailPath);
     } catch (error: unknown) {
         if (error instanceof FhirMapperError) {

@@ -131,13 +131,13 @@ Este frente queda explicitado como sprint UX/documental acotado (`docs/sprints/s
 
 ### 6.3 Register entry flow unificado + continuidad post-primer submit
 
-**Estado:** Parcialmente válido (entry unificado implementado; continuidad UX acotada pendiente)
+**Estado:** Válido hoy (single-surface implementado; seguimiento semántico menor)
 
 Diagnóstico funcional actualizado:
 
-- `/encounters/register` ya opera con entrada directa al formulario clínico y decisión explícita en submit (`Guardar progreso` / `Finalizar visita`).
-- En runtime, al usar `Guardar progreso` el flujo crea encounter en `in-progress`, redirige a `/encounters/[encounterId]` y continúa en `FinalizeEncounterForm`.
-- Ese salto mantiene coherencia arquitectónica encounter-centric, pero introduce fricción de continuidad: superposición parcial de campos base (fecha/hora/nota) y cambio de framing a “Finalizar visita” demasiado temprano para un estado todavía editable.
+- `/encounters/register` opera como single-surface clínico real para carga inicial y continuidad in-progress.
+- En runtime, `Guardado parcial` inicial puede continuar en la misma route con `encounterId` estable (sin redirect obligatorio inmediato a detail).
+- Se mantiene coherencia encounter-centric y la intención explícita por acción de submit.
 
 Evaluación de alternativas:
 
@@ -145,15 +145,17 @@ Evaluación de alternativas:
 - **B. Reducir register al mínimo de alta en curso:** viable si se busca bajar aún más superposición con detail.
 - **C. Entrada directa + creación inmediata al entrar:** desaconsejado por alta probabilidad de crear encounters vacíos, mayor ruido operativo y complejidad de limpieza/cancelación sin valor clínico equivalente.
 
-Recomendación vigente: **A** como reparación mínima correcta, manteniendo separación planning/register y contratos write actuales.
+Actualización post-implementación (2026-04-08): la recomendación de single-surface en `/encounters/register` quedó implementada en runtime.
 
 Impacto esperado sobre operaciones:
 
-1. `registerEncounterAction`: mantiene semántica actual del primer submit (`start` crea `in-progress`; `complete` crea `finished`).
-2. `saveEncounterProgressAction`: mantiene continuidad en detail para encounters ya creados.
-3. Redirect/revalidate: se preserva redirect encounter-centric a detail; el ajuste es de UX/composición, no de routing.
-4. Superposición de campos: requiere ajuste de presentación para no percibirse como “segundo formulario real”.
-5. Semántica de surface `in-progress`: conviene reencuadrar continuidad clínica y no solo cierre.
+1. `registerEncounterAction`: conserva rol de primer submit, con intención explícita (`Guardado parcial`/`Registrar`) y creación inicial encounter-centric cuando todavía no existe `encounterId`.
+2. `saveEncounterProgressAction`: pasa a utilizarse como continuidad del mismo formulario en register para encuentros ya creados (`in-progress`), sin salto obligatorio inmediato a detail.
+3. `finalizeEncounterAction`: mantiene cierre clínico explícito (`finished`) y reglas de obligatoriedad de cierre.
+4. Redirect/revalidate: se elimina como requisito en el primer guardado parcial de register; detail queda como surface canónica secundaria, no como continuación forzada inmediata.
+5. Composición de campos: timing + nota + motivo + vitales + EVA + procedimientos quedan en una sola surface desde el inicio.
+
+Nota de seguimiento semántico (no bloqueante): en save-progress de encounters ya creados, `actualStartAt` se recompone desde `actualDate + actualStartTime` del formulario. Es consistente con el contrato técnico actual, pero conviene mantener vigilancia para evitar reescrituras no deseadas del inicio real cuando el usuario ajusta ese campo en continuidad.
 
 Límites explícitos:
 

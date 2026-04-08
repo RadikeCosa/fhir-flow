@@ -18,6 +18,7 @@ import {
 import { FhirMapperError, FhirWriteError } from "../../../../../../domain/shared/error-types";
 import { createEncounterRepository } from "../../../../../../infrastructure/fhir/factories/encounter.factory";
 import { getCurrentPractitioner } from "../../../../../../lib/server/current-practitioner";
+import { composeLocalDateTimeToUtcIso } from "../../../../../../lib/date-time/date-time.utils";
 import { saveEncounterProgressSchema } from "./save-encounter-progress.schema";
 
 export async function saveEncounterProgressAction(
@@ -77,16 +78,6 @@ export async function saveEncounterProgressAction(
         throw error;
     }
 
-    if (!encounter.actualStartAt) {
-        return {
-            success: false,
-            error: buildDomainActionError({
-                message: "El encuentro no tiene registrada la hora real de inicio",
-                code: "ENCOUNTER_MISSING_ACTUAL_START",
-            }),
-        };
-    }
-
     let practitioner;
     try {
         practitioner = await getCurrentPractitioner();
@@ -113,7 +104,10 @@ export async function saveEncounterProgressAction(
         performerId: practitioner.id,
         practitionerName: practitioner.displayName,
         visitType: encounter.visitType,
-        actualStartAt: encounter.actualStartAt,
+        actualStartAt: composeLocalDateTimeToUtcIso(
+            parseResult.data.actualDate,
+            parseResult.data.actualStartTime
+        ),
         recordedAt: new Date().toISOString(),
         clinicalNote: parseResult.data.clinicalNote,
         reasonDisplay: parseResult.data.reasonDisplay ?? encounter.reasonDisplay ?? null,

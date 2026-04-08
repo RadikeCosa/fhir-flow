@@ -364,6 +364,8 @@ describe("critical encounter-centric flow integration", () => {
 
     await expect(
       saveEncounterProgressAction(state.patient.id, encounterId, {
+        actualDate: "2026-03-20",
+        actualStartTime: "10:00",
         clinicalNote: "nota persistida progreso",
         reasonDisplay: "Control respiratorio",
         heartRate: 86,
@@ -434,6 +436,8 @@ describe("critical encounter-centric flow integration", () => {
 
     await expect(
       saveEncounterProgressAction(state.patient.id, encounterId, {
+        actualDate: "2026-03-20",
+        actualStartTime: "10:00",
         clinicalNote: "nota en curso",
         reasonDisplay: "Control respiratorio",
         heartRate: 84,
@@ -499,6 +503,8 @@ describe("critical encounter-centric flow integration", () => {
 
     await expect(
       saveEncounterProgressAction(state.patient.id, encounterId, {
+        actualDate: "2026-03-20",
+        actualStartTime: "10:00",
         clinicalNote: "nota parcial en curso",
         reasonDisplay: "Control respiratorio",
         heartRate: 84,

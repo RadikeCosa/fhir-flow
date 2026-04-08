@@ -159,12 +159,18 @@ No reabre practitioner consistency, ActionError fuera de encounter write, canoni
 - Sprint documental propuesto: `docs/sprints/sprint-register-entry-flow-unificado-2026-04-08.md`.
 
 ## Register → save progress → detail continuity (auditoría runtime)
-**Estado** → **Abierto nominal/documental (auditoría cerrada, implementación pendiente)**
+**Estado** → **Cerrado por evidencia (post-implementación)**
 
-- Se auditó el flujo real end-to-end de `/encounters/register` cuando el usuario completa el formulario y acciona `Guardar progreso`.
-- Hallazgo: el redirect a `encounter detail` es correcto arquitectónicamente (`encounterId` estable, continuidad encounter-centric), pero la experiencia percibe una segunda etapa redundante por superposición parcial de campos entre register y detail (`fecha`, `hora inicio`, `hora fin`, `nota`) y por framing temprano de cierre clínico en detail.
-- No se detectó bug de routing ni de contrato write; la fricción principal es UX/semántica/composición de surfaces.
-- Evidencia y trazabilidad del diagnóstico en `docs/sprints/sprint-audit-register-progress-detail-continuity-2026-04-08.md`.
+- La auditoría inicial detectó fricción de continuidad register→detail y abrió el frente de reparación.
+- Con la implementación single-surface posterior, `Guardado parcial` ya no obliga salto inmediato a detail y la continuidad inicial queda en register.
+- Se conserva trazabilidad histórica del diagnóstico en `docs/sprints/sprint-audit-register-progress-detail-continuity-2026-04-08.md`.
+
+## Register single-surface clínico (redefinición de flujo target)
+**Estado** → **Cerrado real (implementado)**
+
+- Implementado el single-surface clínico en `/encounters/register` con continuidad de guardado parcial en la misma route.
+- Se mantiene arquitectura vigente (lifecycle, practitioner model, separación planning/register) sin reaperturas de ADR.
+- Sprint ejecutado y actualizado en `docs/sprints/sprint-redefinicion-register-single-surface-2026-04-08.md`.
 
 ## Patient detail — refinamiento UX/jerarquía (estado estabilizado)
 **Estado** → **Histórico (estabilizado / fuera de foco inmediato)**

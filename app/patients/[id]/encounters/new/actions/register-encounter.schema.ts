@@ -18,6 +18,7 @@ import { PROCEDURE_CODES_BY_CATEGORY } from "../../../../../../domain/procedures
 export const registerEncounterSchema = z
     .object({
         completionMode: z.enum(["start", "complete"]),
+        redirectToDetail: z.boolean().optional().default(true),
         episodeOfCareId: z.string().min(1, "El episodio de cuidado es requerido"),
         visitType: z.enum(["initial", "follow-up", "re-assessment", "discharge"]),
         actualDate: z.string().refine((value) => isDateOnly(value), {
