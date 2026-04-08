@@ -211,10 +211,11 @@ export default async function EncounterDetailPage({ params }: PageProps) {
             <div className="rounded-lg border border-border bg-surface shadow-sm">
               <div className="border-b border-border px-6 pt-5 pb-3">
                 <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-                  Finalizar visita
+                  Continuar visita en curso
                 </h2>
                 <p className="mt-1 text-sm text-muted">
-                  Completa los datos para registrar el cierre clínico.
+                  Actualizá el registro clínico y finalizá la visita cuando
+                  corresponda.
                 </p>
               </div>
               <div className="p-6">

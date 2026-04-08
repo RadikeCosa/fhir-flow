@@ -139,6 +139,10 @@ describe("Encounter detail page rehydration wiring", () => {
     const html = renderToStaticMarkup(element);
 
     expect(mapperMock).toHaveBeenCalledWith(baseData.inProgressInitialValues);
+    expect(html).toContain("Continuar visita en curso");
+    expect(html).toContain(
+      "Actualizá el registro clínico y finalizá la visita cuando corresponda.",
+    );
     expect(html).toContain("finalize:nota mapeada");
   });
 
