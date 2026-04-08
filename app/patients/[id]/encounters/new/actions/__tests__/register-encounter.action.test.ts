@@ -117,6 +117,50 @@ describe("registerEncounterAction", () => {
         expect(registerMock).not.toHaveBeenCalled();
     });
 
+    it("register complete crea encounter finished y redirige al detail encounter-centric", async () => {
+        getCurrentPractitionerMock.mockResolvedValue({
+            id: "kine-1",
+            displayName: "Lic. Ramiro Perez",
+        });
+        findAllByPatientIdMock.mockResolvedValue([
+            { id: "episode-1", status: "active" },
+        ]);
+        registerMock.mockResolvedValue({ id: "enc-200" });
+        redirectMock.mockImplementation(() => {
+            throw new Error("NEXT_REDIRECT");
+        });
+
+        const { registerEncounterAction } = await import("../register-encounter.action");
+
+        await expect(
+            registerEncounterAction("patient-1", {
+                completionMode: "complete",
+                episodeOfCareId: "episode-1",
+                visitType: "follow-up",
+                actualDate: "2026-03-20",
+                actualStartTime: "10:30",
+                actualEndTime: "11:00",
+                clinicalNote: "Paciente estable.",
+                procedures: [],
+            })
+        ).rejects.toThrow("NEXT_REDIRECT");
+
+        expect(registerMock).toHaveBeenCalledWith(
+            expect.objectContaining({
+                patientId: "patient-1",
+                completionMode: "complete",
+                episodeOfCareId: "episode-1",
+                performerId: "kine-1",
+                practitionerName: "Lic. Ramiro Perez",
+                actualEndAt: expect.any(String),
+                clinicalNote: "Paciente estable.",
+            })
+        );
+        expect(revalidatePathMock).toHaveBeenNthCalledWith(1, "/patients/patient-1");
+        expect(revalidatePathMock).toHaveBeenNthCalledWith(2, "/patients/patient-1/encounters");
+        expect(revalidatePathMock).toHaveBeenNthCalledWith(3, "/patients/patient-1/encounters/enc-200");
+    });
+
     it("rechaza fecha y hora de inicio futuras en register", async () => {
         const { registerEncounterAction } = await import("../register-encounter.action");
 

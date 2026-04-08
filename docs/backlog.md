@@ -148,6 +148,16 @@ No reabre practitioner consistency, ActionError fuera de encounter write, canoni
 - Regla explícita a sostener en documentación y futuros criterios UX: register corresponde a visitas ocurridas o en curso; visitas futuras corresponden a planning (`/encounters/new`).
 - Sprint documental preparado en `docs/sprints/sprint-ux-register-form-acotado-2026-04-07.md`, sin cambios productivos en esta etapa.
 
+
+## Register entry flow — unificación de entrada (diagnóstico técnico-funcional)
+**Estado** → **Abierto nominal/documental (análisis listo para sprint acotado)**
+
+- Se evaluó fricción UX/operativa del gate inicial en `/encounters/register` (`Iniciar visita` vs `Finalizar directamente`) por introducir una decisión operativa temprana antes de la carga clínica natural del formulario.
+- Recomendación documental: avanzar con **entrada directa al formulario clínico unificado + intención explícita en acciones finales** (`Guardar progreso` / `Finalizar visita`) manteniendo semántica explícita de intención y sin inferencias implícitas por campos.
+- Se descarta creación inmediata al entrar por riesgo de encounters huérfanos, ruido de auditoría y mayor complejidad de rollback/cancelación sin valor clínico proporcional.
+- Este frente se trata como **rediseño acotado del flow register**, sin reapertura de lifecycle ADR-001, sin cambios al practitioner model y sin mezclar planning (`/encounters/new`) con register (`/encounters/register`).
+- Sprint documental propuesto: `docs/sprints/sprint-register-entry-flow-unificado-2026-04-08.md`.
+
 ## Patient detail — refinamiento UX/jerarquía (estado estabilizado)
 **Estado** → **Histórico (estabilizado / fuera de foco inmediato)**
 

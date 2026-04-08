@@ -25,7 +25,7 @@ describe("RegisterEncounterForm render", () => {
         expect(html).toContain("Nota clínica");
         expect(html).toContain("Agregar nota clínica");
         expect(html).toContain("Registrado por Lic. Ramiro Perez");
-        expect(html).toContain("Iniciar visita");
-        expect(html).toContain("Finalizar directamente");
+        expect(html).toContain("Guardar progreso");
+        expect(html).toContain("Finalizar visita");
     });
 });
