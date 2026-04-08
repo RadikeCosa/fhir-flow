@@ -44,7 +44,7 @@ Resultado del diagnóstico:
 | Inverse mapper purity | **Parcialmente válido** | Regla arquitectónica es clara: mapper puro, sin resolver identidad ni reglas de negocio. Persisten riesgos de drift cuando la resolución de contexto no entra por input. | copilot instructions + ADR (responsabilidad de practitioner en Server Action). | Verificar por flujo que mapper solo transforme input validado y no lea config. |
 | Practitioner resolution (encounter write front) | **Válido hoy (alcance acotado)** | En encounter write, los flujos attribution-driven (`createEncounterAction`, `saveEncounterProgressAction`, `finalizeEncounterAction`, `registerEncounterAction`) resuelven practitioner server-side y lo propagan por write input hacia repository/mapper. `startEncounterAction` queda como exención explícita del sprint por ser transición de estado sobre encounter ya atribuido. | ADR sección de practitioner responsibility + write-phase + sprint practitioner consistency (T1–T5). | Mantener cobertura de regresión en ese frente sin extrapolar a rediseño global de identity. |
 | Register flow (`/encounters/register`) | **Válido hoy** | La separación de entry points está operativa: `/encounters/new` planifica y `/encounters/register` registra con `registerEncounterAction` y `completionMode` explícito (`start`/`complete`). | Estado de app layer + write-phase actualizado. | Mantener consistencia documental y evitar regresión semántica entre rutas. |
-| Register entry flow (`/encounters/register`) | **Parcialmente válido (rediseño UX-operativo acotado recomendado)** | El flujo actual conserva un gate inicial de intención (`start`/`complete`) válido pero con fricción: obliga decisión operativa antes de capturar contexto clínico. El análisis comparativo A/B/C recomienda entrada directa al formulario con decisión explícita recién en submit (`Guardar progreso`/`Finalizar visita`), manteniendo separación planning-vs-register y sin inferencia implícita por campos. | ADR-001 + write-phase + checkpoint app-layer + sprint UX 2026-04-07 + sprint nuevo de entry-flow 2026-04-08. | Avanzar sprint acotado de rediseño de entry flow sin reabrir lifecycle ni practitioner model. |
+| Register entry flow (`/encounters/register`) | **Parcialmente válido (fricción de continuidad register→detail detectada)** | El gate inicial ya fue eliminado y el usuario entra directo al formulario con intención explícita en submit (`Guardar progreso`/`Finalizar visita`). La auditoría runtime 2026-04-08 confirma que el redirect post-`Guardar progreso` a detail es correcto encounter-centric, pero deja fricción UX/semántica por superposición parcial register/detail (timing + nota + acciones) y framing temprano de “Finalizar visita” en el surface `in-progress`. | ADR-001 + write-phase + checkpoint app-layer + sprint UX 2026-04-07 + sprint entry-flow 2026-04-08 + sprint audit continuidad 2026-04-08. | Ejecutar reparación mínima de continuidad UX/composición sin reabrir lifecycle ni practitioner model. |
 | Register UX/semántica (surface de formulario) | **Parcialmente válido (refinamiento UX pendiente, sin brecha arquitectónica)** | El surface `register` está operativo y consistente con lifecycle, pero conserva señales semánticas mejorables (etiqueta "real" en fecha/horas, bloque "Profesional" visible sin aportar decisión, affordance de nota clínica siempre expandida y necesidad de reforzar en UI que no corresponde registrar visitas futuras desde register). | ADR-001 + ADR-003 + write-phase + checkpoint app architecture + sprint UX documental 2026-04-07. | Ejecutar sprint UX acotado del formulario sin alterar arquitectura ni reglas de cierre clínico. |
 | Save progress separado | **Válido hoy** | `saveEncounterProgressAction` existe como operación propia con snapshot transaccional y ownership metadata interoperable para recursos clínicos gestionados por esta app. | write-phase + código de acciones/rules/repositorio. | Mantener hardening de validaciones por estado y ownership. |
 | Lifecycle transition (`planned -> in-progress`) | **Válido hoy** | `startEncounterAction` ya está operativo para encounters planificados y la finalización exige `in-progress`. | Reglas de estado en actions/domain + write-phase actualizado. | Mantener hardening de regresiones y tests de estado. |
@@ -129,27 +129,31 @@ Se identifica un frente UX puntual en `/encounters/register` que no modifica arq
 Este frente queda explicitado como sprint UX/documental acotado (`docs/sprints/sprint-ux-register-form-acotado-2026-04-07.md`) y no reabre decisiones cerradas de ADR-001/ADR-003 ni separación planning/register.
 
 
-### 6.3 Register entry flow unificado (diagnóstico A/B/C)
+### 6.3 Register entry flow unificado + continuidad post-primer submit
 
-**Estado:** Parcialmente válido (recomendación concreta de rediseño acotado)
+**Estado:** Parcialmente válido (entry unificado implementado; continuidad UX acotada pendiente)
 
-Diagnóstico funcional: el gate inicial de `/encounters/register` obliga una decisión operativa (`Iniciar visita` / `Finalizar directamente`) antes de capturar datos clínicos, lo que añade fricción cognitiva y duplica semántica con las acciones finales del formulario.
+Diagnóstico funcional actualizado:
+
+- `/encounters/register` ya opera con entrada directa al formulario clínico y decisión explícita en submit (`Guardar progreso` / `Finalizar visita`).
+- En runtime, al usar `Guardar progreso` el flujo crea encounter en `in-progress`, redirige a `/encounters/[encounterId]` y continúa en `FinalizeEncounterForm`.
+- Ese salto mantiene coherencia arquitectónica encounter-centric, pero introduce fricción de continuidad: superposición parcial de campos base (fecha/hora/nota) y cambio de framing a “Finalizar visita” demasiado temprano para un estado todavía editable.
 
 Evaluación de alternativas:
 
-- **A. Mantener flujo actual:** técnicamente válido y explícito, pero conserva fricción de doble decisión (entrada + submit) y menor progresividad UX.
-- **B. Entrada directa + creación al primer submit:** mejor balance técnico/UX. Mantiene intención explícita, preserva separación planning/register y evita encounters huérfanos.
+- **A. Mantener surfaces actuales + reparar continuidad UX (copy/framing/composición):** mejor opción mínima hoy; conserva arquitectura y elimina la fricción principal percibida.
+- **B. Reducir register al mínimo de alta en curso:** viable si se busca bajar aún más superposición con detail.
 - **C. Entrada directa + creación inmediata al entrar:** desaconsejado por alta probabilidad de crear encounters vacíos, mayor ruido operativo y complejidad de limpieza/cancelación sin valor clínico equivalente.
 
-Recomendación vigente: **B** como evolución acotada del flow register (no cambio arquitectónico global).
+Recomendación vigente: **A** como reparación mínima correcta, manteniendo separación planning/register y contratos write actuales.
 
 Impacto esperado sobre operaciones:
 
-1. `registerEncounterAction`: pasa de operar como decisión inicial del gate a resolver la **semántica del primer submit** (crear `in-progress` en guardar progreso o crear `finished` en finalizar visita).
-2. `saveEncounterProgressAction`: se mantiene para submits posteriores cuando ya existe `encounterId`, conservando continuidad `in-progress`.
-3. Estados de formulario: primer submit sin `encounterId` (ruta de creación explícita) vs submits subsiguientes con `encounterId` (ruta de actualización/progreso).
-4. Redirect/revalidate: tras primer submit exitoso se debe estabilizar URL/state sobre `encounterId` creado y mantener rehidratación encounter-centric consistente.
-5. Continuidad posterior: si queda `in-progress`, el flujo continúa por guardado parcial y cierre posterior sin reintroducir gate inicial.
+1. `registerEncounterAction`: mantiene semántica actual del primer submit (`start` crea `in-progress`; `complete` crea `finished`).
+2. `saveEncounterProgressAction`: mantiene continuidad en detail para encounters ya creados.
+3. Redirect/revalidate: se preserva redirect encounter-centric a detail; el ajuste es de UX/composición, no de routing.
+4. Superposición de campos: requiere ajuste de presentación para no percibirse como “segundo formulario real”.
+5. Semántica de surface `in-progress`: conviene reencuadrar continuidad clínica y no solo cierre.
 
 Límites explícitos:
 

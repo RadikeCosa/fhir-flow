@@ -1,6 +1,6 @@
 # 📋 FHIR Flow — Backlog operativo vigente
 
-Fecha de actualización: 2026-04-07
+Fecha de actualización: 2026-04-08
 
 ## Criterio de lectura de este backlog
 
@@ -157,6 +157,14 @@ No reabre practitioner consistency, ActionError fuera de encounter write, canoni
 - Se descarta creación inmediata al entrar por riesgo de encounters huérfanos, ruido de auditoría y mayor complejidad de rollback/cancelación sin valor clínico proporcional.
 - Este frente se trata como **rediseño acotado del flow register**, sin reapertura de lifecycle ADR-001, sin cambios al practitioner model y sin mezclar planning (`/encounters/new`) con register (`/encounters/register`).
 - Sprint documental propuesto: `docs/sprints/sprint-register-entry-flow-unificado-2026-04-08.md`.
+
+## Register → save progress → detail continuity (auditoría runtime)
+**Estado** → **Abierto nominal/documental (auditoría cerrada, implementación pendiente)**
+
+- Se auditó el flujo real end-to-end de `/encounters/register` cuando el usuario completa el formulario y acciona `Guardar progreso`.
+- Hallazgo: el redirect a `encounter detail` es correcto arquitectónicamente (`encounterId` estable, continuidad encounter-centric), pero la experiencia percibe una segunda etapa redundante por superposición parcial de campos entre register y detail (`fecha`, `hora inicio`, `hora fin`, `nota`) y por framing temprano de cierre clínico en detail.
+- No se detectó bug de routing ni de contrato write; la fricción principal es UX/semántica/composición de surfaces.
+- Evidencia y trazabilidad del diagnóstico en `docs/sprints/sprint-audit-register-progress-detail-continuity-2026-04-08.md`.
 
 ## Patient detail — refinamiento UX/jerarquía (estado estabilizado)
 **Estado** → **Histórico (estabilizado / fuera de foco inmediato)**

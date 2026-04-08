@@ -99,14 +99,21 @@ describe("FinalizeEncounterForm save-progress regression", () => {
     });
 
     it("shows inline success feedback for save-progress without disabling the buttons", () => {
-        seedRenderState(null, "Progreso guardado correctamente.", null, true, true, true);
+        seedRenderState(
+            null,
+            "Progreso guardado correctamente.",
+            null,
+            false,
+            true,
+            true,
+            true,
+        );
 
         const html = buildFormMarkup();
 
         expect(html).toContain("Progreso guardado correctamente.");
-        expect(html.indexOf("Progreso guardado correctamente.")).toBeLessThan(
-            html.indexOf("Guardar progreso"),
-        );
+        expect(html).toContain("Datos base de continuidad");
+        expect(html).toContain("Editar");
         expect(html).toContain("Guardar progreso");
         expect(html).toContain("Finalizar visita");
         expect(html).not.toContain('disabled=""');
@@ -124,6 +131,7 @@ describe("FinalizeEncounterForm save-progress regression", () => {
             },
             null,
             null,
+            false,
             true,
             true,
             true,
