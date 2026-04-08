@@ -142,7 +142,7 @@ export const registerEncounterSchema = z
                         code: z.ZodIssueCode.custom,
                         path: ["actualEndTime"],
                         message:
-                            "La hora de fin no puede ser futura. Si la visita todavía no terminó, registrala como Iniciar visita.",
+                            "La hora de fin no puede ser futura. Si la visita todavía no terminó, guardá progreso.",
                     });
                 }
             } catch {

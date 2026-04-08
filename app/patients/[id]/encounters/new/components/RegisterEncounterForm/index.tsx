@@ -96,8 +96,8 @@ const registerEncounterFormSchema = z.object({
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["actualEndTime"],
-          message:
-            "La hora de fin no puede ser futura. Si la visita todavía no terminó, registrala como Iniciar visita.",
+                message:
+                  "La hora de fin no puede ser futura. Si la visita todavía no terminó, guardá progreso.",
         });
       }
     } catch {
@@ -397,7 +397,7 @@ export function RegisterEncounterForm({
           className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors duration-150 hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
           disabled={isSubmitting}
         >
-          Iniciar visita
+          Guardar progreso
         </button>
         <button
           type="submit"
@@ -405,11 +405,13 @@ export function RegisterEncounterForm({
           className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-transparent px-4 py-2 text-sm font-medium text-muted transition-colors duration-150 hover:bg-surface-hover hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
           disabled={isSubmitting}
         >
-          Finalizar directamente
+          Finalizar visita
         </button>
       </div>
 
-      <p className="text-xs text-muted">Elegí cómo querés registrar la visita.</p>
+      <p className="text-xs text-muted">
+        Elegí la acción de guardado para esta visita.
+      </p>
     </form>
   );
 }
