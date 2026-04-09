@@ -112,8 +112,8 @@ describe("FinalizeEncounterForm save-progress regression", () => {
         const html = buildFormMarkup();
 
         expect(html).toContain("Progreso guardado correctamente.");
-        expect(html).toContain("Datos base de continuidad");
-        expect(html).toContain("Editar");
+        expect(html).toContain("Nota clínica");
+        expect(html).toContain("Hora de salida");
         expect(html).toContain("Guardar progreso");
         expect(html).toContain("Finalizar visita");
         expect(html).not.toContain('disabled=""');
