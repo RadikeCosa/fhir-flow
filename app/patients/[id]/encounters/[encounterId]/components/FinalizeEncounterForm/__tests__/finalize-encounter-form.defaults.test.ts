@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import {
-    buildFinalizeEncounterFormDefaultValues,
+    buildClinicalEncounterFormDefaultValues,
     resolveInitialActualDate,
     resolveInitialActualTiming,
-} from "../finalize-encounter-form.defaults";
+} from "../../../../components/ClinicalEncounterForm/clinical-encounter-form.defaults";
 
 describe("finalize-encounter-form.defaults", () => {
     it("uses plannedDate as initial actualDate when available", () => {
@@ -42,7 +42,7 @@ describe("finalize-encounter-form.defaults", () => {
     });
 
     it("builds default form values with in-progress clinical initial values", () => {
-        const defaults = buildFinalizeEncounterFormDefaultValues(
+        const defaults = buildClinicalEncounterFormDefaultValues(
             {
                 actualDate: "2026-03-21",
                 actualStartTime: "10:30",
@@ -93,7 +93,7 @@ describe("finalize-encounter-form.defaults", () => {
     });
 
     it("keeps missing persisted fields as missing in partial rehydration", () => {
-        const defaults = buildFinalizeEncounterFormDefaultValues(
+        const defaults = buildClinicalEncounterFormDefaultValues(
             {
                 actualDate: "2026-03-21",
                 actualStartTime: "10:30",

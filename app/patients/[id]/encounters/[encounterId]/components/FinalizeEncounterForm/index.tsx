@@ -11,10 +11,10 @@ import { finalizeEncounterAction } from "../../actions/finalize-encounter.action
 import { saveEncounterProgressAction } from "../../actions/save-encounter-progress.action";
 import type { ActionResult } from "../../../../../../../domain/shared/action-result.types";
 import {
-  buildFinalizeEncounterFormDefaultValues,
+  buildClinicalEncounterFormDefaultValues,
   formatPlannedContext,
   resolveInitialActualTiming,
-} from "./finalize-encounter-form.defaults";
+} from "../../../components/ClinicalEncounterForm/clinical-encounter-form.defaults";
 import type { InProgressEncounterFormInitialValues } from "@/lib/patient/mappers/in-progress-encounter-detail.mapper";
 import { ClinicalEncounterForm } from "../../../components/ClinicalEncounterForm/ClinicalEncounterForm";
 import { createDefaultProcedure } from "../../../components/ClinicalEncounterForm/schema";
@@ -59,7 +59,7 @@ export default function FinalizeEncounterForm({
   );
   const defaultValues = useMemo(
     () =>
-      buildFinalizeEncounterFormDefaultValues(
+      buildClinicalEncounterFormDefaultValues(
         initialActualTiming,
         initialValues,
       ),

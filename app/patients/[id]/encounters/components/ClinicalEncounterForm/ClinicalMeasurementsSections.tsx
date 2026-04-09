@@ -6,6 +6,11 @@ import {
   VITAL_SIGN_CAPTURE_RANGES,
 } from "@/lib/clinical/vital-sign-capture-ranges";
 import {
+  CLINICAL_RANGES,
+  getClinicalZones,
+  getEvaClinicalRanges,
+} from "@/lib/patient/formatters/clinical-ranges";
+import {
   ProcedureCategoryValues,
   type ProcedureCategory,
   type ProcedureCode,
@@ -16,6 +21,7 @@ import {
   formatProcedureCode,
 } from "@/lib/patient/formatters/procedure.formatters";
 import { createDefaultProcedure } from "./schema";
+import { ClinicalFieldReferenceHint } from "./ClinicalFieldReferenceHint";
 
 interface ProcedureFieldItem {
   id: string;
@@ -42,6 +48,35 @@ interface ClinicalMeasurementsSectionsProps<FormValues extends { procedures: Pro
 
 const isProcedureCategory = (value: string): value is ProcedureCategory =>
   ProcedureCategoryValues.includes(value as ProcedureCategory);
+
+function formatClinicalRangeValue(value: number): string {
+  if (value === Number.NEGATIVE_INFINITY) {
+    return "−∞";
+  }
+  if (value === Number.POSITIVE_INFINITY) {
+    return "+∞";
+  }
+  return Number.isInteger(value) ? String(value) : value.toFixed(1);
+}
+
+function formatTechnicalRange(min: number, max: number, unit: string): string {
+  return `${formatClinicalRangeValue(min)}–${formatClinicalRangeValue(max)}${unit ? ` ${unit}` : ""}`;
+}
+
+function formatNormalReferenceFromBinaryRange(range: (typeof CLINICAL_RANGES)[keyof typeof CLINICAL_RANGES]): string | undefined {
+  if (range.kind !== "binary") {
+    return undefined;
+  }
+
+  return `${formatClinicalRangeValue(range.normal.min)}–${formatClinicalRangeValue(range.normal.max)}`;
+}
+
+function formatEvaReference(): string {
+  const zones = getClinicalZones(getEvaClinicalRanges());
+  return zones
+    .map((zone) => `${formatClinicalRangeValue(zone.min)}–${formatClinicalRangeValue(zone.max)} ${zone.label}`)
+    .join(" · ");
+}
 
 export function ClinicalMeasurementsSections<FormValues extends { procedures: ProcedureFormItem[] }>({
   register,
@@ -75,6 +110,14 @@ export function ClinicalMeasurementsSections<FormValues extends { procedures: Pr
               {...register("heartRate" as never)}
               className="mt-1 block w-full rounded-md border border-border px-3 py-2"
             />
+            <ClinicalFieldReferenceHint
+              technicalRangeText={formatTechnicalRange(
+                VITAL_SIGN_CAPTURE_RANGES.heartRate.min,
+                VITAL_SIGN_CAPTURE_RANGES.heartRate.max,
+                VITAL_SIGN_CAPTURE_RANGES.heartRate.unit,
+              )}
+              referenceRangeText={`${formatNormalReferenceFromBinaryRange(CLINICAL_RANGES.heartRate)} ${VITAL_SIGN_CAPTURE_RANGES.heartRate.unit}`}
+            />
           </div>
           <div>
             <label htmlFor="respiratoryRate" className="block text-sm font-medium">
@@ -88,6 +131,14 @@ export function ClinicalMeasurementsSections<FormValues extends { procedures: Pr
               step={VITAL_SIGN_CAPTURE_RANGES.respiratoryRate.step}
               {...register("respiratoryRate" as never)}
               className="mt-1 block w-full rounded-md border border-border px-3 py-2"
+            />
+            <ClinicalFieldReferenceHint
+              technicalRangeText={formatTechnicalRange(
+                VITAL_SIGN_CAPTURE_RANGES.respiratoryRate.min,
+                VITAL_SIGN_CAPTURE_RANGES.respiratoryRate.max,
+                VITAL_SIGN_CAPTURE_RANGES.respiratoryRate.unit,
+              )}
+              referenceRangeText={`${formatNormalReferenceFromBinaryRange(CLINICAL_RANGES.respiratoryRate)} ${VITAL_SIGN_CAPTURE_RANGES.respiratoryRate.unit}`}
             />
           </div>
           <div>
@@ -103,6 +154,14 @@ export function ClinicalMeasurementsSections<FormValues extends { procedures: Pr
               {...register("oxygenSaturation" as never)}
               className="mt-1 block w-full rounded-md border border-border px-3 py-2"
             />
+            <ClinicalFieldReferenceHint
+              technicalRangeText={formatTechnicalRange(
+                VITAL_SIGN_CAPTURE_RANGES.oxygenSaturation.min,
+                VITAL_SIGN_CAPTURE_RANGES.oxygenSaturation.max,
+                VITAL_SIGN_CAPTURE_RANGES.oxygenSaturation.unit,
+              )}
+              referenceRangeText={`${formatNormalReferenceFromBinaryRange(CLINICAL_RANGES.oxygenSaturation)} ${VITAL_SIGN_CAPTURE_RANGES.oxygenSaturation.unit}`}
+            />
           </div>
           <div>
             <label htmlFor="bodyTemperature" className="block text-sm font-medium">
@@ -116,6 +175,14 @@ export function ClinicalMeasurementsSections<FormValues extends { procedures: Pr
               step={VITAL_SIGN_CAPTURE_RANGES.bodyTemperature.step}
               {...register("bodyTemperature" as never)}
               className="mt-1 block w-full rounded-md border border-border px-3 py-2"
+            />
+            <ClinicalFieldReferenceHint
+              technicalRangeText={formatTechnicalRange(
+                VITAL_SIGN_CAPTURE_RANGES.bodyTemperature.min,
+                VITAL_SIGN_CAPTURE_RANGES.bodyTemperature.max,
+                VITAL_SIGN_CAPTURE_RANGES.bodyTemperature.unit,
+              )}
+              referenceRangeText={`${formatNormalReferenceFromBinaryRange(CLINICAL_RANGES.bodyTemperature)} ${VITAL_SIGN_CAPTURE_RANGES.bodyTemperature.unit}`}
             />
           </div>
           <div>
@@ -131,6 +198,14 @@ export function ClinicalMeasurementsSections<FormValues extends { procedures: Pr
               {...register("bloodPressureSystolic" as never)}
               className="mt-1 block w-full rounded-md border border-border px-3 py-2"
             />
+            <ClinicalFieldReferenceHint
+              technicalRangeText={formatTechnicalRange(
+                VITAL_SIGN_CAPTURE_RANGES.bloodPressureSystolic.min,
+                VITAL_SIGN_CAPTURE_RANGES.bloodPressureSystolic.max,
+                VITAL_SIGN_CAPTURE_RANGES.bloodPressureSystolic.unit,
+              )}
+              referenceRangeText={`${formatNormalReferenceFromBinaryRange(CLINICAL_RANGES.bloodPressure)} ${VITAL_SIGN_CAPTURE_RANGES.bloodPressureSystolic.unit} (sistólica)`}
+            />
           </div>
           <div>
             <label htmlFor="bloodPressureDiastolic" className="block text-sm font-medium">
@@ -144,6 +219,14 @@ export function ClinicalMeasurementsSections<FormValues extends { procedures: Pr
               step={VITAL_SIGN_CAPTURE_RANGES.bloodPressureDiastolic.step}
               {...register("bloodPressureDiastolic" as never)}
               className="mt-1 block w-full rounded-md border border-border px-3 py-2"
+            />
+            <ClinicalFieldReferenceHint
+              technicalRangeText={formatTechnicalRange(
+                VITAL_SIGN_CAPTURE_RANGES.bloodPressureDiastolic.min,
+                VITAL_SIGN_CAPTURE_RANGES.bloodPressureDiastolic.max,
+                VITAL_SIGN_CAPTURE_RANGES.bloodPressureDiastolic.unit,
+              )}
+              helperText="Referencia clínica específica de diastólica no definida en metadata compartida."
             />
           </div>
         </div>
@@ -163,7 +246,15 @@ export function ClinicalMeasurementsSections<FormValues extends { procedures: Pr
           {...register("evaScore" as never)}
           className="mt-1 block w-full rounded-md border border-border px-3 py-2"
         />
-        <p className="text-xs text-muted mt-1">{EVA_HELPER_TEXT}</p>
+        <ClinicalFieldReferenceHint
+          technicalRangeText={formatTechnicalRange(
+            VITAL_SIGN_CAPTURE_RANGES.evaScore.min,
+            VITAL_SIGN_CAPTURE_RANGES.evaScore.max,
+            VITAL_SIGN_CAPTURE_RANGES.evaScore.unit,
+          )}
+          referenceRangeText={formatEvaReference()}
+          helperText={EVA_HELPER_TEXT}
+        />
       </div>
 
       <div className="rounded-lg border border-border bg-surface p-4 space-y-3">
