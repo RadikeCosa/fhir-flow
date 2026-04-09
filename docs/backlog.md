@@ -1,6 +1,6 @@
 # 📋 FHIR Flow — Backlog operativo vigente
 
-Fecha de actualización: 2026-04-08
+Fecha de actualización: 2026-04-09
 
 ## Criterio de lectura de este backlog
 
@@ -141,22 +141,21 @@ No reabre practitioner consistency, ActionError fuera de encounter write, canoni
 - No tratar como frente técnico principal.
 
 ## Register form — refinamiento UX/semántico acotado
-**Estado** → **Abierto nominal/documental**
+**Estado** → **Cerrado bounded (surface `/encounters/register`)**
 
-- Frente acotado al surface `/encounters/register`: copy, jerarquía visual y affordances de interacción.
-- No se trata como cambio arquitectónico ni como reapertura de lifecycle/write/planning-vs-register.
-- Regla explícita a sostener en documentación y futuros criterios UX: register corresponde a visitas ocurridas o en curso; visitas futuras corresponden a planning (`/encounters/new`).
-- Sprint documental preparado en `docs/sprints/sprint-ux-register-form-acotado-2026-04-07.md`, sin cambios productivos en esta etapa.
+- El refinamiento principal del surface register quedó absorbido por la implementación single-surface + composición clínica compartida.
+- Se limpió el framing superior de `/encounters/register` y dejó de exponerse `episodeId` como identificador visible de cabecera.
+- Se mantiene la semántica de producto: register corresponde a visitas ocurridas/en curso; visitas futuras permanecen en planning (`/encounters/new`).
+- Remanente eventual: ajustes menores de copy/tono, clasificados como nominales y no como frente runtime.
 
 
 ## Register entry flow — unificación de entrada (diagnóstico técnico-funcional)
-**Estado** → **Abierto nominal/documental (análisis listo para sprint acotado)**
+**Estado** → **Cerrado real (implementado en register single-surface)**
 
-- Se evaluó fricción UX/operativa del gate inicial en `/encounters/register` (`Iniciar visita` vs `Finalizar directamente`) por introducir una decisión operativa temprana antes de la carga clínica natural del formulario.
-- Recomendación documental: avanzar con **entrada directa al formulario clínico unificado + intención explícita en acciones finales** (`Guardar progreso` / `Finalizar visita`) manteniendo semántica explícita de intención y sin inferencias implícitas por campos.
-- Se descarta creación inmediata al entrar por riesgo de encounters huérfanos, ruido de auditoría y mayor complejidad de rollback/cancelación sin valor clínico proporcional.
-- Este frente se trata como **rediseño acotado del flow register**, sin reapertura de lifecycle ADR-001, sin cambios al practitioner model y sin mezclar planning (`/encounters/new`) con register (`/encounters/register`).
-- Sprint documental propuesto: `docs/sprints/sprint-register-entry-flow-unificado-2026-04-08.md`.
+- El gate inicial (`Iniciar visita` vs `Finalizar directamente`) quedó reemplazado por entrada directa al formulario clínico.
+- La intención de cierre se mantiene explícita en acciones de submit (`Guardar progreso` / `Finalizar visita`), sin inferencia por campos.
+- Se conserva el criterio de no crear encounter al entrar para evitar registros huérfanos y ruido operativo.
+- Cierre acotado al flow register; no reabre lifecycle ADR-001 ni practitioner model.
 
 ## Register → save progress → detail continuity (auditoría runtime)
 **Estado** → **Cerrado por evidencia (post-implementación)**
@@ -168,20 +167,26 @@ No reabre practitioner consistency, ActionError fuera de encounter write, canoni
 
 
 ## Unificación formulario clínico register/continuidad (auditoría integral)
-**Estado** → **Abierto real (prioridad alta)**
+**Estado** → **Cerrado bounded (surface clínico compartido register/continuidad)**
 
-- Auditoría integral ejecutada el 2026-04-08: se confirma coexistencia de dos formularios clínicos reales (`RegisterEncounterForm` y `FinalizeEncounterForm`) y múltiples schemas activos con drift menor pero acumulativo.
-- Brecha principal: inconsistencia de experiencia/surface/copy en continuidad (`/encounters/register` vs `/encounters/[encounterId]`), con percepción de “segundo formulario” y ocultamiento inicial del input editable de nota clínica al retomar.
-- Vitales/EVA/procedimientos no son obligatorios por regla global, pero su validación estricta al informar valores genera percepción de obligatoriedad en ciertos casos.
-- Decisión recomendada del audit: **unificación real sobre un nuevo formulario clínico compartido** (no seguir con dos formularios paralelos).
-- Sprint documental propuesto: `docs/sprints/sprint-unificacion-formulario-clinico-register-continuidad-2026-04-08.md`.
-- Avance implementado en fases 2/3: `register` y `continuidad/detail` reutilizan composición clínica compartida (`ClinicalEncounterForm` + bloques clínicos comunes), eliminando divergencias principales de campos base entre surfaces.
+- El diagnóstico inicial de coexistencia de formularios se absorbió con la consolidación de composición clínica compartida (`ClinicalEncounterForm` + bloques clínicos comunes) entre register y continuidad/detail.
+- Defaults compartidos y snapshot in-progress quedaron neutralizados/consolidados server-side para evitar drift entre wrappers.
+- Wrappers de register y continuidad alinearon wiring de submit/error y banner de error reutilizable.
+- Corrección validada del bug de falsa obligatoriedad de vitales/EVA (fase 1 + fase 2): era un problema técnico de schema/RHF, no una regla clínica global de obligatoriedad.
+- Remanente actual: seguimiento nominal/documental de wording; sin frente runtime abierto de doble formulario.
 ## Register single-surface clínico (redefinición de flujo target)
 **Estado** → **Cerrado real (implementado)**
 
 - Implementado el single-surface clínico en `/encounters/register` con continuidad de guardado parcial en la misma route.
 - Se mantiene arquitectura vigente (lifecycle, practitioner model, separación planning/register) sin reaperturas de ADR.
 - Sprint ejecutado y actualizado en `docs/sprints/sprint-redefinicion-register-single-surface-2026-04-08.md`.
+
+## Register framing superior (`/encounters/register`)
+**Estado** → **Cerrado bounded**
+
+- Se retiró la exposición visible de `episodeId` en el encabezado superior del register.
+- El framing actual prioriza contexto clínico-operativo y reduce leakage de identificadores internos.
+- No implica rediseño completo de UX de register; cierre acotado al encabezado/framing superior.
 
 ## Patient detail — refinamiento UX/jerarquía (estado estabilizado)
 **Estado** → **Histórico (estabilizado / fuera de foco inmediato)**
