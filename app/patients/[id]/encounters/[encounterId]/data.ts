@@ -7,13 +7,14 @@ import type { InProgressEncounterDetailInitialValues } from "@/domain/encounters
 
 import {
     createEncounterRepository,
-    createVitalSignRecordRepository,
-    createAssessmentRepository,
-    createProcedureRepository,
     createPatientRepository,
 } from "@/infrastructure/fhir/factories";
 
 import { getCurrentPractitioner } from "@/lib/server/current-practitioner";
+import {
+    buildInProgressInitialValues,
+    loadEncounterClinicalSnapshot,
+} from "../in-progress-clinical-snapshot";
 
 export interface EncounterDetailData {
     encounter: Encounter | null;
@@ -68,27 +69,20 @@ export async function getEncounterDetailData(
         normalizedEncounter.status === "in-progress";
 
     if (shouldLoadEncounterClinicalData) {
-        const vitalSignRepo = createVitalSignRecordRepository();
-        const assessmentRepo = createAssessmentRepository();
-        const procedureRepo = createProcedureRepository();
+        const clinicalSnapshot = await loadEncounterClinicalSnapshot(encounterId);
 
-        [vitalSigns, evaRecords, procedures] = await Promise.all([
-            vitalSignRepo.findAllByEncounterId(encounterId),
-            assessmentRepo.findEvaByEncounterId(encounterId),
-            procedureRepo.findAllByEncounterId(encounterId),
-        ]);
+        vitalSigns = clinicalSnapshot.vitalSigns;
+        evaRecords = clinicalSnapshot.evaAssessments;
+        procedures = clinicalSnapshot.procedures;
     }
 
     const inProgressInitialValues: InProgressEncounterDetailInitialValues | undefined =
         isInProgressEncounter
-            ? {
-                  encounterId: normalizedEncounter.id,
-                  clinicalNote: normalizedEncounter.clinicalNote,
-                  reasonDisplay: normalizedEncounter.reasonDisplay,
+            ? buildInProgressInitialValues(normalizedEncounter, {
                   vitalSigns,
                   evaAssessments: evaRecords,
                   procedures,
-              }
+              })
             : undefined;
 
     return {
