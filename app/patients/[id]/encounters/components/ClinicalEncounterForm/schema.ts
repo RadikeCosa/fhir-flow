@@ -74,77 +74,63 @@ export const clinicalEncounterBaseSchema = z.object({
     const trimmed = value?.trim();
     return trimmed && trimmed.length > 0 ? trimmed : undefined;
   }),
-  evaScore: z
-    .preprocess(
-      coerceOptionalNumber,
-      z
-        .number()
-        .int()
-        .min(VITAL_SIGN_CAPTURE_RANGES.evaScore.min)
-        .max(VITAL_SIGN_CAPTURE_RANGES.evaScore.max),
-    )
-    .optional(),
-  bloodPressureSystolic: z
-    .preprocess(
-      coerceOptionalNumber,
-      z
-        .number()
-        .int()
-        .min(VITAL_SIGN_CAPTURE_RANGES.bloodPressureSystolic.min)
-        .max(VITAL_SIGN_CAPTURE_RANGES.bloodPressureSystolic.max),
-    )
-    .optional(),
-  bloodPressureDiastolic: z
-    .preprocess(
-      coerceOptionalNumber,
-      z
-        .number()
-        .int()
-        .min(VITAL_SIGN_CAPTURE_RANGES.bloodPressureDiastolic.min)
-        .max(VITAL_SIGN_CAPTURE_RANGES.bloodPressureDiastolic.max),
-    )
-    .optional(),
-  heartRate: z
-    .preprocess(
-      coerceOptionalNumber,
-      z
-        .number()
-        .int()
-        .min(VITAL_SIGN_CAPTURE_RANGES.heartRate.min)
-        .max(VITAL_SIGN_CAPTURE_RANGES.heartRate.max),
-    )
-    .optional(),
-  respiratoryRate: z
-    .preprocess(
-      coerceOptionalNumber,
-      z
-        .number()
-        .int()
-        .min(VITAL_SIGN_CAPTURE_RANGES.respiratoryRate.min)
-        .max(VITAL_SIGN_CAPTURE_RANGES.respiratoryRate.max),
-    )
-    .optional(),
-  oxygenSaturation: z
-    .preprocess(
-      coerceOptionalNumber,
-      z
-        .number()
-        .int()
-        .min(VITAL_SIGN_CAPTURE_RANGES.oxygenSaturation.min)
-        .max(VITAL_SIGN_CAPTURE_RANGES.oxygenSaturation.max),
-    )
-    .optional(),
-  bodyTemperature: z
-    .preprocess(
-      coerceOptionalNumber,
-      z
-        .number()
-        .min(VITAL_SIGN_CAPTURE_RANGES.bodyTemperature.min)
-        .max(VITAL_SIGN_CAPTURE_RANGES.bodyTemperature.max),
-    )
-    .optional(),
+  evaScore: optionalClinicalNumber(
+    z
+      .number()
+      .int()
+      .min(VITAL_SIGN_CAPTURE_RANGES.evaScore.min)
+      .max(VITAL_SIGN_CAPTURE_RANGES.evaScore.max),
+  ),
+  bloodPressureSystolic: optionalClinicalNumber(
+    z
+      .number()
+      .int()
+      .min(VITAL_SIGN_CAPTURE_RANGES.bloodPressureSystolic.min)
+      .max(VITAL_SIGN_CAPTURE_RANGES.bloodPressureSystolic.max),
+  ),
+  bloodPressureDiastolic: optionalClinicalNumber(
+    z
+      .number()
+      .int()
+      .min(VITAL_SIGN_CAPTURE_RANGES.bloodPressureDiastolic.min)
+      .max(VITAL_SIGN_CAPTURE_RANGES.bloodPressureDiastolic.max),
+  ),
+  heartRate: optionalClinicalNumber(
+    z
+      .number()
+      .int()
+      .min(VITAL_SIGN_CAPTURE_RANGES.heartRate.min)
+      .max(VITAL_SIGN_CAPTURE_RANGES.heartRate.max),
+  ),
+  respiratoryRate: optionalClinicalNumber(
+    z
+      .number()
+      .int()
+      .min(VITAL_SIGN_CAPTURE_RANGES.respiratoryRate.min)
+      .max(VITAL_SIGN_CAPTURE_RANGES.respiratoryRate.max),
+  ),
+  oxygenSaturation: optionalClinicalNumber(
+    z
+      .number()
+      .int()
+      .min(VITAL_SIGN_CAPTURE_RANGES.oxygenSaturation.min)
+      .max(VITAL_SIGN_CAPTURE_RANGES.oxygenSaturation.max),
+  ),
+  bodyTemperature: optionalClinicalNumber(
+    z
+      .number()
+      .min(VITAL_SIGN_CAPTURE_RANGES.bodyTemperature.min)
+      .max(VITAL_SIGN_CAPTURE_RANGES.bodyTemperature.max),
+  ),
   procedures: z.array(procedureItemSchema).default([]),
 });
+
+export function optionalClinicalNumber<T extends z.ZodNumber>(schema: T) {
+  return z.preprocess((value) => {
+    const normalized = coerceOptionalNumber(value);
+    return normalized === undefined ? undefined : normalized;
+  }, z.union([schema, z.undefined()]));
+}
 
 interface EncounterIntentRules {
   requireActualDate: boolean;
