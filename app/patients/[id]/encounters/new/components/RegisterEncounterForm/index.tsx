@@ -132,6 +132,7 @@ export function RegisterEncounterForm({
     RegisterEncounterFormValues
   >({
     resolver: zodResolver(registerEncounterFormSchema),
+    shouldFocusError: true,
     defaultValues: {
       episodeOfCareId,
       visitType: initialVisitType ?? "follow-up",

@@ -72,6 +72,7 @@ export default function FinalizeEncounterForm({
     FinalizeEncounterFormValues
   >({
     resolver: zodResolver(finalizeEncounterFormSchema),
+    shouldFocusError: true,
     defaultValues,
   });
 

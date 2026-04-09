@@ -117,6 +117,21 @@ describe("finalizeEncounterFormSchema procedures", () => {
 });
 
 describe("finalizeEncounterFormSchema vitals + EVA", () => {
+    it("accepts empty-string optional vitals and EVA", () => {
+        const result = finalizeEncounterFormSchema.safeParse({
+            ...baseInput,
+            heartRate: "",
+            respiratoryRate: "",
+            oxygenSaturation: "",
+            bodyTemperature: "",
+            bloodPressureSystolic: "",
+            bloodPressureDiastolic: "",
+            evaScore: "",
+        });
+
+        expect(result.success).toBe(true);
+    });
+
     it("coerces optional numeric values and comma decimals", () => {
         const result = finalizeEncounterFormSchema.safeParse({
             ...baseInput,
@@ -166,6 +181,16 @@ describe("finalizeEncounterFormSchema vitals + EVA", () => {
         expect(result.error?.flatten().fieldErrors.bodyTemperature).toContain(
             "Too big: expected number to be <=43"
         );
+    });
+
+    it("rejects explicit NaN payloads for numeric fields", () => {
+        const result = finalizeEncounterFormSchema.safeParse({
+            ...baseInput,
+            heartRate: Number.NaN,
+        });
+
+        expect(result.success).toBe(false);
+        expect(result.error?.flatten().fieldErrors.heartRate).toBeTruthy();
     });
 
     it("rejects incomplete blood pressure", () => {

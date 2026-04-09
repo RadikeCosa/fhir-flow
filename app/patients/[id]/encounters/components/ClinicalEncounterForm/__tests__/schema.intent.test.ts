@@ -54,4 +54,39 @@ describe("clinicalEncounterBaseSchema intent refinements", () => {
       );
     }
   });
+
+  it("accepts empty-string optional vitals and eva without treating them as required", () => {
+    const result = intentSchema("save-progress").safeParse({
+      actualDate: "2026-04-08",
+      actualStartTime: "10:00",
+      heartRate: "",
+      respiratoryRate: "",
+      oxygenSaturation: "",
+      bodyTemperature: "",
+      bloodPressureSystolic: "",
+      bloodPressureDiastolic: "",
+      evaScore: "",
+      procedures: [],
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.heartRate).toBeUndefined();
+      expect(result.data.evaScore).toBeUndefined();
+    }
+  });
+
+  it("keeps rejecting explicit invalid numeric payloads (NaN)", () => {
+    const result = intentSchema("save-progress").safeParse({
+      actualDate: "2026-04-08",
+      actualStartTime: "10:00",
+      heartRate: Number.NaN,
+      procedures: [],
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.flatten().fieldErrors.heartRate).toBeTruthy();
+    }
+  });
 });

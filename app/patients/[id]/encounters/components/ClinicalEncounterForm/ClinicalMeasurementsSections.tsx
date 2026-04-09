@@ -1,6 +1,7 @@
 "use client";
 
 import type { FieldErrors, UseFormRegister, UseFormSetValue } from "react-hook-form";
+import { coerceOptionalNumber } from "@/lib/clinical/coerce";
 import {
   EVA_HELPER_TEXT,
   VITAL_SIGN_CAPTURE_RANGES,
@@ -46,6 +47,10 @@ interface ClinicalMeasurementsSectionsProps<FormValues extends { procedures: Pro
   compactToggles?: boolean;
 }
 
+const numericInputRegisterOptions = {
+  setValueAs: coerceOptionalNumber,
+};
+
 const isProcedureCategory = (value: string): value is ProcedureCategory =>
   ProcedureCategoryValues.includes(value as ProcedureCategory);
 
@@ -88,6 +93,19 @@ export function ClinicalMeasurementsSections<FormValues extends { procedures: Pr
   removeProcedure,
   compactToggles = false,
 }: ClinicalMeasurementsSectionsProps<FormValues>) {
+  const numericFieldErrors = formState.errors as Record<
+    string,
+    { message?: string } | undefined
+  >;
+  const heartRateError = numericFieldErrors.heartRate?.message;
+  const respiratoryRateError = numericFieldErrors.respiratoryRate?.message;
+  const oxygenSaturationError = numericFieldErrors.oxygenSaturation?.message;
+  const bodyTemperatureError = numericFieldErrors.bodyTemperature?.message;
+  const bloodPressureSystolicError = numericFieldErrors.bloodPressureSystolic?.message;
+  const bloodPressureDiastolicError = numericFieldErrors.bloodPressureDiastolic?.message;
+  const evaScoreError = numericFieldErrors.evaScore?.message;
+  const bloodPressureGroupError = bloodPressureDiastolicError ?? bloodPressureSystolicError;
+
   const procedureErrors = formState.errors.procedures as
     | Array<{ category?: { message?: string }; code?: { message?: string } }>
     | undefined;
@@ -107,9 +125,12 @@ export function ClinicalMeasurementsSections<FormValues extends { procedures: Pr
               min={VITAL_SIGN_CAPTURE_RANGES.heartRate.min}
               max={VITAL_SIGN_CAPTURE_RANGES.heartRate.max}
               step={VITAL_SIGN_CAPTURE_RANGES.heartRate.step}
-              {...register("heartRate" as never)}
+              {...register("heartRate" as never, numericInputRegisterOptions as never)}
               className="mt-1 block w-full rounded-md border border-border px-3 py-2"
             />
+            {heartRateError && (
+              <p className="mt-1 text-sm text-error">{heartRateError}</p>
+            )}
             <ClinicalFieldReferenceHint
               technicalRangeText={formatTechnicalRange(
                 VITAL_SIGN_CAPTURE_RANGES.heartRate.min,
@@ -129,9 +150,12 @@ export function ClinicalMeasurementsSections<FormValues extends { procedures: Pr
               min={VITAL_SIGN_CAPTURE_RANGES.respiratoryRate.min}
               max={VITAL_SIGN_CAPTURE_RANGES.respiratoryRate.max}
               step={VITAL_SIGN_CAPTURE_RANGES.respiratoryRate.step}
-              {...register("respiratoryRate" as never)}
+              {...register("respiratoryRate" as never, numericInputRegisterOptions as never)}
               className="mt-1 block w-full rounded-md border border-border px-3 py-2"
             />
+            {respiratoryRateError && (
+              <p className="mt-1 text-sm text-error">{respiratoryRateError}</p>
+            )}
             <ClinicalFieldReferenceHint
               technicalRangeText={formatTechnicalRange(
                 VITAL_SIGN_CAPTURE_RANGES.respiratoryRate.min,
@@ -151,9 +175,12 @@ export function ClinicalMeasurementsSections<FormValues extends { procedures: Pr
               min={VITAL_SIGN_CAPTURE_RANGES.oxygenSaturation.min}
               max={VITAL_SIGN_CAPTURE_RANGES.oxygenSaturation.max}
               step={VITAL_SIGN_CAPTURE_RANGES.oxygenSaturation.step}
-              {...register("oxygenSaturation" as never)}
+              {...register("oxygenSaturation" as never, numericInputRegisterOptions as never)}
               className="mt-1 block w-full rounded-md border border-border px-3 py-2"
             />
+            {oxygenSaturationError && (
+              <p className="mt-1 text-sm text-error">{oxygenSaturationError}</p>
+            )}
             <ClinicalFieldReferenceHint
               technicalRangeText={formatTechnicalRange(
                 VITAL_SIGN_CAPTURE_RANGES.oxygenSaturation.min,
@@ -173,9 +200,12 @@ export function ClinicalMeasurementsSections<FormValues extends { procedures: Pr
               min={VITAL_SIGN_CAPTURE_RANGES.bodyTemperature.min}
               max={VITAL_SIGN_CAPTURE_RANGES.bodyTemperature.max}
               step={VITAL_SIGN_CAPTURE_RANGES.bodyTemperature.step}
-              {...register("bodyTemperature" as never)}
+              {...register("bodyTemperature" as never, numericInputRegisterOptions as never)}
               className="mt-1 block w-full rounded-md border border-border px-3 py-2"
             />
+            {bodyTemperatureError && (
+              <p className="mt-1 text-sm text-error">{bodyTemperatureError}</p>
+            )}
             <ClinicalFieldReferenceHint
               technicalRangeText={formatTechnicalRange(
                 VITAL_SIGN_CAPTURE_RANGES.bodyTemperature.min,
@@ -195,7 +225,7 @@ export function ClinicalMeasurementsSections<FormValues extends { procedures: Pr
               min={VITAL_SIGN_CAPTURE_RANGES.bloodPressureSystolic.min}
               max={VITAL_SIGN_CAPTURE_RANGES.bloodPressureSystolic.max}
               step={VITAL_SIGN_CAPTURE_RANGES.bloodPressureSystolic.step}
-              {...register("bloodPressureSystolic" as never)}
+              {...register("bloodPressureSystolic" as never, numericInputRegisterOptions as never)}
               className="mt-1 block w-full rounded-md border border-border px-3 py-2"
             />
             <ClinicalFieldReferenceHint
@@ -217,7 +247,7 @@ export function ClinicalMeasurementsSections<FormValues extends { procedures: Pr
               min={VITAL_SIGN_CAPTURE_RANGES.bloodPressureDiastolic.min}
               max={VITAL_SIGN_CAPTURE_RANGES.bloodPressureDiastolic.max}
               step={VITAL_SIGN_CAPTURE_RANGES.bloodPressureDiastolic.step}
-              {...register("bloodPressureDiastolic" as never)}
+              {...register("bloodPressureDiastolic" as never, numericInputRegisterOptions as never)}
               className="mt-1 block w-full rounded-md border border-border px-3 py-2"
             />
             <ClinicalFieldReferenceHint
@@ -231,6 +261,9 @@ export function ClinicalMeasurementsSections<FormValues extends { procedures: Pr
           </div>
         </div>
         <p className="mt-2 text-sm font-medium">Tensión arterial (mmHg)</p>
+        {bloodPressureGroupError && (
+          <p className="mt-1 text-sm text-error">{bloodPressureGroupError}</p>
+        )}
       </div>
 
       <div className="rounded-lg border border-border bg-surface p-4">
@@ -243,9 +276,12 @@ export function ClinicalMeasurementsSections<FormValues extends { procedures: Pr
           min={VITAL_SIGN_CAPTURE_RANGES.evaScore.min}
           max={VITAL_SIGN_CAPTURE_RANGES.evaScore.max}
           step={VITAL_SIGN_CAPTURE_RANGES.evaScore.step}
-          {...register("evaScore" as never)}
+          {...register("evaScore" as never, numericInputRegisterOptions as never)}
           className="mt-1 block w-full rounded-md border border-border px-3 py-2"
         />
+        {evaScoreError && (
+          <p className="mt-1 text-sm text-error">{evaScoreError}</p>
+        )}
         <ClinicalFieldReferenceHint
           technicalRangeText={formatTechnicalRange(
             VITAL_SIGN_CAPTURE_RANGES.evaScore.min,

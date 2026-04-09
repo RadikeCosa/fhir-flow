@@ -132,6 +132,37 @@ describe("finalizeEncounterAction", () => {
         expect(finalizeMock).not.toHaveBeenCalled();
     });
 
+    it("accepts empty optional vitals/EVA on finalize when required close fields are present", async () => {
+        findByIdMock.mockResolvedValue(null);
+
+        const { finalizeEncounterAction } = await import("../finalize-encounter.action");
+
+        await expect(
+            finalizeEncounterAction("patient-1", "enc-404", {
+                ...validFormData,
+                heartRate: "",
+                respiratoryRate: "",
+                oxygenSaturation: "",
+                bodyTemperature: "",
+                bloodPressureSystolic: "",
+                bloodPressureDiastolic: "",
+                evaScore: "",
+            })
+        ).resolves.toEqual({
+            success: false,
+            error: {
+                layer: "fhir",
+                message: "Encounter not found",
+                code: "ENCOUNTER_NOT_FOUND",
+                details: {
+                    cause: "not_found",
+                },
+            },
+        });
+
+        expect(findByIdMock).toHaveBeenCalled();
+    });
+
 
     it("returns a controlled fhir-layer error when the encounter cannot be found", async () => {
         findByIdMock.mockResolvedValue(null);

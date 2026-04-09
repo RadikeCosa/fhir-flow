@@ -114,6 +114,53 @@ describe("registerEncounterAction", () => {
         expect(redirectMock).not.toHaveBeenCalled();
     });
 
+    it("register start acepta vitales y EVA vacíos sin tratarlos como obligatorios", async () => {
+        getCurrentPractitionerMock.mockResolvedValue({
+            id: "kine-1",
+            displayName: "Lic. Ramiro Perez",
+        });
+        findAllByPatientIdMock.mockResolvedValue([
+            { id: "episode-1", status: "active" },
+        ]);
+        registerMock.mockResolvedValue({ id: "enc-102" });
+
+        const { registerEncounterAction } = await import("../register-encounter.action");
+
+        await expect(
+            registerEncounterAction("patient-1", {
+                completionMode: "start",
+                redirectToDetail: false,
+                episodeOfCareId: "episode-1",
+                visitType: "follow-up",
+                actualDate: "2026-03-20",
+                actualStartTime: "10:30",
+                heartRate: "",
+                respiratoryRate: "",
+                oxygenSaturation: "",
+                bodyTemperature: "",
+                bloodPressureSystolic: "",
+                bloodPressureDiastolic: "",
+                evaScore: "",
+                procedures: [],
+            })
+        ).resolves.toEqual({
+            success: true,
+            data: { encounterId: "enc-102" },
+        });
+
+        expect(registerMock).toHaveBeenCalledWith(
+            expect.objectContaining({
+                heartRate: undefined,
+                respiratoryRate: undefined,
+                oxygenSaturation: undefined,
+                bodyTemperature: undefined,
+                bloodPressureSystolic: undefined,
+                bloodPressureDiastolic: undefined,
+                evaScore: undefined,
+            })
+        );
+    });
+
     it("register complete exige reglas shared de finished", async () => {
         getCurrentPractitionerMock.mockResolvedValue({
             id: "kine-1",
