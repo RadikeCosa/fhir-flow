@@ -1,4 +1,3 @@
-import * as React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
@@ -32,6 +31,8 @@ describe("RegisterEncounterPage entry flow", () => {
     const html = renderToStaticMarkup(element);
 
     expect(html).toContain("Registrar visita");
+    expect(html).toContain("Paciente Demo");
+    expect(html).toContain("Visita real en curso sobre plan de cuidado activo.");
     expect(html).toContain("Datos de la visita");
     expect(html).toContain("Tipo de visita");
     expect(html).toContain("Fecha");
@@ -39,6 +40,8 @@ describe("RegisterEncounterPage entry flow", () => {
     expect(html).toContain("Guardado parcial");
     expect(html).toContain("Registrar");
 
+    expect(html).not.toContain("Episodio:");
+    expect(html).not.toContain("<code");
     expect(html).not.toContain("Iniciar visita");
     expect(html).not.toContain("Finalizar directamente");
   });
