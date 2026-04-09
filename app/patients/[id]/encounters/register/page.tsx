@@ -87,14 +87,30 @@ export default async function RegisterEncounterPage({
 
   return (
     <div className="max-w-2xl mx-auto py-8 px-4">
-      <div className="mb-8">
+      <div className="mb-6 space-y-3">
         <h1 className="text-3xl font-bold text-foreground">Registrar visita</h1>
-        <p className="mt-2 text-sm text-muted">
-          Paciente: {patientName || patientId} | Episodio:{" "}
-          <code className="text-xs bg-surface px-1 rounded">
-            {activeEpisode.id}
-          </code>
+        <p className="text-sm text-muted">
+          Registrá la atención realizada para este paciente y completá su
+          evolución clínica en una única carga operativa.
         </p>
+      </div>
+
+      <div className="mb-6 rounded-lg border border-border bg-surface px-4 py-3">
+        <div className="flex flex-col gap-1 text-sm">
+          <p>
+            <span className="font-medium text-foreground">Paciente:</span>{" "}
+            {patientName || patientId}
+          </p>
+          <p>
+            <span className="font-medium text-foreground">Contexto:</span>{" "}
+            Visita real en curso sobre plan de cuidado activo.
+          </p>
+          {initialEncounterId && (
+            <p className="text-muted">
+              Estás continuando una visita iniciada previamente.
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="bg-surface border border-border rounded-lg shadow-sm">

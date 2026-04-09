@@ -18,6 +18,8 @@ import {
 import type { InProgressEncounterFormInitialValues } from "@/lib/patient/mappers/in-progress-encounter-detail.mapper";
 import { ClinicalEncounterForm } from "../../../components/ClinicalEncounterForm/ClinicalEncounterForm";
 import { createDefaultProcedure } from "../../../components/ClinicalEncounterForm/schema";
+import { EncounterActionErrorBanner } from "../../../components/EncounterActionErrorBanner";
+import { runEncounterIntent } from "../../../components/encounter-submit-wiring";
 export { createDefaultProcedure } from "../../../components/ClinicalEncounterForm/schema";
 
 interface FinalizeEncounterFormProps {
@@ -119,92 +121,100 @@ export default function FinalizeEncounterForm({
   };
 
   const onSubmit = async (values: FinalizeEncounterFormValues) => {
-    setActiveIntent("finalize");
-    setServerResult(null);
-    setSaveProgressSuccessMessage(null);
-    clearSaveProgressRefreshTimeout();
-    try {
-      const result = await finalizeEncounterAction(patientId, encounterId, {
-        ...values,
-      });
+    await runEncounterIntent({
+      intent: "finalize",
+      setActiveIntent,
+      clearError: () => setServerResult(null),
+      beforeRun: () => {
+        setSaveProgressSuccessMessage(null);
+        clearSaveProgressRefreshTimeout();
+      },
+      run: () =>
+        finalizeEncounterAction(patientId, encounterId, {
+          ...values,
+        }),
+      onResult: (result) => {
+        setServerResult(result);
+        if (result.success) {
+          router.refresh();
+        }
+      },
+      onError: (error: unknown) => {
+        console.error("[FinalizeEncounterForm] onSubmit catch", error);
+        const message = error instanceof Error ? error.message : "";
+        if (message.includes("NEXT_REDIRECT")) {
+          router.refresh();
+          return;
+        }
 
-      setServerResult(result);
-      if (result.success) {
-        router.refresh();
-      }
-    } catch (error: unknown) {
-      console.error("[FinalizeEncounterForm] onSubmit catch", error);
-      const message = error instanceof Error ? error.message : "";
-      if (message.includes("NEXT_REDIRECT")) {
-        router.refresh();
-        return;
-      }
-
-      setServerResult({
-        success: false,
-        error: {
-          layer: "fhir",
-          message: "Ocurrió un error inesperado al finalizar la visita.",
-          code: "FINALIZE_UNEXPECTED_ERROR",
-        },
-      });
-    } finally {
-      setActiveIntent(null);
-    }
+        setServerResult({
+          success: false,
+          error: {
+            layer: "fhir",
+            message: "Ocurrió un error inesperado al finalizar la visita.",
+            code: "FINALIZE_UNEXPECTED_ERROR",
+          },
+        });
+      },
+    });
   };
 
   const onSaveProgress = async () => {
-    setActiveIntent("save-progress");
-    setServerResult(null);
-    setSaveProgressSuccessMessage(null);
-    clearSaveProgressRefreshTimeout();
-
-    try {
-      const values = getValues();
-
-      const result = await saveEncounterProgressAction(patientId, encounterId, {
-        actualDate: values.actualDate,
-        actualStartTime: values.actualStartTime,
-        clinicalNote: values.clinicalNote,
-        reasonDisplay: values.reasonDisplay,
-        evaScore: values.evaScore,
-        bloodPressureSystolic: values.bloodPressureSystolic,
-        bloodPressureDiastolic: values.bloodPressureDiastolic,
-        heartRate: values.heartRate,
-        respiratoryRate: values.respiratoryRate,
-        oxygenSaturation: values.oxygenSaturation,
-        bodyTemperature: values.bodyTemperature,
-        procedures: values.procedures,
-      });
-
-      setServerResult(result);
-      if (result.success) {
-        setSaveProgressSuccessMessage("Progreso guardado correctamente.");
-      }
-    } catch (error: unknown) {
-      console.error("[FinalizeEncounterForm] onSaveProgress catch", error);
-      const message = error instanceof Error ? error.message : "";
-      if (message.includes("NEXT_REDIRECT")) {
-        setSaveProgressSuccessMessage("Progreso guardado correctamente.");
+    await runEncounterIntent({
+      intent: "save-progress",
+      setActiveIntent,
+      clearError: () => setServerResult(null),
+      beforeRun: () => {
+        setSaveProgressSuccessMessage(null);
         clearSaveProgressRefreshTimeout();
-        saveProgressRefreshTimeoutRef.current = window.setTimeout(() => {
-          router.refresh();
-        }, 800);
-        return;
-      }
+      },
+      run: async () => {
+        const values = getValues();
 
-      setSaveProgressSuccessMessage(null);
-      setServerResult({
-        success: false,
-        error: {
-          layer: "fhir",
-          message: "Ocurrió un error inesperado al guardar el progreso.",
-          code: "SAVE_PROGRESS_UNEXPECTED_ERROR",
-        },
-      });
-    } finally {
-      setActiveIntent(null);
-    }
+        return saveEncounterProgressAction(patientId, encounterId, {
+          actualDate: values.actualDate,
+          actualStartTime: values.actualStartTime,
+          clinicalNote: values.clinicalNote,
+          reasonDisplay: values.reasonDisplay,
+          evaScore: values.evaScore,
+          bloodPressureSystolic: values.bloodPressureSystolic,
+          bloodPressureDiastolic: values.bloodPressureDiastolic,
+          heartRate: values.heartRate,
+          respiratoryRate: values.respiratoryRate,
+          oxygenSaturation: values.oxygenSaturation,
+          bodyTemperature: values.bodyTemperature,
+          procedures: values.procedures,
+        });
+      },
+      onResult: (result) => {
+        setServerResult(result);
+        if (result.success) {
+          setSaveProgressSuccessMessage("Progreso guardado correctamente.");
+        }
+      },
+      onError: (error: unknown) => {
+        console.error("[FinalizeEncounterForm] onSaveProgress catch", error);
+        const message = error instanceof Error ? error.message : "";
+        if (message.includes("NEXT_REDIRECT")) {
+          setSaveProgressSuccessMessage("Progreso guardado correctamente.");
+          clearSaveProgressRefreshTimeout();
+          saveProgressRefreshTimeoutRef.current = window.setTimeout(() => {
+            router.refresh();
+          }, 800);
+          return;
+        }
+
+        setSaveProgressSuccessMessage(null);
+        setServerResult({
+          success: false,
+          error: {
+            layer: "fhir",
+            message: "Ocurrió un error inesperado al guardar el progreso.",
+            code: "SAVE_PROGRESS_UNEXPECTED_ERROR",
+          },
+        });
+      },
+    });
   };
   const error = serverResult?.success === false ? serverResult.error : null;
 
@@ -231,19 +241,7 @@ export default function FinalizeEncounterForm({
         clínicos antes de finalizar.
       </div>
 
-      {error && (
-        <div className="rounded-md bg-red-50 p-4 border border-red-200">
-          <h3 className="text-sm font-semibold text-red-800">
-            {error.layer === "validation" && "Error de validación"}
-            {error.layer === "domain" && "Error de reglas clínicas"}
-            {error.layer === "fhir" && "Error al guardar en el servidor"}
-          </h3>
-          <p className="text-sm text-red-700 mt-1">{error.message}</p>
-          {error.code && (
-            <p className="text-xs text-red-600 mt-1">Código: {error.code}</p>
-          )}
-        </div>
-      )}
+      {error && <EncounterActionErrorBanner error={error} />}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <ClinicalEncounterForm

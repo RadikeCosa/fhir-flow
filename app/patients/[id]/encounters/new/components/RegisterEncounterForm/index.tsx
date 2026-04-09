@@ -17,6 +17,8 @@ import {
 import { registerEncounterAction } from "../../actions/register-encounter.action";
 import { saveEncounterProgressAction } from "../../../[encounterId]/actions/save-encounter-progress.action";
 import { finalizeEncounterAction } from "../../../[encounterId]/actions/finalize-encounter.action";
+import { EncounterActionErrorBanner } from "../../../components/EncounterActionErrorBanner";
+import { runEncounterIntent } from "../../../components/encounter-submit-wiring";
 import {
   buildClinicalEncounterFormDefaultValues,
   resolveInitialActualTiming,
@@ -109,7 +111,7 @@ export function RegisterEncounterForm({
   const router = useRouter();
   const pathname = usePathname();
   const [actionResult, setActionResult] = useState<ActionResult<{ encounterId: string }> | ActionResult<void> | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeIntent, setActiveIntent] = useState<"start" | "complete" | null>(null);
   const [encounterId, setEncounterId] = useState<string | null>(
     initialEncounterId ?? null,
   );
@@ -218,9 +220,6 @@ export function RegisterEncounterForm({
       }
     }
 
-    setIsSubmitting(true);
-    setActionResult(null);
-
     const normalizedValues = {
       ...values,
       actualEndTime: normalizeOptionalString(values.actualEndTime),
@@ -229,49 +228,42 @@ export function RegisterEncounterForm({
       procedures: values.procedures,
     };
 
-    try {
-      if (!encounterId) {
-        const result = await registerEncounterAction(patientId, {
-          ...normalizedValues,
-          completionMode,
-          redirectToDetail: completionMode === "complete",
-        });
+    await runEncounterIntent({
+      intent: completionMode,
+      setActiveIntent,
+      clearError: () => setActionResult(null),
+      run: async () => {
+        if (!encounterId) {
+          return registerEncounterAction(patientId, {
+            ...normalizedValues,
+            completionMode,
+            redirectToDetail: completionMode === "complete",
+          });
+        }
 
+        if (completionMode === "start") {
+          return saveEncounterProgressAction(patientId, encounterId, {
+            ...normalizedValues,
+            actualDate: values.actualDate,
+            actualStartTime: values.actualStartTime,
+          });
+        }
+
+        return finalizeEncounterAction(patientId, encounterId, {
+          ...normalizedValues,
+          actualEndTime: normalizedValues.actualEndTime,
+        });
+      },
+      onResult: (result) => {
         setActionResult(result);
 
-        if (result.success && completionMode === "start" && result.data?.encounterId) {
+        if (!encounterId && result.success && completionMode === "start" && result.data?.encounterId) {
           const createdEncounterId = result.data.encounterId;
           setEncounterId(createdEncounterId);
           router.replace(`${pathname}?encounterId=${createdEncounterId}`);
         }
-
-        return;
-      }
-
-      if (completionMode === "start") {
-        const result = await saveEncounterProgressAction(
-          patientId,
-          encounterId,
-          {
-            ...normalizedValues,
-            actualDate: values.actualDate,
-            actualStartTime: values.actualStartTime,
-          },
-        );
-
-        setActionResult(result);
-        return;
-      }
-
-      const result = await finalizeEncounterAction(patientId, encounterId, {
-        ...normalizedValues,
-        actualEndTime: normalizedValues.actualEndTime,
-      });
-
-      setActionResult(result);
-    } finally {
-      setIsSubmitting(false);
-    }
+      },
+    });
   };
 
   useEffect(() => {
@@ -288,19 +280,7 @@ export function RegisterEncounterForm({
         </div>
       )}
 
-      {error && (
-        <div className="rounded-md bg-red-50 p-4 border border-red-200">
-          <h3 className="text-sm font-semibold text-red-800">
-            {error.layer === "validation" && "Error de validación"}
-            {error.layer === "domain" && "Error de reglas clínicas"}
-            {error.layer === "fhir" && "Error al guardar en el servidor"}
-          </h3>
-          <p className="text-sm text-red-700 mt-1">{error.message}</p>
-          {error.code && (
-            <p className="text-xs text-red-600 mt-1">Código: {error.code}</p>
-          )}
-        </div>
-      )}
+      {error && <EncounterActionErrorBanner error={error} />}
 
       <input type="hidden" {...register("episodeOfCareId")} />
 
@@ -313,7 +293,7 @@ export function RegisterEncounterForm({
         appendProcedure={() => append(createDefaultProcedure())}
         removeProcedure={remove}
         practitionerName={practitionerName}
-        isSubmitting={isSubmitting}
+        isSubmitting={activeIntent !== null}
         showVisitType
         actionMode="register"
       />
