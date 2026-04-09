@@ -8,30 +8,12 @@ import type { BaseSyntheticEvent } from "react";
 import { z } from "zod";
 
 import type { ActionResult } from "../../../../../../../domain/shared/action-result.types";
-import { formatEncounterVisitType } from "../../../../../../../lib/patient/formatters/encounter.formatters";
 import {
   APP_TIME_ZONE,
-  composeLocalDateTimeToUtcIso,
   formatCalendarDateInTimeZone,
   isDateOnly,
   isValidLocalTimeString,
 } from "../../../../../../../lib/date-time/date-time.utils";
-import { coerceOptionalNumber } from "../../../../../../../lib/clinical/coerce";
-import {
-  EVA_HELPER_TEXT,
-  VITAL_SIGN_CAPTURE_RANGES,
-} from "../../../../../../../lib/clinical/vital-sign-capture-ranges";
-import {
-  ProcedureCategoryValues,
-  ProcedureCodeValues,
-  type ProcedureCategory,
-  type ProcedureCode,
-} from "../../../../../../../domain/procedures/procedure";
-import { PROCEDURE_CODES_BY_CATEGORY } from "../../../../../../../domain/procedures/procedure-code-category.map";
-import {
-  formatProcedureCategory,
-  formatProcedureCode,
-} from "../../../../../../../lib/patient/formatters/procedure.formatters";
 import { registerEncounterAction } from "../../actions/register-encounter.action";
 import { saveEncounterProgressAction } from "../../../[encounterId]/actions/save-encounter-progress.action";
 import { finalizeEncounterAction } from "../../../[encounterId]/actions/finalize-encounter.action";
@@ -40,11 +22,18 @@ import {
   resolveInitialActualTiming,
 } from "../../../[encounterId]/components/FinalizeEncounterForm/finalize-encounter-form.defaults";
 import type { InProgressEncounterFormInitialValues } from "@/lib/patient/mappers/in-progress-encounter-detail.mapper";
+import { ClinicalEncounterForm } from "../../../components/ClinicalEncounterForm/ClinicalEncounterForm";
+import {
+  applyClinicalEncounterIntentRefinement,
+  clinicalEncounterBaseSchema,
+  createDefaultProcedure,
+  visitTypeSchema,
+} from "../../../components/ClinicalEncounterForm/schema";
 
 const registerEncounterFormSchema = z
   .object({
     episodeOfCareId: z.string().min(1, "El episodio de cuidado es requerido"),
-    visitType: z.enum(["initial", "follow-up", "re-assessment", "discharge"]),
+    visitType: visitTypeSchema,
     actualDate: z.string().refine((value) => isDateOnly(value), {
       message: "La fecha debe tener formato YYYY-MM-DD.",
     }),
@@ -57,147 +46,23 @@ const registerEncounterFormSchema = z
       .refine((value) => value === undefined || value === "" || isValidLocalTimeString(value), {
         message: "La hora de fin debe tener formato HH:mm.",
       }),
-    clinicalNote: z.string().optional().transform((value) => value?.trim()),
-    reasonDisplay: z.string().optional().transform((value) => value?.trim()),
-    evaScore: z
-      .preprocess(coerceOptionalNumber, z.number().int().min(VITAL_SIGN_CAPTURE_RANGES.evaScore.min).max(VITAL_SIGN_CAPTURE_RANGES.evaScore.max))
-      .optional(),
-    bloodPressureSystolic: z
-      .preprocess(coerceOptionalNumber, z.number().int().min(VITAL_SIGN_CAPTURE_RANGES.bloodPressureSystolic.min).max(VITAL_SIGN_CAPTURE_RANGES.bloodPressureSystolic.max))
-      .optional(),
-    bloodPressureDiastolic: z
-      .preprocess(coerceOptionalNumber, z.number().int().min(VITAL_SIGN_CAPTURE_RANGES.bloodPressureDiastolic.min).max(VITAL_SIGN_CAPTURE_RANGES.bloodPressureDiastolic.max))
-      .optional(),
-    heartRate: z
-      .preprocess(coerceOptionalNumber, z.number().int().min(VITAL_SIGN_CAPTURE_RANGES.heartRate.min).max(VITAL_SIGN_CAPTURE_RANGES.heartRate.max))
-      .optional(),
-    respiratoryRate: z
-      .preprocess(coerceOptionalNumber, z.number().int().min(VITAL_SIGN_CAPTURE_RANGES.respiratoryRate.min).max(VITAL_SIGN_CAPTURE_RANGES.respiratoryRate.max))
-      .optional(),
-    oxygenSaturation: z
-      .preprocess(coerceOptionalNumber, z.number().int().min(VITAL_SIGN_CAPTURE_RANGES.oxygenSaturation.min).max(VITAL_SIGN_CAPTURE_RANGES.oxygenSaturation.max))
-      .optional(),
-    bodyTemperature: z
-      .preprocess(coerceOptionalNumber, z.number().min(VITAL_SIGN_CAPTURE_RANGES.bodyTemperature.min).max(VITAL_SIGN_CAPTURE_RANGES.bodyTemperature.max))
-      .optional(),
-    procedures: z
-      .array(
-        z.object({
-          category: z
-            .union([z.literal(""), z.enum(ProcedureCategoryValues)])
-            .refine((value) => value !== "", { message: "Seleccionar categoría" })
-            .transform((value) => value as ProcedureCategory),
-          code: z
-            .union([z.literal(""), z.enum(ProcedureCodeValues)])
-            .refine((value) => value !== "", { message: "Seleccionar procedimiento" })
-            .transform((value) => value as ProcedureCode),
-          bodySite: z.string().optional(),
-          note: z.string().optional(),
-        }),
-      )
-      .default([]),
+    clinicalNote: clinicalEncounterBaseSchema.shape.clinicalNote,
+    reasonDisplay: clinicalEncounterBaseSchema.shape.reasonDisplay,
+    evaScore: clinicalEncounterBaseSchema.shape.evaScore,
+    bloodPressureSystolic: clinicalEncounterBaseSchema.shape.bloodPressureSystolic,
+    bloodPressureDiastolic: clinicalEncounterBaseSchema.shape.bloodPressureDiastolic,
+    heartRate: clinicalEncounterBaseSchema.shape.heartRate,
+    respiratoryRate: clinicalEncounterBaseSchema.shape.respiratoryRate,
+    oxygenSaturation: clinicalEncounterBaseSchema.shape.oxygenSaturation,
+    bodyTemperature: clinicalEncounterBaseSchema.shape.bodyTemperature,
+    procedures: clinicalEncounterBaseSchema.shape.procedures,
   })
   .superRefine((data, ctx) => {
-    const now = new Date();
-    try {
-      const startIso = composeLocalDateTimeToUtcIso(
-        data.actualDate,
-        data.actualStartTime,
-        APP_TIME_ZONE,
-      );
-      if (new Date(startIso).getTime() > now.getTime()) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["actualStartTime"],
-          message:
-            "La visita no puede registrarse en una fecha u hora futura. Si aún no ocurrió, planificala desde Nueva visita.",
-        });
-      }
-    } catch {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["actualDate"],
-        message: "No se pudo construir la fecha/hora de ejecución.",
-      });
-    }
-
-    if (data.actualEndTime) {
-      try {
-        const startIso = composeLocalDateTimeToUtcIso(
-          data.actualDate,
-          data.actualStartTime,
-          APP_TIME_ZONE,
-        );
-        const endIso = composeLocalDateTimeToUtcIso(
-          data.actualDate,
-          data.actualEndTime,
-          APP_TIME_ZONE,
-        );
-
-        if (new Date(endIso).getTime() <= new Date(startIso).getTime()) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ["actualEndTime"],
-            message: "La hora de fin debe ser posterior a la hora de inicio.",
-          });
-        }
-
-        if (new Date(endIso).getTime() > now.getTime()) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ["actualEndTime"],
-            message:
-              "La hora de fin no puede ser futura. Si la visita todavía no terminó, guardá progreso.",
-          });
-        }
-      } catch {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["actualDate"],
-          message: "No se pudo construir la fecha/hora de ejecución.",
-        });
-      }
-    }
-
-    const hasSystolic = data.bloodPressureSystolic !== undefined;
-    const hasDiastolic = data.bloodPressureDiastolic !== undefined;
-
-    if ((hasSystolic && !hasDiastolic) || (!hasSystolic && hasDiastolic)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["bloodPressureDiastolic"],
-        message:
-          "Si se indica presión arterial, debe completarse tanto sistólica como diastólica.",
-      });
-    }
-
-    if (
-      hasSystolic &&
-      hasDiastolic &&
-      data.bloodPressureDiastolic !== undefined &&
-      data.bloodPressureSystolic !== undefined &&
-      data.bloodPressureDiastolic >= data.bloodPressureSystolic
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["bloodPressureDiastolic"],
-        message: "La presión diastólica no puede exceder la sistólica",
-      });
-    }
-
-    data.procedures.forEach((procedure, index) => {
-      if (!procedure.category || !procedure.code) {
-        return;
-      }
-
-      const allowedCodes = PROCEDURE_CODES_BY_CATEGORY[procedure.category];
-      if (!allowedCodes?.includes(procedure.code)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["procedures", index, "code"],
-          message: "El código del procedimiento no coincide con la categoría seleccionada.",
-        });
-      }
+    applyClinicalEncounterIntentRefinement(data, ctx, {
+      requireActualDate: true,
+      requireActualStartTime: true,
+      requireActualEndTime: false,
+      requireClinicalNote: false,
     });
   });
 
@@ -230,27 +95,6 @@ export function normalizeOptionalString(
 ): string | undefined {
   const normalized = value?.trim();
   return normalized === "" ? undefined : normalized;
-}
-
-const getProcedureCodes = (
-  category: ProcedureCategory,
-): readonly ProcedureCode[] => PROCEDURE_CODES_BY_CATEGORY[category];
-
-const isProcedureCategory = (value: string): value is ProcedureCategory =>
-  ProcedureCategoryValues.includes(value as ProcedureCategory);
-
-export function createDefaultProcedure(): {
-  category: ProcedureCategory | "";
-  code: ProcedureCode | "";
-  bodySite?: string;
-  note?: string;
-} {
-  return {
-    category: "",
-    code: "",
-    bodySite: "",
-    note: "",
-  };
 }
 
 export function RegisterEncounterForm({
@@ -349,6 +193,30 @@ export function RegisterEncounterForm({
       return;
     }
 
+    if (completionMode === "complete") {
+      const missingEnd = !values.actualEndTime || values.actualEndTime.trim() === "";
+      const missingClinicalNote = !values.clinicalNote || values.clinicalNote.trim() === "";
+
+      if (missingEnd || missingClinicalNote) {
+        setActionResult({
+          success: false,
+          error: {
+            layer: "validation",
+            message:
+              "Para registrar la visita se requiere fecha, hora de inicio, hora de fin y nota clínica.",
+            code: "REGISTER_REQUIRED_FIELDS_MISSING",
+            details: {
+              formErrors: [
+                "Para registrar la visita se requiere fecha, hora de inicio, hora de fin y nota clínica.",
+              ],
+              fieldErrors: {},
+            },
+          },
+        });
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     setActionResult(null);
 
@@ -435,332 +303,19 @@ export function RegisterEncounterForm({
 
       <input type="hidden" {...register("episodeOfCareId")} />
 
-      <div>
-        <label htmlFor="visitType" className="block text-sm font-medium text-foreground">
-          Tipo de visita
-        </label>
-        <select
-          id="visitType"
-          {...register("visitType")}
-          className="mt-1 block w-full rounded-md border border-border bg-surface px-3 py-2 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm"
-          disabled={isSubmitting}
-        >
-          <option value="initial">{formatEncounterVisitType("initial")}</option>
-          <option value="follow-up">{formatEncounterVisitType("follow-up")}</option>
-          <option value="re-assessment">{formatEncounterVisitType("re-assessment")}</option>
-          <option value="discharge">{formatEncounterVisitType("discharge")}</option>
-        </select>
-      </div>
-
-      <div>
-        <label htmlFor="reasonDisplay" className="block text-sm font-medium">
-          Motivo de la visita
-        </label>
-        <input
-          type="text"
-          id="reasonDisplay"
-          {...register("reasonDisplay")}
-          className="mt-1 block w-full rounded-md border border-border px-3 py-2"
-          disabled={isSubmitting}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div>
-          <label htmlFor="actualDate" className="block text-sm font-medium text-foreground">
-            Fecha
-          </label>
-          <input
-            type="date"
-            id="actualDate"
-            {...register("actualDate")}
-            className="mt-1 block w-full rounded-md border border-border px-3 py-2 shadow-sm"
-            disabled={isSubmitting}
-          />
-          {formState.errors.actualDate && (
-            <p className="mt-1 text-sm text-error">{formState.errors.actualDate.message}</p>
-          )}
-        </div>
-
-        <div>
-          <label htmlFor="actualStartTime" className="block text-sm font-medium text-foreground">
-            Hora de entrada
-          </label>
-          <input
-            type="time"
-            id="actualStartTime"
-            step={60}
-            {...register("actualStartTime")}
-            className="mt-1 block w-full rounded-md border border-border px-3 py-2 shadow-sm"
-            disabled={isSubmitting}
-          />
-          {formState.errors.actualStartTime && (
-            <p className="mt-1 text-sm text-error">{formState.errors.actualStartTime.message}</p>
-          )}
-        </div>
-
-        <div>
-          <label htmlFor="actualEndTime" className="block text-sm font-medium text-foreground">
-            Hora de salida
-          </label>
-          <input
-            type="time"
-            id="actualEndTime"
-            step={60}
-            {...register("actualEndTime")}
-            className="mt-1 block w-full rounded-md border border-border px-3 py-2 shadow-sm"
-            disabled={isSubmitting}
-          />
-          {formState.errors.actualEndTime && (
-            <p className="mt-1 text-sm text-error">{formState.errors.actualEndTime.message}</p>
-          )}
-        </div>
-      </div>
-
-      <div>
-        <label htmlFor="clinicalNote" className="block text-sm font-medium">
-          Nota clínica
-        </label>
-        <textarea
-          id="clinicalNote"
-          {...register("clinicalNote")}
-          rows={4}
-          className="mt-1 block w-full rounded-md border border-border px-3 py-2"
-          disabled={isSubmitting}
-        />
-        {formState.errors.clinicalNote && (
-          <p className="mt-1 text-sm text-error">{formState.errors.clinicalNote.message}</p>
-        )}
-      </div>
-
-      <div className="rounded-lg border border-border bg-surface p-4 text-sm text-muted">
-        Registrado por <span className="font-medium text-foreground">{practitionerName}</span>
-      </div>
-
-      <div className="rounded-lg border border-border bg-surface p-4">
-        <h3 className="mb-3 text-sm font-semibold">Signos vitales</h3>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label htmlFor="heartRate" className="block text-sm font-medium">
-              Frecuencia cardíaca ({VITAL_SIGN_CAPTURE_RANGES.heartRate.unit})
-            </label>
-            <input
-              type="number"
-              id="heartRate"
-              min={VITAL_SIGN_CAPTURE_RANGES.heartRate.min}
-              max={VITAL_SIGN_CAPTURE_RANGES.heartRate.max}
-              step={VITAL_SIGN_CAPTURE_RANGES.heartRate.step}
-              {...register("heartRate")}
-              className="mt-1 block w-full rounded-md border border-border px-3 py-2"
-            />
-          </div>
-          <div>
-            <label htmlFor="respiratoryRate" className="block text-sm font-medium">
-              Frecuencia respiratoria ({VITAL_SIGN_CAPTURE_RANGES.respiratoryRate.unit})
-            </label>
-            <input
-              type="number"
-              id="respiratoryRate"
-              min={VITAL_SIGN_CAPTURE_RANGES.respiratoryRate.min}
-              max={VITAL_SIGN_CAPTURE_RANGES.respiratoryRate.max}
-              step={VITAL_SIGN_CAPTURE_RANGES.respiratoryRate.step}
-              {...register("respiratoryRate")}
-              className="mt-1 block w-full rounded-md border border-border px-3 py-2"
-            />
-          </div>
-          <div>
-            <label htmlFor="oxygenSaturation" className="block text-sm font-medium">
-              Saturación oxígeno ({VITAL_SIGN_CAPTURE_RANGES.oxygenSaturation.unit})
-            </label>
-            <input
-              type="number"
-              id="oxygenSaturation"
-              min={VITAL_SIGN_CAPTURE_RANGES.oxygenSaturation.min}
-              max={VITAL_SIGN_CAPTURE_RANGES.oxygenSaturation.max}
-              step={VITAL_SIGN_CAPTURE_RANGES.oxygenSaturation.step}
-              {...register("oxygenSaturation")}
-              className="mt-1 block w-full rounded-md border border-border px-3 py-2"
-            />
-          </div>
-          <div>
-            <label htmlFor="bodyTemperature" className="block text-sm font-medium">
-              Temperatura corporal ({VITAL_SIGN_CAPTURE_RANGES.bodyTemperature.unit})
-            </label>
-            <input
-              type="number"
-              id="bodyTemperature"
-              min={VITAL_SIGN_CAPTURE_RANGES.bodyTemperature.min}
-              max={VITAL_SIGN_CAPTURE_RANGES.bodyTemperature.max}
-              step={VITAL_SIGN_CAPTURE_RANGES.bodyTemperature.step}
-              {...register("bodyTemperature")}
-              className="mt-1 block w-full rounded-md border border-border px-3 py-2"
-            />
-          </div>
-          <div>
-            <label htmlFor="bloodPressureSystolic" className="block text-sm font-medium">
-              Presión sistólica ({VITAL_SIGN_CAPTURE_RANGES.bloodPressureSystolic.unit})
-            </label>
-            <input
-              type="number"
-              id="bloodPressureSystolic"
-              min={VITAL_SIGN_CAPTURE_RANGES.bloodPressureSystolic.min}
-              max={VITAL_SIGN_CAPTURE_RANGES.bloodPressureSystolic.max}
-              step={VITAL_SIGN_CAPTURE_RANGES.bloodPressureSystolic.step}
-              {...register("bloodPressureSystolic")}
-              className="mt-1 block w-full rounded-md border border-border px-3 py-2"
-            />
-          </div>
-          <div>
-            <label htmlFor="bloodPressureDiastolic" className="block text-sm font-medium">
-              Presión diastólica ({VITAL_SIGN_CAPTURE_RANGES.bloodPressureDiastolic.unit})
-            </label>
-            <input
-              type="number"
-              id="bloodPressureDiastolic"
-              min={VITAL_SIGN_CAPTURE_RANGES.bloodPressureDiastolic.min}
-              max={VITAL_SIGN_CAPTURE_RANGES.bloodPressureDiastolic.max}
-              step={VITAL_SIGN_CAPTURE_RANGES.bloodPressureDiastolic.step}
-              {...register("bloodPressureDiastolic")}
-              className="mt-1 block w-full rounded-md border border-border px-3 py-2"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="rounded-lg border border-border bg-surface p-4">
-        <label htmlFor="evaScore" className="block text-sm font-medium">
-          EVA
-        </label>
-        <input
-          type="number"
-          id="evaScore"
-          min={VITAL_SIGN_CAPTURE_RANGES.evaScore.min}
-          max={VITAL_SIGN_CAPTURE_RANGES.evaScore.max}
-          step={VITAL_SIGN_CAPTURE_RANGES.evaScore.step}
-          {...register("evaScore")}
-          className="mt-1 block w-full rounded-md border border-border px-3 py-2"
-        />
-        <p className="text-xs text-muted mt-1">{EVA_HELPER_TEXT}</p>
-      </div>
-
-      <div className="rounded-lg border border-border bg-surface p-4 space-y-3">
-        <h3 className="text-sm font-semibold">Procedimientos</h3>
-        {fields.length === 0 && (
-          <p className="text-sm text-muted">No hay procedimientos cargados.</p>
-        )}
-
-        {fields.map((field, index) => {
-          const category = watchProcedures?.[index]?.category ?? field.category ?? "";
-          const codes =
-            category && isProcedureCategory(category)
-              ? getProcedureCodes(category)
-              : [];
-          const categoryField = register(`procedures.${index}.category` as const);
-          const codeField = register(`procedures.${index}.code` as const);
-
-          return (
-            <div key={field.id} className="space-y-2 rounded-md border border-border p-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium">Categoría</label>
-                  <select
-                    {...categoryField}
-                    onChange={(event) => {
-                      categoryField.onChange(event);
-                      setValue(`procedures.${index}.code`, "", {
-                        shouldDirty: true,
-                        shouldTouch: true,
-                        shouldValidate: true,
-                      });
-                    }}
-                    className="mt-1 block w-full rounded-md border border-border px-3 py-2"
-                  >
-                    <option value="">Seleccionar categoría</option>
-                    {ProcedureCategoryValues.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {formatProcedureCategory(cat)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium">Código</label>
-                  <select
-                    {...codeField}
-                    className="mt-1 block w-full rounded-md border border-border px-3 py-2"
-                  >
-                    <option value="">Seleccionar procedimiento</option>
-                    {codes.map((code) => (
-                      <option key={code} value={code}>
-                        {formatProcedureCode(code)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium">Región anatómica (opcional)</label>
-                  <input
-                    type="text"
-                    {...register(`procedures.${index}.bodySite` as const)}
-                    className="mt-1 block w-full rounded-md border border-border px-3 py-2"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium">Observaciones (opcional)</label>
-                  <input
-                    type="text"
-                    {...register(`procedures.${index}.note` as const)}
-                    className="mt-1 block w-full rounded-md border border-border px-3 py-2"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => remove(index)}
-                className="text-sm text-red-600"
-              >
-                Eliminar
-              </button>
-            </div>
-          );
-        })}
-
-        <button
-          type="button"
-          onClick={() => append(createDefaultProcedure())}
-          className="inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-white"
-        >
-          Agregar procedimiento
-        </button>
-      </div>
-
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <button
-          type="submit"
-          data-completion-mode="start"
-          className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Guardando..." : "Guardado parcial"}
-        </button>
-        <button
-          type="submit"
-          data-completion-mode="complete"
-          className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-transparent px-4 py-2 text-sm font-medium text-muted"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Guardando..." : "Registrar"}
-        </button>
-      </div>
-
-      <p className="text-xs text-muted">
-        La intención clínica se define por el botón de acción seleccionado.
-      </p>
+      <ClinicalEncounterForm
+        register={register}
+        formState={formState}
+        setValue={setValue}
+        fields={fields}
+        watchProcedures={watchProcedures}
+        appendProcedure={() => append(createDefaultProcedure())}
+        removeProcedure={remove}
+        practitionerName={practitionerName}
+        isSubmitting={isSubmitting}
+        showVisitType
+        actionMode="register"
+      />
     </form>
   );
 }

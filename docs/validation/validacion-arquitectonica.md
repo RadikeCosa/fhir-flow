@@ -163,6 +163,27 @@ Límites explícitos:
 - No fusiona planning con register.
 - No permite inferir intención por campos clínicos: la intención debe mantenerse explícita en la acción del usuario al submit.
 
+
+
+### 6.4 Unificación de formulario clínico register/continuidad (auditoría 2026-04-08)
+
+**Estado:** Parcialmente válido (brecha UX/runtime real detectada, sin implementación aún)
+
+Diagnóstico consolidado del runtime/código:
+
+- Existen **dos formularios clínicos reales** para el mismo dominio operativo de visita en curso/registro: `RegisterEncounterForm` (`/encounters/register`) y `FinalizeEncounterForm` (`/encounters/[encounterId]` en `in-progress`).
+- Existen **múltiples schemas activos** para el mismo set clínico (`registerEncounterSchema`, `saveEncounterProgressSchema`, `finalizeEncounterFormSchema` y schema local de UI en register), con alta superposición y drift menor en validaciones temporales/composición.
+- El input de nota clínica puede quedar oculto en continuidad por decisión de UI (bloque “Datos base de continuidad” colapsado por defecto), mostrando resumen sin textarea editable hasta expandir.
+- Signos vitales no son obligatorios como regla global de finalización; la percepción de obligatoriedad proviene de validaciones estrictas cuando se informan parcialmente/fuera de rango (especialmente presión arterial incompleta o incoherente).
+
+Decisión de arquitectura recomendada por el audit:
+
+- **Unificar en un nuevo formulario clínico compartido (source-of-truth único)** con schema base común y refinamientos por intención (`save-progress` vs `complete`), en lugar de seguir convergiendo dos formularios distintos con comportamiento paralelo.
+
+Referencia de sprint documental: `docs/sprints/sprint-unificacion-formulario-clinico-register-continuidad-2026-04-08.md`.
+
+Actualización de implementación (2026-04-09): el surface de continuidad/detail ya reutiliza la misma composición clínica compartida que register para campos base y bloques clínicos (timing, nota, motivo, vitales, EVA, procedimientos), reduciendo de forma explícita la divergencia de formularios paralelos.
+
 ### 7. Lifecycle transition en encounters planificados
 
 **Estado:** Válido hoy

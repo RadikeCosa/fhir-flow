@@ -165,6 +165,17 @@ No reabre practitioner consistency, ActionError fuera de encounter write, canoni
 - Con la implementación single-surface posterior, `Guardado parcial` ya no obliga salto inmediato a detail y la continuidad inicial queda en register.
 - Se conserva trazabilidad histórica del diagnóstico en `docs/sprints/sprint-audit-register-progress-detail-continuity-2026-04-08.md`.
 
+
+
+## Unificación formulario clínico register/continuidad (auditoría integral)
+**Estado** → **Abierto real (prioridad alta)**
+
+- Auditoría integral ejecutada el 2026-04-08: se confirma coexistencia de dos formularios clínicos reales (`RegisterEncounterForm` y `FinalizeEncounterForm`) y múltiples schemas activos con drift menor pero acumulativo.
+- Brecha principal: inconsistencia de experiencia/surface/copy en continuidad (`/encounters/register` vs `/encounters/[encounterId]`), con percepción de “segundo formulario” y ocultamiento inicial del input editable de nota clínica al retomar.
+- Vitales/EVA/procedimientos no son obligatorios por regla global, pero su validación estricta al informar valores genera percepción de obligatoriedad en ciertos casos.
+- Decisión recomendada del audit: **unificación real sobre un nuevo formulario clínico compartido** (no seguir con dos formularios paralelos).
+- Sprint documental propuesto: `docs/sprints/sprint-unificacion-formulario-clinico-register-continuidad-2026-04-08.md`.
+- Avance implementado en fases 2/3: `register` y `continuidad/detail` reutilizan composición clínica compartida (`ClinicalEncounterForm` + bloques clínicos comunes), eliminando divergencias principales de campos base entre surfaces.
 ## Register single-surface clínico (redefinición de flujo target)
 **Estado** → **Cerrado real (implementado)**
 
