@@ -37,6 +37,27 @@ The changes in this round were guided by four goals:
 
 ---
 
+## Update — 2026-04-09 (register/continuity front, bounded)
+
+Se registra una actualización acotada del app layer para dejar explícito el estado vigente del frente register/continuidad, sin declarar cierre global.
+
+Cambios consolidados en este frente:
+
+1. **Defaults compartidos con ownership neutral:** el formulario clínico compartido usa defaults neutrales entre register y continuidad para evitar drift por wrapper.
+2. **Snapshot `in-progress` consolidado server-side:** helper compartido `in-progress-clinical-snapshot` como base única de continuidad.
+3. **Wrappers alineados en error/submit:** banner de error reutilizable + wiring de submit/error consistente entre register y continuidad.
+4. **Referencias visibles por campo clínico:** ayudas de captura/rango normal visibles en la superficie clínica compartida.
+5. **Fix de falsa obligatoriedad vitales/EVA (fase 1 + fase 2):** corregida la brecha técnica de validación (schema/RHF) sin cambiar la regla clínica de obligatoriedad.
+6. **Limpieza del header de `/encounters/register`:** se removió la exposición visible de `episodeId` en el framing superior.
+
+Resultado de estado:
+
+- register funciona como single-surface clínico para alta/continuidad inicial;
+- continuidad/detail reutiliza la misma composición clínica base;
+- cierre válido en este frente (bounded), sin sobredeclarar cierre de UX global ni de arquitectura system-wide.
+
+---
+
 ## Changes completed
 
 ### 1. `encounters/[encounterId]/data.ts` now supports encounter-centric hydration for `in-progress`

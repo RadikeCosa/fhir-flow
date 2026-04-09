@@ -7,7 +7,7 @@ Este documento describe el estado real del sistema en relación a la arquitectur
 Este documento ofrece una validación honesta del estado real de la arquitectura: distingue lo válido hoy, lo transicional y la deuda conocida sin presentar el estado actual como cierre definitivo.
 No redefine autoridad ni crea frentes paralelos: cuando un frente ya está unificado operativamente en backlog (p. ej. continuidad system-wide), aquí se reporta su estado con el mismo límite de alcance.
 
-Fecha: 2026-04-07
+Fecha: 2026-04-09
 
 Este documento reemplaza el enfoque de "aprobado total" por una validación honesta del estado actual.
 
@@ -44,9 +44,11 @@ Resultado del diagnóstico:
 | Inverse mapper purity | **Parcialmente válido** | Regla arquitectónica es clara: mapper puro, sin resolver identidad ni reglas de negocio. Persisten riesgos de drift cuando la resolución de contexto no entra por input. | copilot instructions + ADR (responsabilidad de practitioner en Server Action). | Verificar por flujo que mapper solo transforme input validado y no lea config. |
 | Practitioner resolution (encounter write front) | **Válido hoy (alcance acotado)** | En encounter write, los flujos attribution-driven (`createEncounterAction`, `saveEncounterProgressAction`, `finalizeEncounterAction`, `registerEncounterAction`) resuelven practitioner server-side y lo propagan por write input hacia repository/mapper. `startEncounterAction` queda como exención explícita del sprint por ser transición de estado sobre encounter ya atribuido. | ADR sección de practitioner responsibility + write-phase + sprint practitioner consistency (T1–T5). | Mantener cobertura de regresión en ese frente sin extrapolar a rediseño global de identity. |
 | Register flow (`/encounters/register`) | **Válido hoy** | La separación de entry points está operativa: `/encounters/new` planifica y `/encounters/register` registra con `registerEncounterAction` y `completionMode` explícito (`start`/`complete`). | Estado de app layer + write-phase actualizado. | Mantener consistencia documental y evitar regresión semántica entre rutas. |
-| Register entry flow (`/encounters/register`) | **Parcialmente válido (fricción de continuidad register→detail detectada)** | El gate inicial ya fue eliminado y el usuario entra directo al formulario con intención explícita en submit (`Guardar progreso`/`Finalizar visita`). La auditoría runtime 2026-04-08 confirma que el redirect post-`Guardar progreso` a detail es correcto encounter-centric, pero deja fricción UX/semántica por superposición parcial register/detail (timing + nota + acciones) y framing temprano de “Finalizar visita” en el surface `in-progress`. | ADR-001 + write-phase + checkpoint app-layer + sprint UX 2026-04-07 + sprint entry-flow 2026-04-08 + sprint audit continuidad 2026-04-08. | Ejecutar reparación mínima de continuidad UX/composición sin reabrir lifecycle ni practitioner model. |
-| Register UX/semántica (surface de formulario) | **Parcialmente válido (refinamiento UX pendiente, sin brecha arquitectónica)** | El surface `register` está operativo y consistente con lifecycle, pero conserva señales semánticas mejorables (etiqueta "real" en fecha/horas, bloque "Profesional" visible sin aportar decisión, affordance de nota clínica siempre expandida y necesidad de reforzar en UI que no corresponde registrar visitas futuras desde register). | ADR-001 + ADR-003 + write-phase + checkpoint app architecture + sprint UX documental 2026-04-07. | Ejecutar sprint UX acotado del formulario sin alterar arquitectura ni reglas de cierre clínico. |
+| Register entry flow (`/encounters/register`) | **Válido hoy (cierre acotado)** | La entrada al formulario clínico ya es directa (sin gate inicial), con intención explícita en submit (`Guardar progreso`/`Finalizar visita`) y continuidad en la misma surface register para el primer tramo `in-progress`. | ADR-001 + write-phase + checkpoint app-layer + implementación single-surface 2026-04-08/2026-04-09. | Mantener seguimiento semántico menor sin reabrir lifecycle ni practitioner model. |
+| Register UX/semántica (surface de formulario) | **Válido hoy (cierre bounded en este frente)** | El surface register quedó clínicamente unificado con continuidad y se limpió framing superior (sin `episodeId` visible). Persisten posibles ajustes menores de copy/jerarquía, clasificados como remanente nominal/documental. | ADR-001 + ADR-003 + write-phase + checkpoint app architecture + update 2026-04-09. | Mantener iteración UX menor sin tratarla como deuda arquitectónica activa. |
 | Save progress separado | **Válido hoy** | `saveEncounterProgressAction` existe como operación propia con snapshot transaccional y ownership metadata interoperable para recursos clínicos gestionados por esta app. | write-phase + código de acciones/rules/repositorio. | Mantener hardening de validaciones por estado y ownership. |
+| Unificación formulario clínico register/continuidad | **Válido hoy (cierre bounded)** | Register y continuidad/detail comparten composición clínica y defaults neutrales; snapshot `in-progress` y wiring de wrappers (`submit/error` + banner) quedaron consolidados server-side para reducir drift cross-surface. | Checkpoint app-layer + auditoría técnica 2026-04-09 + implementación fase 2/3. | Mantener vigilancia de drift documental; no reabrir frente como “doble formulario activo”. |
+| Validación clínica vitales/EVA en register/continuidad | **Válido hoy (bug corregido)** | La falsa obligatoriedad percibida de vitales/EVA quedó corregida en fases 1+2; el problema era técnico (schema/RHF) y no una regla clínica de obligatoriedad global. | Auditoría técnica 2026-04-09 + validaciones de formulario compartido. | Sostener regresión en tests de validación y mantener wording clínico explícito. |
 | Lifecycle transition (`planned -> in-progress`) | **Válido hoy** | `startEncounterAction` ya está operativo para encounters planificados y la finalización exige `in-progress`. | Reglas de estado en actions/domain + write-phase actualizado. | Mantener hardening de regresiones y tests de estado. |
 | Canonical read (finished detail) | **Validado (alcance acotado)** | El path `finished encounter detail` quedó validado como lectura canónica encounter-centric por `encounterId`, sin fallback temporal como source of truth en ese surface. El hardening global de read model fuera de ese alcance permanece abierto. | ADR + write-phase + backlog vigente + validación específica del sprint 2026-03 (auditoría + tests). | Sostener cobertura de regresión en `finished detail` y mantener explícita la deuda global fuera de este surface. |
 | Canonical read hardening global de `finished` (más allá de detail) | **Cierre documental acotado (hardening mínimo de señalización canónica)** | Se cerró este ticket en alcance documental con hardening mínimo correcto fuera de detail: `patient detail` refuerza navegación al detail canónico del `lastEncounter` y `encounter history` se mantiene como resumen/navegación secundaria. Resultado: **sin bug runtime nuevo verificable**, **sin refactor general** y **sin reapertura** del closure bounded de `finished encounter detail`. | Sprint `sprint-canonical-read-finished-global-audit-2026-04-06.md` + fix mínimo ya aplicado en `LastEncounterSection` + tests de render del CTA canónico. | Mantener límite explícito: **no implica cierre global/system-wide**, **no reabre G1–G4** y no sustituye la deuda longitudinal/histórica global. |
@@ -117,16 +119,18 @@ La separación de entry points está implementada: `/encounters/new` planifica y
 
 ### 6.2 Register UX/semántica del formulario (refinamiento acotado)
 
-**Estado:** Parcialmente válido (documentado para sprint UX, sin cambio arquitectónico)
+**Estado:** Válido hoy (cierre bounded en surface register)
 
-Se identifica un frente UX puntual en `/encounters/register` que no modifica arquitectura ni lifecycle:
+Actualización 2026-04-09:
 
-- revisar si "real" sigue aportando claridad en campos de fecha/hora de inicio/hora de fin;
-- evaluar si el bloque "Profesional" visible aporta valor operativo o agrega ruido;
-- reforzar semántica de producto: register no corresponde a visitas futuras (esas pertenecen a planning);
-- permitir entrada progresiva de nota clínica vía bloque colapsable/expandible, sin relajar la regla vigente de nota requerida cuando la intención es completar/finalizar.
+- El formulario clínico compartido consolidó la semántica base register/continuidad.
+- Se corrigió el framing superior de `/encounters/register` para no exponer `episodeId` visible.
+- La falsa obligatoriedad percibida de vitales/EVA quedó resuelta en la corrección técnica de validación (schema/RHF), manteniendo la regla clínica real: no son obligatorios por defecto.
 
-Este frente queda explicitado como sprint UX/documental acotado (`docs/sprints/sprint-ux-register-form-acotado-2026-04-07.md`) y no reabre decisiones cerradas de ADR-001/ADR-003 ni separación planning/register.
+Remanente:
+
+- solo ajustes menores de copy/jerarquía visual, clasificados como nominal/documental.
+- no corresponde abrir frente arquitectónico nuevo ni reabrir ADR-001/ADR-003.
 
 
 ### 6.3 Register entry flow unificado + continuidad post-primer submit
@@ -167,22 +171,18 @@ Límites explícitos:
 
 ### 6.4 Unificación de formulario clínico register/continuidad (auditoría 2026-04-08)
 
-**Estado:** Parcialmente válido (brecha UX/runtime real detectada, sin implementación aún)
+**Estado:** Válido hoy (cierre bounded del frente auditado)
 
-Diagnóstico consolidado del runtime/código:
+Diagnóstico actualizado 2026-04-09:
 
-- Existen **dos formularios clínicos reales** para el mismo dominio operativo de visita en curso/registro: `RegisterEncounterForm` (`/encounters/register`) y `FinalizeEncounterForm` (`/encounters/[encounterId]` en `in-progress`).
-- Existen **múltiples schemas activos** para el mismo set clínico (`registerEncounterSchema`, `saveEncounterProgressSchema`, `finalizeEncounterFormSchema` y schema local de UI en register), con alta superposición y drift menor en validaciones temporales/composición.
-- El input de nota clínica puede quedar oculto en continuidad por decisión de UI (bloque “Datos base de continuidad” colapsado por defecto), mostrando resumen sin textarea editable hasta expandir.
-- Signos vitales no son obligatorios como regla global de finalización; la percepción de obligatoriedad proviene de validaciones estrictas cuando se informan parcialmente/fuera de rango (especialmente presión arterial incompleta o incoherente).
+- La hipótesis de “dos formularios clínicos completos compitiendo” quedó desactivada para el frente activo: register y continuidad/detail comparten composición clínica, defaults neutrales y snapshot `in-progress` consolidado server-side.
+- Los wrappers quedaron alineados en banner de error y wiring `submit/error`, reduciendo drift de comportamiento entre surfaces.
+- Vitales/EVA mantienen su semántica clínica real (no obligatorios por defecto) y ya no presentan la falsa obligatoriedad técnica detectada en la auditoría inicial.
 
-Decisión de arquitectura recomendada por el audit:
+Límite explícito:
 
-- **Unificar en un nuevo formulario clínico compartido (source-of-truth único)** con schema base común y refinamientos por intención (`save-progress` vs `complete`), en lugar de seguir convergiendo dos formularios distintos con comportamiento paralelo.
-
-Referencia de sprint documental: `docs/sprints/sprint-unificacion-formulario-clinico-register-continuidad-2026-04-08.md`.
-
-Actualización de implementación (2026-04-09): el surface de continuidad/detail ya reutiliza la misma composición clínica compartida que register para campos base y bloques clínicos (timing, nota, motivo, vitales, EVA, procedimientos), reduciendo de forma explícita la divergencia de formularios paralelos.
+- este cierre es acotado al frente register/continuidad del app layer.
+- no se declara cierre global de UX, arquitectura total ni deuda longitudinal fuera de alcance.
 
 ### 7. Lifecycle transition en encounters planificados
 
